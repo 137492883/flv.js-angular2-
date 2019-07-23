@@ -1,0 +1,252 @@
+import {Component, OnInit, ViewChild} from '@angular/core';
+import {routerTransition} from '../../../../router.animations';
+import {CommonUtil} from '../../../../shared/providers/CommonUtil';
+import {systemconst} from '../../../../systemconst';
+import {ActivatedRoute, Router} from '@angular/router';
+import {UpgradeTask} from '../../../../shared/model/UpgradeTask';
+import {FileUploader} from 'ng2-file-upload';
+import {DeviceService} from '../../../../shared/services/device/device.service';
+import {UpgradePlan} from '../../../../shared/model/UpgradePlan';
+import {BaseComponent} from '../../../../shared/components/BaseComponent';
+declare var browserMD5File: any;
+/**
+ * 描述:终端升级任务编辑页面操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/08 16:05:30
+ */
+@Component({
+    selector: 'app-save',
+    templateUrl: './save.component.html',
+    styleUrls: ['./save.component.scss'],
+    animations: [routerTransition()]
+})
+export class SaveComponent extends BaseComponent implements OnInit {
+    /**
+     * 当前升级任务
+     * @type {UpgradeTask}
+     */
+    task: UpgradeTask = new UpgradeTask();
+    /**
+     * 验证信息
+     * @type {string}
+     */
+    valid = '';
+    fileName = '';
+    /**
+     * 是否提交
+     * @type {boolean}
+     */
+    isSubmit = false;
+    isApk: boolean;
+    /**
+     * 是否强制升级
+     */
+    forced: boolean;
+    /**
+     * 标题
+     * @type {string}
+     */
+    title = ' 新建应用';
+    /**
+     * 当前文件md5值
+     * @type {string}
+     */
+    currentFileMd5 = '';
+    plans: Array<UpgradePlan> = new Array<UpgradePlan>();
+    plan: UpgradePlan = new UpgradePlan();
+    /**
+     * 上传文件
+     * @type {FileUploader}
+     */
+    public uploader: FileUploader = new FileUploader({
+        authToken: 'Bearer ' + localStorage.getItem('id_token'),
+        url: systemconst.api_url + 'device/UploadFile'
+    });
+
+    constructor(public commonUtil: CommonUtil, public route: ActivatedRoute, public router: Router, public deviceService: DeviceService) {
+        super();
+        this.uploader.onAfterAddingFile = (fileItem) => {
+            this.fileName = fileItem.file.name;
+            const file = this.uploader.queue[this.uploader.queue.length - 1];
+            file.onSuccess = (response, status, headers) => {
+                document.getElementById('lmask').style.display = 'none';
+                if (status === 200) {
+                    this.task.fileUrl = JSON.parse(response).url;
+                    this.fileName = JSON.parse(response).url;
+                    this.task.md5 = JSON.parse(response).md5;
+                    this.task.size = JSON.parse(response).size;
+                    // this.task.packageName = fileItem.file.name;
+                    this.task.packageName = JSON.parse(response).packagename;
+                    this.task.number = JSON.parse(response).number;
+                    this.task.versionCode = JSON.parse(response).versioncode;
+                } else {
+                }
+            };
+            file.onProgress = (progress) => {
+            }
+        };
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        const id = this.route.snapshot.paramMap.get('id');
+        if (id !== 'null') {
+            this.title = '编辑应用';
+            this.deviceService.getObject1('/applicationupgrade/findById', {id: id}).subscribe((task) => {
+                this.task = task;
+            });
+        }
+    }
+
+    /**
+     * 删除任务
+     */
+    deleteTask() {
+        document.getElementById('lmask').style.display = 'block';
+        this.deviceService.getObject1('/applicationupgrade/findAppUpgradePlanByTaskId1', {id: this.task.id}).subscribe(
+            (result) => {
+                this.plans = result;
+                if (this.plans.length <= 0) { //  应用任务(测试和不是测试)没有被终端应用使用
+                    if (this.task.locked) { // 应用任务为锁定的状态
+                        this.showErrorMsg('本应用已被锁定，如需删除，请先解锁。', 5000);
+                        document.getElementById('lmask').style.display = 'none';
+                    } else { // 应用任务不是锁定的状态
+                        this.task.deleted = true;
+                        this.deviceService.save('/applicationupgrade/saveApplicationUpgradeTask', this.task).subscribe((device) => {
+                            setTimeout(() => {
+                                systemconst.alertMessage = '删除成功！';
+                                this.router.navigate(['/device/apk-task/list']);
+                            }, 2000);
+                        });
+                    }
+                } else { //  应用任务(测试和不是测试)正在被终端应用使用
+                    const a = [];
+                    for (let j = 0; j < this.plans.length; j++) {
+                        a.push(this.plans[j].name);
+                    }
+                    this.showErrorMsg('本应用已经被终端应用【' + a + '】使用，如需删除，请先删除上述终端应用或修改上述终端应用中的应用任务为其他任务。', 5000);
+                    document.getElementById('lmask').style.display = 'none';
+                }
+            });
+    }
+
+    /**
+     * 保存升级任务
+     */
+    submitForm() {
+        const id = this.route.snapshot.paramMap.get('id');
+        if (id !== 'null') {
+            // 有id值
+            if (!this.commonUtil.isEmpty(this.task.name)) {
+                this.showErrorMsg('应用名称不能为空！');
+            }
+            if (!this.commonUtil.isEmpty(this.task.version)) {
+                this.showErrorMsg('版本号不能为空');
+            }
+            if (!this.commonUtil.isEmpty(this.task.size)) {
+                this.showErrorMsg('请先上传文件');
+                return;
+            }
+            if (!this.commonUtil.isEmpty(this.task.fileUrl)) {
+                this.showErrorMsg('请先上传文件');
+                return;
+            }
+            this.task.creatorId = systemconst.currentUser.id;
+            document.getElementById('lmask').style.display = 'block';
+            this.deviceService.getObject1('/applicationupgrade/findAppUpgradePlanByTaskId1',
+                {id: id}).subscribe((result) => {
+                this.plans = result;
+                //  测试任务
+                if (this.plans.length <= 0) { // 应用任务(测试和不是测试)没有被终端应用使用
+                    if (this.task.locked) { // 应用任务为锁定的状态
+                        this.showErrorMsg('本应用已被锁定，如需修改，请先解锁。', 5000);
+                        document.getElementById('lmask').style.display = 'none';
+                    } else {
+                        console.log('这里是不是锁定状态下可以去保存');
+                        this.commonUtil.trimObject(this.task);
+                        this.deviceService.save('/applicationupgrade/saveApplicationUpgradeTask', this.task).subscribe((device) => {
+                            setTimeout(() => {
+                                systemconst.alertMessage = '保存成功！';
+                                this.router.navigate(['/device/apk-task/list']);
+                            }, 2000);
+                        });
+                    }
+                } else {  // 应用任务(测试和不是测试) 被终端应用使用
+                    const a = [];
+                    for (let j = 0; j < this.plans.length; j++) {
+                        a.push(this.plans[j].name);
+                    }
+                    this.showErrorMsg('本应用已被终端应用【' + a + '】使用，如需保存，请先删除上述终端应用或修改上述终端应用中的应用任务为其他任务。', 5000);
+                    document.getElementById('lmask').style.display = 'none';
+                }
+            });
+        } else {
+            // 新建应用任务
+            if (!this.commonUtil.isEmpty(this.task.name)) {
+                this.showErrorMsg('应用名称不能为空！');
+                return;
+            }
+            if (!this.commonUtil.isEmpty(this.task.version)) {
+                this.showErrorMsg('版本号不能为空');
+                return;
+            }
+            if (!this.commonUtil.isEmpty(this.task.size)) {
+                this.showErrorMsg('请先上传文件');
+                return;
+            }
+            this.task.creatorId = systemconst.currentUser.id;
+            //  新增任务
+            this.isSubmit = true;
+            this.commonUtil.trimObject(this.task);
+            this.deviceService.save('/applicationupgrade/saveApplicationUpgradeTask', this.task).subscribe((device) => {
+                setTimeout(() => {
+                    systemconst.alertMessage = '保存成功！';
+                    this.router.navigate(['/device/apk-task/list']);
+                }, 2000);
+            });
+        }
+    }
+
+    /**
+     * 选择文件触发的事件
+     * @param event
+     */
+    selectedFileOnChanged(event: any) {
+        const files = event.target.files;
+        browserMD5File(files[0], (err, md5) => {
+            this.currentFileMd5 = md5;
+        });
+        this.uploader.clearQueue();
+        this.uploader.addToQueue(files);
+    }
+
+    /**
+     * 上传文件
+     */
+    uploadFile() {
+        this.deviceService.getFileByMd5(this.currentFileMd5).subscribe((fileInfo) => {
+            if (!this.commonUtil.isEmpty(fileInfo.id)) {
+                const fileName = this.uploader.queue[this.uploader.queue.length - 1].file.name;
+                if (fileName.lastIndexOf('.apk') < 0) {
+                    this.isApk = false;
+                    return;
+                }
+                this.isApk = true;
+                document.getElementById('lmask').style.display = 'block';
+                this.uploader.queue[this.uploader.queue.length - 1].upload();
+            } else {
+                this.task.fileUrl = fileInfo.filePath;
+                this.fileName = fileInfo.filePath;
+                this.task.md5 = fileInfo.md5;
+                this.task.size = fileInfo.size+'';
+                this.task.packageName = fileInfo.packagename;
+                this.task.number = fileInfo.number;
+                this.task.versionCode = fileInfo.versioncode+'';
+                this.showSuccessMsg('上传成功');
+            }
+        });
+    }
+
+}

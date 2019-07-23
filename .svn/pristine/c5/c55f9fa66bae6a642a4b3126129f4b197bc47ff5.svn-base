@@ -1,0 +1,16 @@
+export class TeleControlCommand {
+    imsi: string;
+    command: string;
+    sn: string;
+    uuid: string;
+    /**
+     * command定义：
+     101		连续画面获取
+     102		单一画面获取
+     106		音量+5
+     107		音量-5
+     108		设备解锁
+     109		设备上锁
+     110     	连续画面获取终止
+     */
+}

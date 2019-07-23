@@ -1,0 +1,122 @@
+import {Injectable} from '@angular/core';
+import {ApiService} from '../api.service';
+import {Observable} from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
+import {Advertisement} from '../../model/advertisement';
+import {Paging} from '../../model/Paging';
+import {BaseService} from '../base.service';
+import {Headers, Response, URLSearchParams} from "@angular/http";
+@Injectable()
+export class AdvertisementService extends BaseService {
+
+    constructor(public apiService: ApiService) {
+        super(apiService);
+    }
+
+    /**
+     * 获取广告列表
+     * @returns {Observable<R>}
+     */
+    advertisementList(): Observable<any> {
+        let info={
+            scheduleSyned: "0",
+            upgrade: {
+                upgradeScheduleId: "",
+                downloadPercent: "",
+                updatedFlag: "null"
+            },
+            ad: {
+                schedule: [],
+                position: [],
+                detail: [
+                    {
+                        playScheduleId : '000000006020bffa0160214ac49e1822',
+                        positionId : '11111111111111111111111111111111',
+                        playDetailId : '000000006020bffa016020f345630801',
+                        playDuration:'30',
+                        playTime :'1',
+                        downloadPercent :'',
+                        downloadState  :'',
+                    }
+                ]
+            },
+            device: {
+                storage: "3.9/4.1G",
+                coordinate: "null"
+            },
+            alarm: [
+            ]
+        };
+        let heartbeat={
+            "token": "F4A262E0B437B484209EFBF570AEB352B7DE29DD64FF76E61ECA16204B6E80F196BE5B1CFB65472AD60100E0B6A1081EA6EE2C5484B975A8E9008F9430B12DF6202A9955D6D5254F904A527B14DE21DB38833109A90C8891A81CE9E44A9E5CF8EC726A37FA08940FE2CC7CB65B60406BD79E1B59A4E096151B9C3E05B698F0F5185511E0CD89308A5B08019D2E747A83BF5532E7E7AA51F9341FDBE7F743722E16B225A652D24C11CF058CA0AB2E5A5D8243A1FE6416A6B9D7461A12DABA0DA8069E3724D7ECA9818D3973BFA31A7A122E7E0F75D60F07ABC3EAA12490B6DF967ADA68234DA8E50A33EBFCD5DCEB2F3074DC905285F9AD5CE9FCFAC4D385D54316E45287B5ADBEF1CFE65D393908AF1E4AA69EB758A6C812ECD1F361DB9DA42C3F4316604BC69C465DC13B188CA3A066C7682079CE9C5E6EEFD4DDED761FBED6021C26B3E86B3DF3F26E5F2A259E65",
+            "state": 1,
+            "info": JSON.stringify(info)
+        }
+        let p=new URLSearchParams();
+        // p.set("token","F4A262E0B437B484209EFBF570AEB352B7DE29DD64FF76E61ECA16204B6E80F196BE5B1CFB65472AD3023EE4B6A1261E8FBAD33AC482E85F457BCEDA22109AACB3471EEF7EA8EE7C02C4F778E87006D815F36CB39B722EBE309085F152E480396319D327950F4DC8C071DEA96FB0204E4ACFAE50CA31D7C85BEC5DDE8ACDC691AD3EA27208FEE3F884EF2AB355B6633852E4FD32A5182D278DD88FF7E0143FBA4616D3FBD79E27AC54F00DB38A2BC67A391E9B1FF75672C8B226C45167729BB2E6E90012BA3C5D4E8095380A7F93707B1BCC1D87A36D057E12DBEC6D620005A19E36EAA3195C8CE6B385D61BFF469A51D338184A86341CF808F4ADE2E20B2E84D590A743E4F136F8AA4ED48745A36E9B265E7C9FA0564C939CC3882F043F100618E9AB056F4F5EC5D038A7762E43E0B94CFDCBA341CBB3D9690E8C59B33B0EE3")
+        p.set("token","F4A262E0B437B484209EFBF570AEB352B7DE29DD64FF76E61ECA16204B6E80F196BE5B1CFB65472AD30000F4FFA21820A14594195851E832C9EF24AA457FF8B3B93ABDAD52B2DDF8C8164B313D672E3E4D69EE43C7FD2AD1AE710AE244566323E3FD892EB2F2A08643CC1019B8F503F319538AA7478B682EF526F09ED1C9086E6ED0C2227052AD3B48EB547EA3F7870CC20D78711FC9240B3B0B2349D5F7E871F805C0FFC543FCBB347D3A5D8FFAC128785ED1E45B26F509E9E7E593EA525EB7F1A7851CECF52548D232BE96628EA52DF017A7B5AA2A10FEB52AD70745ADBB2A2B3B1EC37605A959504F2C5064138726463ABB1F6A027014AF2ECBB79F0B2C1B07D4531B421ED90948643B48ECD7D3811ECDE345B80E28451E3E8C06CAE571573B69759E570E3FB2A0B22F8CA51802C827421362E8EA31B564EF807F3FD0B8A6")
+        p.set("state","1")
+        p.set("info",JSON.stringify(info))
+        return this.apiService.get("/api/heartbeat",p)
+            .map(data => data.json());
+    }
+
+    /**
+     * 保存广告
+     * @param advertisement
+     * @returns {Observable<R>}
+     */
+    saveAdvertisement(advertisement: Advertisement): Observable<any> {
+        return this.apiService.post('saveAdvertisement', advertisement)
+            .map(data => data.json());
+    }
+
+    /**
+     * 修改广告状态
+     * @param advertisement
+     * @returns {Observable<R>}
+     */
+    saveOrUpdateAdvertisementStatus(advertisement: Advertisement): Observable<any> {
+        return this.apiService.post('saveOrUpdateAdvertisementStatus', advertisement)
+            .map(data => data.json());
+    }
+
+    /**
+     * 查找广告
+     * @param queryParam
+     * @returns {Observable<R>}
+     */
+    findAdvertisements(queryParam: Advertisement): Observable<Paging> {
+        return this.apiService.post('findAdvertisements', queryParam)
+            .map(data => data.json());
+    }
+
+    /**
+     * 查找当前组织机构下的广告
+     * @returns {Observable<R>}
+     */
+    findAdvertisementsForCurrentUserOrg(): Observable<any> {
+        return this.apiService.post('findAdvertisementsForCurrentUserOrg')
+            .map(data => data.json());
+    }
+
+    /**
+     * 查找当前组织机构下的广告
+     * @returns {Observable<R>}
+     */
+    findDistributeAdvertisementsForCurrentUserOrg(): Observable<any> {
+        return this.apiService.post('findDistributeAdvertisementsForCurrentUserOrg')
+            .map(data => data.json());
+    }
+
+    /**
+     * 通过id查找广告
+     * @param queryParam
+     * @returns {Observable<R>}
+     */
+    findById(queryParam: Advertisement): Observable<any> {
+        return this.apiService.post('findById', queryParam)
+            .map(data => data.json());
+    }
+}

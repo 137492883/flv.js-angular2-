@@ -1,0 +1,207 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-table"></i> 终端划拨</li>
+                <div class="float-right" *appPermision="'zhongduan_huabo'">
+                    <button type="button" class="btn btn-primary btn-sm" (click)="openModel(divideContent)">终端划拨</button>
+                </div>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <div class="form-group row">
+                        <div class="col-sm-2">
+                            <label class="col-form-label">终端sn区间:</label>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" placeholder="开始区间" [(ngModel)]="deviceQuery.startSn">
+                        </div>
+                        <div class="col-auto">
+                            至
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" placeholder="结束区间" [(ngModel)]="deviceQuery.endSn">
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary" (click)="findObjects('/device/findDevices')">查询</button>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-2">
+                            <label class="col-form-label">物联网模块sn区间:</label>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" placeholder="开始区间" [(ngModel)]="deviceQuery.startWulianwangsn">
+                        </div>
+                        <div class="col-auto">
+                            至
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" placeholder="结束区间" [(ngModel)]="deviceQuery.endWulianwangsn">
+                        </div>
+                    </div>
+                </div>
+                <div class=" table-responsive">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th><input type="checkbox" [(ngModel)]="allSelect" (change)="selectAll()">全选</th>
+                            <th>序号</th>
+                            <th>划拨机构</th>
+                            <th>终端SN</th>
+                            <th>终端IMEI</th>
+                            <th>物联网卡号</th>
+                            <th>物联网模块IMEI</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let device of objects ,let i = index;" placement="bottom">
+                            <th><input type="checkbox" [value]="device.id" [checked]="device.checked"
+                                       [(ngModel)]="device.checked"></th>
+                            <th>{{i+1}}</th>
+                            <td>
+                                {{device.tenantOrgName}}
+                            </td>
+                            <td (click)="openSee(content,device.id)">{{disposeStr(device.sn,20)}}</td>
+                            <td (click)="openSee(content,device.id)">{{disposeStr(device.deviceimei,20)}}</td>
+                            <td (click)="openSee(content,device.id)">{{disposeStr(device.cardNum,20)}}</td>
+                            <td (click)="openSee(content,device.id)">{{disposeStr(device.wulianwnagmac,20)}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="queryResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'"
+                                [nextText]="'后一页'"
+                                [boundaryLinks]="true" [rotate]="false"
+                                (pageChanged)="onPageChange($event,'/device/findDevices')"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #content let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">终端描述</h5>
+    </div>
+    <div class="modal-body">
+        <div class="container">
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">租户组织机构</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.orgName">
+                </div>
+                <div class="col-sm-2">
+                    <label class="col-form-label">终端SN</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.sn">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">终端IMEI</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.deviceimei">
+                </div>
+                <div class="col-sm-2">
+                    <label class="col-form-label">SIM卡 ICCID</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.cardNum">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">物联网SN</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.wulianwangimei">
+                </div>
+                <div class="col-sm-2">
+                    <label class="col-form-label">物联网MAC</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.wulianwnagmac">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">物联网IMEI</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.wulianwangsn">
+                </div>
+                <div class="col-sm-2">
+                    <label class="col-form-label">软件版本号</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.softVersion">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">安卓版本号</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.androidVersion">
+                </div>
+                <div class="col-sm-2">
+                    <label class="col-form-label">平台类型</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.platformType">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">产品型号</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.productionModel">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="closeModal()">关闭</button>
+    </div>
+</ng-template>
+
+<ng-template #divideContent let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">终端划拨<span style="color: red" *ngIf="tenantOrgId===''&&isSubmit">&nbsp;请选择组织机构</span></h5>
+    </div>
+    <div class="modal-body">
+        <div class="container">
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">划拨组织机构</label>
+                </div>
+                <div class="col">
+                    <select class="form-control" [(ngModel)]="tenantOrgId">
+                        <option selected value="">选择租户组织结构</option>
+                        <option *ngFor="let org of organizations" [value]="org.id">{{org.name}}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="divideDevice()">保存</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="closeModal()">关闭</button>
+    </div>
+</ng-template>

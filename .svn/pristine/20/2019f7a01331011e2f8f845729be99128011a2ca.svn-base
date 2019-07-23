@@ -1,0 +1,84 @@
+import {NgModule} from '@angular/core';
+import {Routes, RouterModule} from '@angular/router';
+import {LayoutComponent} from './layout.component';
+import {AuthGuard} from '../shared/guard/auth.guard';
+
+const routes: Routes = [
+    {
+        path: '', component: LayoutComponent,
+        canActivateChild: [AuthGuard],
+        children: [
+            {path: 'userManager', loadChildren: './user/user.module#UserModule'},
+            {path: 'device/entering/list', loadChildren: './device/entering/list/list.module#ListModule'},
+            {path: 'device/entering/setAp/:flag', loadChildren: './device/entering/list/list.module#ListModule'},
+            {path: 'device/entering/bindCard/:flag', loadChildren: './device/entering/list/list.module#ListModule'},
+            {path: 'device/entering/factoryinit/:flag', loadChildren: './device/entering/list/list.module#ListModule'},
+            {path: 'device/entering/save/:id', loadChildren: './device/entering/save/save.module#SaveModule'},
+            {path: 'device/group/list', loadChildren: './device/group/list/list.module#ListModule'},
+            {path: 'device/group/save/:id', loadChildren: './device/group/save/save.module#SaveModule'},
+            {path: 'device/plan/list', loadChildren: './device/plan/list/list.module#ListModule'},
+            {path: 'device/plan/save/:id', loadChildren: './device/plan/save/save.module#SaveModule'},
+            {path: 'device/task/list', loadChildren: './device/task/list/list.module#ListModule'},
+            {path: 'device/task/save/:id', loadChildren: './device/task/save/save.module#SaveModule'},
+            {path: 'device/apk-plan/list', loadChildren: './device/apk-plan/list/list.module#ListModule'},
+            {path: 'device/apk-plan/save/:id', loadChildren: './device/apk-plan/save/save.module#SaveModule'},
+            {path: 'device/apk-task/list', loadChildren: './device/apk-task/list/list.module#ListModule'},
+            {path: 'device/apk-task/save/:id', loadChildren: './device/apk-task/save/save.module#SaveModule'},
+            {path: 'device/apk-white/list', loadChildren: './device/apk-white/list/list.module#ListModule'},
+            {path: 'device/apk-white/save/:id', loadChildren: './device/apk-white/save/save.module#SaveModule'},
+            {path: 'device/monitoring', loadChildren: './device/monitoring/monitoring.module#MonitoringModule'},
+            {path: 'device/monitoring/map', loadChildren: './device/monitoring/map/map.module#MapModule'},
+            { path: 'device/monitoring/terminalLog/:id',
+                loadChildren: './device/monitoring/terminal-log/terminal-log.module#TerminalLogModule' },
+            {path: 'device/divide', loadChildren: './device/divide/divide.module#DivideModule'},
+            {path: 'broadcast/task/list', loadChildren: './broadcast/task/list/list.module#ListModule'},
+            {path: 'broadcast/task/save/:id', loadChildren: './broadcast/task/save/save.module#SaveModule'},
+            {path: 'broadcast/plan/list', loadChildren: './broadcast/plan/list/list.module#ListModule'},
+            {path: 'broadcast/plan/save/:id', loadChildren: './broadcast/plan/save/save.module#SaveModule'},
+            {path: 'system/log/list', loadChildren: './system/log/list/list.module#ListModule'},
+            {path: 'order/ddxx/list', loadChildren: './order/ddxx/list/list.module#ListModule'},
+            {path: 'order/gdxx/list', loadChildren: './order/gdxx/list/list.module#ListModule'},
+            {path: 'order/zftc/list/:id', loadChildren: './order/zftc/list/list.module#ListModule'},
+            {path: 'system/platform/user/list', loadChildren: './system/platform/user/list/list.module#ListModule'},
+            {path: 'system/platform/user/save', loadChildren: './system/platform/user/save/save.module#SaveModule'},
+            {path: 'system/platform/user/save/:id', loadChildren: './system/platform/user/save/save.module#SaveModule'},
+            {path: 'system/platform/role/list', loadChildren: './system/platform/role/list/list.module#ListModule'},
+            {path: 'system/platform/role/save', loadChildren: './system/platform/role/save/save.module#SaveModule'},
+            {path: 'system/platform/role/save/:id', loadChildren: './system/platform/role/save/save.module#SaveModule'},
+            {
+                path: 'system/platform/organization/list',
+                loadChildren: './system/platform/organization/list/list.module#ListModule'
+            },
+            {
+                path: 'system/platform/organization/save',
+                loadChildren: './system/platform/organization/save/save.module#SaveModule'
+            },
+            {
+                path: 'system/platform/organization/update/:id',
+                loadChildren: './system/platform/organization/save/save.module#SaveModule'
+            },
+            {
+                path: 'system/tenant/organization/list',
+                loadChildren: './system/tenant/organization/list/list.module#ListModule'
+            },
+            {path: 'system/tenant/user/list', loadChildren: './system/tenant/user/list/list.module#ListModule'},
+            {path: 'system/tenant/user/save/:id', loadChildren: './system/tenant/user/save/save.module#SaveModule'},
+            {path: 'system/tenant/role/list', loadChildren: './system/tenant/role/list/list.module#ListModule'},
+            {path: 'system/tenant/role/save/:id', loadChildren: './system/tenant/role/save/save.module#SaveModule'},
+            {path: 'system/log/list', loadChildren: './system/log/list/list.module#ListModule'},
+            {path: 'system/log_new/list', loadChildren: './system/log_new/list/list.module#ListModule'},
+            {path: 'system/log_new/save/:id', loadChildren: './system/log_new/save/save.module#SaveModule'},
+            {path: 'system/systemConfig/save', loadChildren: './system/systemConfig/save/save.module#SaveModule'},
+            {path: 'dashboard', loadChildren: './dashboard/dashboard.module#DashboardModule'},
+            {path: 'advertisement/list', loadChildren: './advertisement/list/tables.module#TablesModule'},
+            {path: 'advertisement/save/:id', loadChildren: './advertisement/save/adsave.module#AdsaveModule'},
+        ]
+    }
+];
+
+@NgModule({
+    imports: [RouterModule.forChild(routes)],
+    exports: [RouterModule]
+})
+export class LayoutRoutingModule {
+}

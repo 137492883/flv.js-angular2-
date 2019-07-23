@@ -1,0 +1,262 @@
+import {Component, OnInit} from "@angular/core";
+import {routerTransition} from "../../../../router.animations";
+import {DeviceGroup} from "../../../../shared/model/DeviceGroup";
+import {CommonUtil} from "../../../../shared/providers/CommonUtil";
+import {systemconst} from "../../../../systemconst";
+import {ActivatedRoute, Router} from "@angular/router";
+import {DeviceService} from "../../../../shared/services/device/device.service";
+import {Device} from "../../../../shared/model/Device";
+import {BaseComponent} from "../../../../shared/components/BaseComponent";
+/**
+ * 描述:终端组编辑页面操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/08 16:25:37
+ */
+@Component({
+    selector: 'app-save',
+    templateUrl: './save.component.html',
+    styleUrls: ['./save.component.scss'],
+    animations: [routerTransition()]
+})
+export class SaveComponent extends BaseComponent implements OnInit {
+
+    /**
+     * 当前终端组
+     * @type {DeviceGroup}
+     */
+    group: DeviceGroup = new DeviceGroup();
+    /**
+     * 终端
+     * @type {Device[]}
+     */
+    surplusDevices: Array<Device> = new Array<Device>();
+    /**
+     * 所有终端
+     * @type {Device[]}
+     */
+    allDevices: Array<Device> = new Array<Device>();
+    /**
+     * 已选择终端
+     * @type {Device[]}
+     */
+    selectedDevices: Array<Device> = new Array<Device>();
+    /**
+     * 添加的终端id
+     * @type {string[]}
+     */
+    addDeviceIds: Array<string> = new Array<string>();
+    /**
+     * 移除的终端id
+     * @type {string[]}
+     */
+    removeDeviceIds: Array<string> = new Array<string>();
+    /**
+     * 验证信息
+     * @type {string}
+     */
+    valid = '';
+    qvalid = '';
+    /**
+     * 是否提交
+     * @type {boolean}
+     */
+    isSubmit = false;
+    isQuery = false;
+    tags = '';
+    /**
+     * 终端查询条件
+     * @type {Device}
+     */
+    deviceQuery: Device = new Device();
+    /**
+     * 标题
+     * @type {string}
+     */
+    title = '新建分组';
+
+    constructor(public route: ActivatedRoute,
+                public router: Router,
+                public commonUtil: CommonUtil,
+                public deviceService: DeviceService) {
+        super();
+        this.baseService = this.deviceService;
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        this.currentUser = this.deviceService.getCurrentUser();
+        const id = this.route.snapshot.paramMap.get('id');
+        //如果是编辑终端组
+        if (id !== 'null') {
+            this.title = '编辑分组';
+            this.deviceService.getObject('/device/getGroup', {id: id}).subscribe((group) => {
+                this.group = group;
+                this.selectedDevices = this.group.devices;
+                if (this.group.tags != null && this.group.tags.length > 0) {
+                    this.tags = this.group.tags.join(',');
+                }
+            });
+        }
+        this.findHireOrganizations();
+        //如果当前用户是租户用户
+        if (this.currentUser.userType === '2') {
+            //如果机构id和顶级机构id相等，就证明是顶级用户
+            if (systemconst.currentUser.organization.id === systemconst.currentUser.topOrganization.id) {
+                this.deviceQuery.orgId = systemconst.currentUser.organization.id;
+            } else {
+                this.deviceQuery.tenantOrgId = systemconst.currentUser.organization.id;
+            }
+            this.findNotSelectedDevice();
+        }
+    }
+
+    /**
+     * 查找终端
+     */
+    findDevices() {
+        this.qvalid = '';
+        this.isQuery = true;
+        //如果当前用户是租户用户
+        if (this.currentUser.userType === '2') {
+            //如果机构id和顶级机构id相等，就证明是顶级用户
+            if (systemconst.currentUser.organization.id === systemconst.currentUser.topOrganization.id) {
+                this.deviceQuery.orgId = systemconst.currentUser.organization.id;
+            } else {
+                this.deviceQuery.tenantOrgId = systemconst.currentUser.organization.id;
+            }
+            this.findNotSelectedDevice();
+        } else {
+            if (this.commonUtil.isEmpty(this.deviceQuery.productionModel)
+                || this.commonUtil.isEmpty(this.deviceQuery.startSn)
+                || this.commonUtil.isEmpty(this.deviceQuery.endSn)) {
+                this.findNotSelectedDevice();
+            } else {
+                this.qvalid = '请填写查询条件';
+            }
+        }
+
+    }
+
+    /**
+     * 过滤被分组的终端
+     */
+    findNotSelectedDevice() {
+        this.deviceService.findNoPage('/device/findDevicesNonPageByGroup', this.deviceQuery).subscribe((result) => {
+            this.allDevices = result;
+            //如果没有被选中的终端
+            if (this.selectedDevices.length === 0) {
+                this.surplusDevices = this.allDevices;
+            } else {
+                this.surplusDevices = this.allDevices.filter((item1) => {
+                    const device = this.selectedDevices.filter((item2) => {
+                        return item2.id === item1.id;
+                    })
+                    return device.length === 0;
+                });
+            }
+        });
+    }
+
+    /**
+     * 选择终端
+     */
+    selectDevice() {
+        const addDevices = this.surplusDevices.filter((item) => {
+            return this.addDeviceIds.indexOf(item.id) > -1;
+        });
+        this.selectedDevices = this.selectedDevices.concat(addDevices);
+        this.surplusDevices = this.surplusDevices.filter((item) => {
+            return this.addDeviceIds.indexOf(item.id) < 0;
+        });
+        this.addDeviceIds = [];
+    }
+
+    /**
+     * 选择所有终端
+     */
+    selectAllDevice() {
+        this.selectedDevices = this.selectedDevices.concat(this.surplusDevices);
+        this.surplusDevices = [];
+        this.addDeviceIds = [];
+    }
+
+    /**
+     * 移除所有终端
+     */
+    removeAllDevice() {
+        this.surplusDevices = this.surplusDevices.concat(this.selectedDevices);
+        this.selectedDevices = [];
+        this.removeDeviceIds = [];
+    }
+
+    /**
+     * 移除终端
+     */
+    removeDevice() {
+        const removeDevices = this.selectedDevices.filter((item) => {
+            return this.removeDeviceIds.indexOf(item.id) > -1;
+        });
+        this.surplusDevices = this.surplusDevices.concat(removeDevices);
+        this.selectedDevices = this.selectedDevices.filter((item) => {
+            return this.removeDeviceIds.indexOf(item.id) < 0;
+        });
+        this.removeDeviceIds = [];
+    }
+
+    /**
+     * 删除终端组
+     */
+    deleteGroup() {
+        this.group.deleted = true;
+        this.deviceService.save('/device/saveGroup', this.group).subscribe((device) => {
+            systemconst.alertMessage = '操作成功！';
+            this.router.navigate(['/device/group/list']);
+        });
+    }
+
+    /**
+     * 提交表单
+     */
+    submitForm() {
+        this.valid = '';
+        this.isSubmit = true;
+        //如果组名为空
+        if (!this.commonUtil.isEmpty(this.group.groupName)) {
+            this.valid = systemconst.validEmptyMessage;
+        }
+        //如果流量包值为空并且当前用户是租户类型
+        if (this.group.flowRate == null && systemconst.currentUser.userType === '2') {
+            this.valid = systemconst.validNumberMessage;
+        }
+        //如果标签为空
+        if (this.commonUtil.isEmpty(this.tags)) {
+            this.group.tags = this.tags.split(',');
+        }
+        this.group.devices = this.selectedDevices;
+        this.group.groupType = systemconst.currentUser.userType;
+        if (this.valid === '') {
+            //如果流量包值小于0并且当前用户是租户类型
+            if (this.group.flowRate <= 0 && systemconst.currentUser.userType === '2') {
+                this.valid = '流量包值' + systemconst.validNumberMessage;
+            }
+            if (this.valid === '') {
+                this.group.groupType = this.currentUser.userType;
+                this.group.orgId = this.currentUser.organization.id;
+                this.commonUtil.trimObject(this.group);
+                this.deviceService.save('/device/saveGroup', this.group).subscribe((device) => {
+                    if (systemconst.currentUser.userType === '2') {
+                        for (let i = 0; i < this.selectedDevices.length; i++) {
+                            this.selectedDevices[i].flowRate = this.group.flowRate;
+                        }
+                    }
+                    this.baseService.save('/device/saveAllDevice', this.selectedDevices).subscribe((device1) => {
+                        systemconst.alertMessage = '保存成功！';
+                        this.router.navigate(['/device/group/list']);
+                    });
+                });
+            }
+        }
+    }
+}

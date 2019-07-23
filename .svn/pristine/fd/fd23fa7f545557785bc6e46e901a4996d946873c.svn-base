@@ -1,0 +1,32 @@
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {MonitoringComponent} from './monitoring.component';
+import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
+import {PageHeaderModule} from '../../../shared/modules/page-header/page-header.module';
+import {MonitoringRoutingModule} from './monitoring-routing.module';
+import {AlertModule, CarouselModule, PaginationModule, PopoverModule} from 'ngx-bootstrap';
+import {FormsModule} from '@angular/forms';
+import {DeviceService} from '../../../shared/services/device/device.service';
+import {DirectiveModule} from '../../../shared/directives/directive/directive.module';
+import {SharedPipesModule} from "../../../shared/pipes/shared-pipes.module";
+
+@NgModule({
+    imports: [
+        CommonModule,
+        NgbModule.forRoot(),
+        FormsModule,
+        PaginationModule.forRoot(),
+        NgbModule.forRoot(),
+        PopoverModule.forRoot(),
+        AlertModule.forRoot(),
+        CarouselModule.forRoot(),
+        MonitoringRoutingModule,
+        PageHeaderModule,
+        DirectiveModule,
+        SharedPipesModule
+    ],
+    declarations: [MonitoringComponent],
+    providers: [DeviceService]
+})
+export class MonitoringModule {
+}

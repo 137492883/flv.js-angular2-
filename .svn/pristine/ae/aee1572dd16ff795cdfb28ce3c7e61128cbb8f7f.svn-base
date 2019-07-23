@@ -1,0 +1,78 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <!--<li class="breadcrumb-item active">-->
+                    <!--<i class="fa fa-table"></i>-->
+                    <!--<a href="Javascript:void(0)" [routerLink]="['/system/tenant/role/list']">租户角色管理</a>-->
+                <!--</li>-->
+                <li class="breadcrumb-item "><i class="fa fa-edit"></i>
+                    新增角色
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    请按要求填写相关角色信息（红框为必填项）<span style="color: red" *ngIf="isSubmit&&valid!==''">{{valid}}</span>
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">角色名称</label>
+                            </div>
+                            <div class="col">
+                                <input type="text" [class]="role.name==null||role.name===''?'form-control is-invalid':'form-control'" [(ngModel)]="role.name">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">角色描述</label>
+                            </div>
+                            <div class="col">
+                                <textarea class="form-control" [(ngModel)]="role.description"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-6">
+                                <label class="col-form-label">待分配权限</label>
+                                <select multiple class="form-control">
+                                    <option>1</option>
+                                    <option>2</option>
+                                    <option>3</option>
+                                    <option>4</option>
+                                    <option>5</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="col-form-label">已分配权限</label>
+                                <select multiple class="form-control">
+                                    <option>1</option>
+                                    <option>2</option>
+                                    <option>3</option>
+                                    <option>4</option>
+                                    <option>5</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="mx-auto">
+
+                                <button type="submit" (click)="submitForm()" class="btn btn-primary">
+                                    <i class="fa fa-fw fa-floppy-o fa-2x" ></i>
+                                    <span style="font-size: 1.7rem;">保 存</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

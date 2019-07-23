@@ -1,0 +1,101 @@
+import {Component, OnInit} from "@angular/core";
+import {routerTransition} from "../../../../router.animations";
+import {Router} from "@angular/router";
+import {UpgradePlan} from "../../../../shared/model/UpgradePlan";
+import {DeviceService} from "../../../../shared/services/device/device.service";
+import {BaseComponent} from "../../../../shared/components/BaseComponent";
+import {PopoverConfig} from "ngx-bootstrap";
+import {systemconst} from "../../../../systemconst";
+import {CommonUtil} from "../../../../shared/providers/CommonUtil";
+/**
+ * 描述:升级计划列表页操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/09 14:45:41
+ */
+@Component({
+    selector: 'app-device-group-list',
+    templateUrl: './list.component.html',
+    styleUrls: ['./list.component.scss'],
+    animations: [routerTransition()],
+})
+export class ListComponent extends BaseComponent implements OnInit {
+
+    /**
+     * 选择的计划
+     * @type {UpgradePlan[]}
+     */
+    selectedPlans: Array<UpgradePlan> = new Array<UpgradePlan>();
+    /**
+     * 查询条件
+     * @type {UpgradePlan}
+     */
+    planQuery: UpgradePlan = new UpgradePlan();
+    numPages: any;
+
+    constructor(public commonUtil: CommonUtil, public config: PopoverConfig, public router: Router, public deviceService: DeviceService) {
+        super();
+        config.triggers = 'hover';
+        config.placement = 'bottom';
+        this.planQuery.audit = '';
+        this.queryObj = this.planQuery;
+        this.baseService = this.deviceService;
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        if (systemconst.alertMessage !== '') {
+            this.showSuccessMsg(systemconst.alertMessage);
+            systemconst.alertMessage = '';
+        }
+        this.findObjects('/device/findPlans');
+    }
+
+    /**
+     * 跳转到编辑页面
+     */
+    addPlan() {
+        this.router.navigate(['/device/plan/save', 'null']);
+    }
+
+    /**
+     * 审核
+     */
+    audit() {
+        this.selectedPlans = this.objects.filter((item) => {
+            return item.checked;
+        });
+        if (this.selectedPlans.length === 0) {
+            this.showErrorMsg('请选择要审核的记录！');
+            return;
+        }
+        for (let i = 0; i < this.selectedPlans.length; i++) {
+            this.selectedPlans[i].audit = '3';
+        }
+        this.baseService.save('/device/saveAllPlan', this.selectedPlans).subscribe((device) => {
+            this.findObjects('/device/findPlans');
+            this.showSuccessMsg('操作成功！');
+        });
+    }
+
+    /**
+     * 解锁
+     * @param plan
+     */
+    unlock(plan: UpgradePlan) {
+        plan.audit = '1';
+        this.deviceService.save('/device/savePlan', plan).subscribe((device) => {
+            this.showSuccessMsg('操作成功！');
+        });
+    }
+
+    /**
+     * 获取固定格式的升级起止日期
+     * @param plan 被操作的计划
+     * @returns {string}
+     */
+    getPlanDate(plan: UpgradePlan) {
+        return this.commonUtil.getDate(new Date(plan.startTime), 'YYYY-MM-DD hh:mm:ss') + ' 至 ' + this.commonUtil.getDate(new Date(plan.endTime), 'YYYY-MM-DD hh:mm:ss');
+    }
+}

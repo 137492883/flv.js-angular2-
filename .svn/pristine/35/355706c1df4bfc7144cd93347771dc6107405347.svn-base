@@ -1,0 +1,64 @@
+import {BaseEntity} from './BaseEntity';
+import {Organization} from './Organization';
+import {Role} from './Role';
+/**
+ * Created by wuzhenxue on 2017/9/2.
+ */
+export class User extends BaseEntity {
+    /**
+     * 用户名
+     */
+    username: string;
+    /**
+     * 密码
+     */
+    password: string;
+    /**
+     * 更新密码
+     */
+    updatePassword: string;
+    /**
+     * 真实姓名
+     */
+    realname: string;
+    /**
+     * 电话
+     */
+    tel: string;
+    /**
+     * 电子邮件
+     */
+    email: string;
+    /**
+     * 用户类型
+     */
+    userType: string;
+    /**
+     * 是否可用
+     */
+    enabled: boolean;
+    /**
+     * 最后修改密码日期
+     */
+    lastPasswordResetDate: Date;
+    /**
+     * 用户角色
+     */
+    role: Role ;
+    /**
+     * 所属机构
+     */
+    organization: Organization;
+    /**
+     * 顶级机构
+     */
+    topOrganization: Organization;
+    /**
+     * 错误信息
+     */
+    errorMsg: string;
+    /**
+     * 原始密码
+     */
+    oldpassword: string;
+}

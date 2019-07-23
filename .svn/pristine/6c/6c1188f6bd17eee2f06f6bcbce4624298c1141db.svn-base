@@ -1,0 +1,18 @@
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {SaveComponent} from './save.component';
+import {SaveRoutingModule} from './save-routing.module';
+import {FormsModule} from '@angular/forms';
+import {AlertModule} from 'ngx-bootstrap';
+
+@NgModule({
+    imports: [
+        CommonModule,
+        FormsModule,
+        SaveRoutingModule,
+        AlertModule.forRoot(),
+    ],
+    declarations: [SaveComponent]
+})
+export class SaveModule {
+}

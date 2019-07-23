@@ -1,0 +1,25 @@
+import {BaseEntity} from './BaseEntity';
+import {Permision} from './Permision';
+/**
+ * Created by wuzhenxue on 2017/9/2.
+ */
+export class Role extends BaseEntity {
+    id: string;
+    /**
+     * 机构id
+     */
+    orgId: string;
+    /**
+     * 角色名称
+     */
+    name: string;
+    /**
+     * 描述
+     */
+    description: string;
+    /**
+     * 拥有的权限
+     */
+    permisions: Array<Permision> =new Array<Permision>();
+    buildinadmin: boolean;
+}

@@ -1,0 +1,30 @@
+import {NgModule} from "@angular/core";
+import {CommonModule} from "@angular/common";
+
+import {TablesComponent} from "./tables.component";
+import {TablesRoutingModule} from "./tables-routing.module";
+
+import {FormsModule} from "@angular/forms";
+
+import {PaginationModule} from "ngx-bootstrap/pagination";
+import {PopoverModule} from "ngx-bootstrap/popover";
+import {AlertModule} from "ngx-bootstrap/alert";
+import {PageHeaderModule} from "../../../shared/modules/page-header/page-header.module";
+import {AdvertisementService} from "../../../shared/services/advertisement/advertisement.service";
+import {DirectiveModule} from "../../../shared/directives/directive/directive.module";
+
+@NgModule({
+    imports: [
+        CommonModule,
+        FormsModule,
+        TablesRoutingModule,
+        PaginationModule.forRoot(),
+        PopoverModule.forRoot(),
+        AlertModule.forRoot(),
+        PageHeaderModule,
+        DirectiveModule
+    ],
+    declarations: [TablesComponent],
+    providers: [AdvertisementService]
+})
+export class TablesModule { }

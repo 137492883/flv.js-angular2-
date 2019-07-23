@@ -1,0 +1,175 @@
+import {Component, OnInit} from '@angular/core';
+import {routerTransition} from '../../../../../router.animations';
+import {CommonUtil} from '../../../../../shared/providers/CommonUtil';
+import {ActivatedRoute, Router} from '@angular/router';
+import {Organization} from '../../../../../shared/model/Organization';
+import {BaseComponent} from '../../../../../shared/components/BaseComponent';
+import {SystemService} from '../../../../../shared/services/sysmanage/system.service';
+import {systemconst} from '../../../../../systemconst';
+/**
+ * 描述:用户管理编辑页面操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/09 15:01:06
+ */
+@Component({
+    selector: 'app-save',
+    templateUrl: './save.component.html',
+    styleUrls: ['./save.component.scss'],
+    animations: [routerTransition()]
+})
+export class SaveComponent extends BaseComponent implements OnInit {
+
+    organization: Organization = new Organization();
+    valid = '';
+    isSubmit = false;
+    title = '租户开户';
+
+    constructor(public commonUtil: CommonUtil, public activatedRoute: ActivatedRoute,
+                public router: Router, public  sysService: SystemService) {
+        super();
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        const id = this.activatedRoute.snapshot.paramMap.get('id');
+        if (id != null) {
+            this.title = '编辑租户';
+            this.organization.id = id;
+            this.sysService.findOrganizationById(this.organization).subscribe(organization => {
+                this.organization = organization;
+            })
+        }
+    }
+
+    /**
+     * 是否可删除
+     * @returns {string|boolean}
+     */
+    deleteabe() {
+        return this.organization.id && this.organization.status !== '1';
+    }
+
+    /**
+     * 在停用状态下删除租户
+     */
+    deleteOrg() {
+        this.organization.deleted = true;
+        this.sysService.updateOrganization(this.organization).subscribe(org => {
+            this.router.navigate(['system/platform/organization/list']);
+        });
+    }
+
+    /**
+     * 是否可停用
+     * @returns {string|boolean}
+     */
+    stopable() {
+        return this.organization.id && this.organization.status === '1' && this.organization.updatedstatus !== '3';
+    }
+
+    /**
+     * 停用
+     */
+    applyStop() {
+        this.organization.updatedstatus = '3';
+        this.sysService.updateOrganization(this.organization).subscribe(result => {
+            this.router.navigate(['system/platform/organization/list']);
+        })
+    }
+
+    /**
+     * 是否可恢复
+     * @returns {string|boolean}
+     */
+    reusable() {
+        return this.organization.id && this.organization.status === '3' && this.organization.updatedstatus !== '1';
+    }
+
+    /**
+     * 恢复正常
+     */
+    applyReuse() {
+        this.organization.updatedstatus = '1';
+        this.sysService.updateOrganization(this.organization).subscribe(result => {
+            this.router.navigate(['system/platform/organization/list']);
+        })
+    }
+
+    /**
+     * 是否可重新打开
+     * @returns {string|boolean}
+     */
+    reopenable() {
+        return this.organization.id && this.organization.status === '2' && this.organization.updatedstatus !== '1';
+    }
+
+    /**
+     * 通过申请
+     */
+    pass() {
+        this.organization.status = this.organization.updatedstatus;
+        this.sysService.updateOrganization(this.organization).subscribe(result => {
+            this.router.navigate(['system/platform/organization/list']);
+        })
+    }
+
+    /**
+     * 拒绝申请
+     */
+    reject() {
+        if (this.organization.status === null) {
+            this.organization.status = '2';
+            this.organization.updatedstatus = '2';
+        }
+        this.organization.updatedstatus = this.organization.status;
+        this.sysService.updateOrganization(this.organization).subscribe(result => {
+            this.router.navigate(['system/platform/organization/list']);
+        })
+    }
+
+    /**
+     * 重置密码
+     */
+    resetPassword() {
+        this.sysService.resetOrgPassword(this.organization).subscribe(user => {
+            this.showSuccessMsg('密码重置成功，初始密码为：01010086@chinamobile.com');
+        });
+    }
+
+    /**
+     * 提交表单
+     */
+    submitForm() {
+        this.valid = '';
+        this.isSubmit = true;
+        this.organization.contactEmail = this.organization.contactEmail.trim();
+        if (!this.commonUtil.isEmpty(this.organization.hirerNum)) {
+            this.valid = systemconst.validEmptyMessage;
+        } else if (!this.commonUtil.isEmpty(this.organization.name)) {
+            this.valid = systemconst.validEmptyMessage;
+        } else if (!this.commonUtil.isEmpty(this.organization.contactUserName)) {
+            this.valid = systemconst.validEmptyMessage;
+        } else if (!this.commonUtil.isEmpty(this.organization.contactTelNum)) {
+            this.valid = systemconst.validEmptyMessage;
+        } else if (!this.commonUtil.isEmpty(this.organization.contactEmail)) {
+            this.valid = systemconst.validEmptyMessage;
+        } else if (this.organization.contactEmail.indexOf('@') < 0) {
+            this.valid = '邮箱不符合规范';
+        } else {
+            if (!this.organization.id) {
+                this.sysService.openHire(this.organization).subscribe(org => {
+                    this.router.navigate(['system/platform/organization/list']);
+                }, err => {
+                    this.showErrorMsg(err.message);
+                })
+            } else {
+                this.sysService.updateOrganization(this.organization).subscribe(org => {
+                    this.router.navigate(['system/platform/organization/list']);
+                })
+            }
+        }
+
+    }
+}

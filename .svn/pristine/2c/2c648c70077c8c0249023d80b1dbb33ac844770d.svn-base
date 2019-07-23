@@ -1,0 +1,14 @@
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { CdnurlPipe } from './cdnurl.pipe';
+
+@NgModule({
+    imports: [
+        CommonModule,
+    ],
+    declarations: [CdnurlPipe],
+    exports: [
+        CdnurlPipe,
+    ]
+})
+export class SharedPipesModule { }

@@ -1,0 +1,88 @@
+import {BaseEntity} from './BaseEntity';
+import {AdvertisementTextSetting} from "./AdvertisementTextSetting";
+/**
+ * Created by wuzhenxue on 2017/9/3.
+ */
+export class Advertisement extends BaseEntity {
+
+    /**
+     * 32位uuid
+     */
+    id: string;
+    /**
+     * 内容名称
+     */
+    name: string;
+    /**
+     * 所属机构id
+     */
+    orgId: string;
+    /**
+     * 顶级机构id
+     */
+    topOrgId: string;
+    /**
+     * 内容文本
+     */
+    txt: string;
+    /**
+     * 内容文本
+     */
+    doc: string;
+    /**
+     * md5值
+     */
+    md5 = '';
+    /**
+     * 文件大小
+     */
+    size = '';
+    /**
+     * 创建时间
+     */
+    createtime: string;
+    /**
+     * 文件类型
+     */
+    fileType = '';
+    /**
+     * 文件地址
+     */
+    fileUrl: string;
+    /**
+     * 状态
+     */
+    status = '';
+    /**
+     * 验证状态
+     */
+    distribute = '';
+    /**
+     * 是否测试内容
+     */
+    test: boolean;
+    /**
+     * 内容地址
+     */
+    url: string;
+    /**
+     * 描述
+     */
+    description: string;
+    /**
+     * 创建人id
+     */
+    createrId: string;
+    /**
+     * 错误信息
+     */
+    errorMsg: string;
+    /**
+     * 播放时间
+     */
+    duration: number;
+    /**
+     * 文本内容的配置信息
+     */
+    advertisementtextsetting:AdvertisementTextSetting=new AdvertisementTextSetting();
+}

@@ -1,0 +1,16 @@
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {SaveComponent} from './save.component';
+import {SaveRoutingModule} from './save-routing.module';
+import {FormsModule} from '@angular/forms';
+
+@NgModule({
+    imports: [
+        CommonModule,
+        FormsModule,
+        SaveRoutingModule
+    ],
+    declarations: [SaveComponent]
+})
+export class SaveModule {
+}

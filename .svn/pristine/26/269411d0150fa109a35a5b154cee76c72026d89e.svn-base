@@ -1,0 +1,281 @@
+import {AfterViewInit, Component, OnInit} from "@angular/core";
+import {routerTransition} from "../../../../router.animations";
+import {ActivatedRoute, Router} from "@angular/router";
+import {BroadcastPlan} from "../../../../shared/model/BroadcastPlan";
+import {BroadcastTask} from "../../../../shared/model/BroadcastTask";
+import {BroadcastService} from "../../../../shared/services/broadcast/broadcast.service";
+import {DeviceGroup} from "../../../../shared/model/DeviceGroup";
+import {systemconst} from "../../../../systemconst";
+import {CommonUtil} from "../../../../shared/providers/CommonUtil";
+import {BsDatepickerConfig} from "ngx-bootstrap/datepicker";
+import {zhCn} from "ngx-bootstrap/locale";
+import {defineLocale} from "ngx-bootstrap";
+
+defineLocale('zh-cn', zhCn);
+/**
+ * 描述:分发计划编辑页面操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/06 21:10:06
+ */
+@Component({
+    selector: 'app-save',
+    templateUrl: './save.component.html',
+    styleUrls: ['./save.component.scss'],
+    animations: [routerTransition()]
+})
+export class SaveComponent implements OnInit, AfterViewInit {
+    /**
+     * 当前播放计划
+     * @type {BroadcastPlan}
+     */
+    plan: BroadcastPlan = new BroadcastPlan();
+    /**
+     * 验证信息
+     * @type {string}
+     */
+    valid = '';
+    /**
+     * 日期组件
+     * @type {[Date,Date]}
+     */
+    bsRangeValue: Array<Date> = [new Date(), new Date()];
+    /**
+     * 是否提交
+     * @type {boolean}
+     */
+    isSubmit = false;
+    /**
+     * 播放任务
+     * @type {Array}
+     */
+    broadcastTaskOptions: Array<BroadcastTask> = [];
+    /**
+     * 终端组
+     * @type {Array}
+     */
+    deviceGroupOptions: Array<DeviceGroup> = [];
+    /**
+     * 播放任务
+     * @type {BroadcastTask}
+     */
+    broadcastTaskQuery: BroadcastTask = new BroadcastTask();
+    /**
+     * 终端组
+     * @type {DeviceGroup}
+     */
+    deviceGroupQuery: DeviceGroup = new DeviceGroup();
+    /**
+     * 是否置顶
+     */
+    isTop: boolean;
+    /**
+     * 日期组件
+     */
+    bsConfig: Partial<BsDatepickerConfig>;
+    /**
+     * 语言
+     * @type {string}
+     */
+    locale = 'zh-cn';
+    /**
+     * 标题
+     * @type {string}
+     */
+    title = '添加分发计划';
+
+    constructor(public route: ActivatedRoute,
+                public router: Router,
+                public commonUtil: CommonUtil,
+                public broadcastService: BroadcastService) {
+        this.plan.broadCastTask = new BroadcastTask();
+        this.bsConfig = Object.assign({}, {locale: this.locale});
+        this.bsConfig.rangeInputFormat = 'YYYY/MM/DD';
+    }
+
+    /**
+     * 页面初始化方法
+     */
+    ngOnInit() {
+        const id = this.route.snapshot.paramMap.get('id');
+        if (id !== 'null') {
+            this.title = '编辑分发计划';
+            this.plan.id = id;
+            this.broadcastService.findBroadcastPlanById(this.plan).subscribe((plan) => {
+                this.plan = plan;
+                this.bsRangeValue = [new Date(this.plan.startTime), new Date(this.plan.endTime)];
+                this.isTop = this.plan.isTop;
+            });
+        }
+        this.plan.broadCastTask.id = this.plan.broadCastTask.id || '';
+        this.broadcastService.findAllBroadcastTasks(this.broadcastTaskQuery).subscribe((result) => {
+            this.broadcastTaskOptions = result;
+        })
+        this.deviceGroupQuery.deleted = false;
+        this.deviceGroupQuery.orgId = systemconst.currentUser.organization.id;
+        this.broadcastService.findNoPage('/device/findAllGroups', this.deviceGroupQuery).subscribe((result) => {
+            this.deviceGroupOptions = result;
+        })
+    }
+
+    /**
+     * 初始化页面后执行
+     */
+    ngAfterViewInit() {
+        setTimeout(()=> {
+            const myBsDaterangepicker = document.getElementById('myBsDaterangepicker');
+            myBsDaterangepicker.click();
+            myBsDaterangepicker.click();
+        }, 1);
+    }
+
+    /**
+     * 获取时间
+     * @returns {any}
+     */
+    getFinalDate() {
+        //如果开始时间或结束时间为空
+        if (this.plan.startTime == null || this.plan.endTime == null) {
+            return '请选择有效时间'
+        }
+        const startYear = this.bsRangeValue[0].getFullYear(),
+            startMonth = this.bsRangeValue[0].getMonth() + 1,
+            startDay = this.bsRangeValue[0].getDate(),
+            startHour = this.plan.startTime.getHours(),
+            startMinutes = this.plan.startTime.getMinutes(),
+            startSec = this.plan.startTime.getSeconds(),
+            endYear = this.bsRangeValue[1].getFullYear(),
+            endMonth = this.bsRangeValue[1].getMonth() + 1,
+            endDay = this.bsRangeValue[1].getDate(),
+            endHour = this.plan.endTime.getHours(),
+            endMinutes = this.plan.endTime.getMinutes(),
+            endSec = this.plan.endTime.getSeconds();
+        return startYear + '-' + startMonth + '-' + startDay + ' ' + startHour + ':' + startMinutes + ':' + startSec
+            + ' 至 ' + endYear + '-' + endMonth + '-' + endDay + ' ' + endHour + ':' + endMinutes + ':' + endSec;
+    }
+
+    /**
+     * 保存播放计划
+     */
+    broadcastPlanSave() {
+        //如果表单验证未通过
+        if (!this.validForm()) {
+            return;
+        }
+        const audit = this.plan.auditingStatus;
+        //如果是测试计划
+        if (this.plan.isTest === true) {
+            this.plan.auditingStatus = '3';
+        }
+        this.plan.startTime = this.bsRangeValue[0];
+        this.plan.endTime = this.bsRangeValue[1];
+        this.plan.startTime.setHours(0,0,0);
+        this.plan.endTime.setHours(23,59,59);
+        this.commonUtil.trimObject(this.plan);
+        this.broadcastService.saveBroadcastPlan(this.plan).subscribe((plan) => {
+            //如果保存成功
+            if (plan.errorMsg === null) {
+                this.router.navigate(['/broadcast/plan/list']);
+            } else {
+                this.valid = plan.errorMsg;
+                this.plan.auditingStatus = audit;
+            }
+        })
+    }
+
+    /**
+     * 审核播放计划
+     */
+    broadcastPlanAudit() {
+        //如果表单验证未通过
+        if (!this.validForm()) {
+            return;
+        }
+        const audit = this.plan.auditingStatus;
+        this.plan.auditingStatus = '3';
+        this.broadcastService.saveBroadcastPlan(this.plan).subscribe((plan) => {
+            //如果保存成功
+            if (plan.errorMsg === null) {
+                this.router.navigate(['/broadcast/plan/list']);
+            } else {
+                this.valid = plan.errorMsg;
+                this.plan.auditingStatus = audit;
+            }
+        })
+    }
+
+    /**
+     * 审核退回
+     */
+    broadcastPlanAuditBack() {
+        //如果表单验证未通过
+        if (!this.validForm()) {
+            return;
+        }
+        const audit = this.plan.auditingStatus;
+        this.plan.auditingStatus = '2';
+        this.broadcastService.saveBroadcastPlan(this.plan).subscribe((plan) => {
+            //如果保存成功
+            if (plan.errorMsg === null) {
+                this.router.navigate(['/broadcast/plan/list']);
+            } else {
+                this.valid = plan.errorMsg;
+                this.plan.auditingStatus = audit;
+            }
+        })
+    }
+
+    /**
+     * 删除播放计划
+     */
+    broadcastPlanDelete() {
+        this.plan.deleted = true;
+        this.broadcastService.saveBroadcastPlan(this.plan).subscribe((ad) => {
+            this.router.navigate(['/broadcast/plan/list']);
+        })
+    }
+
+    /**
+     * 选择起止日期
+     * @param bsDaterangepicker
+     * @returns {boolean}
+     */
+    bsDaterangepickerinput(bsDaterangepicker) {
+        bsDaterangepicker.bsValueChange.emit(this.bsRangeValue);
+        return false;
+    }
+
+    /**
+     * 检查设备组
+     * @param event
+     * @param deviceGroup
+     */
+    checkDeviceGroup(event, deviceGroup) {
+        if (event.target.checked === true) {
+            //如果当前终端组未被选中
+            if (this.plan.deviceGroupIds.indexOf(deviceGroup.id) === -1) {
+                this.plan.deviceGroupIds.push(deviceGroup.id);
+            }
+        } else {
+            const index = this.plan.deviceGroupIds.indexOf(deviceGroup.id);
+            this.plan.deviceGroupIds.splice(index, 1);
+        }
+    }
+
+    /**
+     * 验证表单
+     * @returns {boolean}
+     */
+    validForm() {
+        this.valid = '';
+        this.isSubmit = true;
+        //如果计划名为空
+        if (!this.commonUtil.isEmpty(this.plan.name)) {
+            this.valid = systemconst.validEmptyMessage;
+        }
+        //如果没选择播放任务
+        if (!this.commonUtil.isEmpty(this.plan.broadCastTask.id)) {
+            this.valid = systemconst.validEmptyMessage;
+        }
+        return this.valid === '';
+    }
+}

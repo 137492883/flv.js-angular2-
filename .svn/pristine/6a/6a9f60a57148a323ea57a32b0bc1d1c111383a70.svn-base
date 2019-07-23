@@ -1,0 +1,126 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-edit"></i>
+                    {{titleName}}
+                </li>
+                <div *ngIf="user.id &&user.id !== currentUser.id"><!--当前用户不能删除当前登陆-->
+                    <div class="float-right">
+                        <button type="button" class="btn btn-primary btn-sm" (click)="resetPasswords()">重置密码</button>
+                        <button type="button" class="btn btn-primary btn-sm" (click)="disableOrStart()">
+                            <span [ngSwitch]="user?.enabled">
+                                                <span *ngSwitchCase="true">停用</span>
+                                                <span *ngSwitchCase="false">启用</span>
+                            </span>
+                        </button>
+                        <button type="button" *ngIf="user?.enabled === false" class="btn btn-primary btn-sm"
+                                (click)="deleteUser()">删除
+                        </button>
+                    </div>
+                </div>
+
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    请按要求填写相关用户信息（红框为必填项）<span style="color: red" *ngIf="isSubmit&&valid!==''">{{valid}}</span>
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">用户名称</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text"
+                                       [class]="user.username==null||user.username===''?'form-control is-invalid':'form-control'"
+                                       [readonly]="user.id" [(ngModel)]="user.username">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">用户真实名称</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text"
+                                       [class]="user.realname==null||user.realname===''?'form-control is-invalid':'form-control'"
+                                       [(ngModel)]="user.realname">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">联系电话</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text" maxlength="11" class="form-control" [(ngModel)]="user.tel">
+                            </div>
+                            <div class="col">
+                                <!--<i class="fa fa-exclamation-triangle text-danger">必填项</i>-->
+                            </div>
+                            <div class="col-sm-2">
+                                <label class="col-form-label">邮箱地址</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" [(ngModel)]="user.email">
+                            </div>
+                            <div class="col">
+                                <!--<i class="fa fa-exclamation-triangle text-danger">必填项</i>-->
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">分配角色</label>
+                            </div>
+                            <div class="col">
+                                <select class="custom-select mb-2 mr-sm-2 mb-sm-0" required id="inlineFormCustomSelect"
+                                        placeholder="请选择角色" [(ngModel)]="selectedRoleid" (ngModelChange)="selectRole()"
+                                 [disabled]="user.id === currentUser.id">
+                                    <option *ngFor=" let role of currentOrgRoles" value="{{role?.id}}">{{role?.name}}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-sm-2">
+                            </div>
+                            <div class="col">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">拥有权限</label>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <ul class="col-auto" *ngFor=" let permision of selectedRole?.permisions">
+                                <li>{{permision?.name}}</li>
+                            </ul>
+                        </div>
+                        <div class="form-group row">
+                            <div class="mx-auto">
+
+                                <button type="submit" (click)="submitForm()" class="btn btn-primary">
+                                    <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                                    <span style="font-size: 1.7rem;">保 存</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

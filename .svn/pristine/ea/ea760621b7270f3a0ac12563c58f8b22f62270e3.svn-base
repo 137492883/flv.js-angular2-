@@ -1,0 +1,42 @@
+import { Injectable } from '@angular/core';
+import {AuthService} from '../auth.service';
+import {ApiService} from '../api.service';
+import {Headers, Http, URLSearchParams} from '@angular/http';
+import { Observable } from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
+import {User} from '../../model/user';
+import {BaseService} from '../base.service';
+@Injectable()
+export class UserService extends  BaseService {
+
+    constructor (
+        public apiService: ApiService,
+        private authService: AuthService,
+        private http: Http
+    ) {
+        super(apiService);
+    }
+    getCurrentUserFromServer(): Observable<User> {
+        return this.apiService.get('/user/getCurrentUser')
+            .map( data => {
+                if (data._body === '') {
+                    return null;
+                } else {
+                    return data.json();
+                }
+            });
+    }
+
+    getUserById(id): Observable<User> {
+        const p = new URLSearchParams();
+        p.set('id', id);
+        return this.apiService.get('/user/findUser', p)
+            .map(data => data.json());
+    }
+    saveUserBasicInfo(user): Observable<any> {
+        return  this.apiService.post('/user/saveUserBasicInfo', user)
+            .map(data => data.json());
+    }
+
+}

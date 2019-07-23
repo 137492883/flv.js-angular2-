@@ -1,0 +1,150 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-table"></i>租户组织机构管理</li>
+
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col-sm-4"   style="display: none" [style.display]="saveNewOrgFlag ? 'none' : 'block'">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <span>
+                       组织机构
+                    </span>
+                    <div class="float-right">
+                        <button type="button" *ngIf="selectedOrganization.id && permisionFlag" class="btn btn-danger btn-sm" (click)="newOrg()">新增子机构</button>
+                        <button type="button" *ngIf="selectedOrganization.id && permisionFlag" class="btn btn-danger btn-sm" (click)="showDelOrg(showDeleteConfirm)">删除子机构</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <tree-root #tree [nodes]="nodes" [options]="treeOptions" [focused]="true"
+                               (onEvent)="onEvent($event)">
+                    </tree-root>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card mb-3" >
+                <div class="card-header">
+                    您只能管理您所在机构及其子机构<span style="color: red" *ngIf="isSubmit&&valid!==''">{{valid}}</span>
+                </div>
+                <div class="card-body" *ngIf="!selectedOrganization.id">
+                    <ul>
+
+                        <li> 1、您可以新建、修改下级机构；</li>
+                        <li> 2、新建下级机构时，系统将为下级机构初始化管理员(邮箱为管理员账号，初始化密码为 10086@CMCC.com)</li>
+                        <li> 3、操作之前，请先选择对应的机构。</li>
+                    </ul>
+
+
+                </div>
+                <div class="card-body" *ngIf="selectedOrganization.id">
+                    <div class="container">
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <label for="parentOrg">上级机构</label>
+                            </div>
+                            <div class="col">
+                                <input type="text"  [(ngModel)]="parentOrganization.name" class="form-control"  id="parentOrg"  placeholder="请先从左边机构中选择上级机构">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <label for="orgName" class="customrequired">机构名称</label>
+                            </div>
+                            <div class="col">
+                                <input type="text" maxlength="50" [class]="organization.name==null||organization.name===''?'form-control is-invalid':'form-control'"  [(ngModel)]="organization.name" id="orgName" aria-describedby="orgNameHelp" placeholder="请填写机构名称">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <label for="contractName" class="customrequired">联系人</label>
+
+                            </div>
+                            <div class="col">
+                                <input type="text" maxlength="10" [class]="organization.contactUserName==null||organization.contactUserName===''?'form-control is-invalid':'form-control'" [(ngModel)]="organization.contactUserName" class="form-control"  id="contractName"  placeholder="请填写联系人">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <label for="contractTel" class="customrequired">联系电话</label>
+                            </div>
+                            <div class="col">
+                                <input type="text" maxlength="11" [class]="organization.contactTelNum==null||organization.contactTelNum===''?'form-control is-invalid':'form-control'" [(ngModel)]="organization.contactTelNum" id="contractTel"  placeholder="请填写联系电话">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row" *ngIf="!organization.id">
+                            <div class="col-sm-3">
+                                <label for="contractEmail" class="customrequired">联系邮箱</label>
+
+                            </div>
+                            <div class="col">
+                                <input type="text" maxlength="50" [class]="organization.contactUserName==null||organization.contactEmail===''?'form-control is-invalid':'form-control'" [(ngModel)]="organization.contactEmail"  id="contractEmail" aria-describedby="contractEmailHelp" placeholder="请填写联系邮箱">
+                                <small id="contractEmailHelp" class="form-text text-danger">该邮箱将作为新建机构的超级管理员账户，初始密码为：10086@CMCC.com</small>
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row" *ngIf="organization.id">
+                            <div class="col-sm-3">
+                                <label >管理员账号</label>
+                            </div>
+                            <div class="col">
+                                {{organization.contactEmail}}
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="mx-auto">
+
+                                <button type="submit" *ngIf="!organization.id && permisionFlag" (click)="saveOrganizationAndInitSystemUser()" [disabled]="!selectedOrganization.id || !organization.contactEmail" class="btn btn-primary">
+                                    <i class="fa fa-fw fa-floppy-o fa-2x" ></i>
+                                    <span style="font-size: 1.7rem;">新建机构</span>
+                                </button>
+                                <button type="submit" *ngIf="!organization.id &&saveNewOrgFlag" (click)="saveNewOrgFlag = false"  class="btn btn-primary">
+                                    <i class="fa fa-fw fa-floppy-o fa-2x" ></i>
+                                    <span style="font-size: 1.7rem;">返回</span>
+                                </button>
+                                <button type="submit" *ngIf="organization.id && permisionFlag" (click)="updateOrg()" [disabled]="!selectedOrganization.id || !organization.contactEmail" class="btn btn-primary">
+                                    <i class="fa fa-fw fa-floppy-o fa-2x" ></i>
+                                    <span style="font-size: 1.7rem;">修改</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #showDeleteConfirm let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">确认删除</h5>
+    </div>
+    <div class="modal-body">
+        <div class="container">
+            <alert *ngFor="let alert of messages" [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="delOrg()">删除</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="closeModal()">关闭</button>
+    </div>
+</ng-template>

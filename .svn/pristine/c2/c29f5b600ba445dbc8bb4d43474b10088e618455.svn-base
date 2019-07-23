@@ -1,0 +1,146 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-edit"></i>
+                    {{title}}
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    请按要求填写相关终端组信息（红框为必填项）<span style="color: red" *ngIf="isSubmit&&valid!==''">{{valid}}</span>
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">终端组名称</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text" maxlength="20" [class]="(group.groupName==null||group.groupName==='')?'form-control is-invalid':'form-control'" [(ngModel)]="group.groupName">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                            <div class="col-sm-2" *ngIf="currentUser.userType==='2'">
+                                <label class="col-form-label customrequired">终端可用流量值</label>
+                            </div>
+                            <div class="col-sm-3" *ngIf="currentUser.userType==='2'">
+                                <input type="number" max="10000" [class]="group.flowRate==null||group.flowRate<=0?'form-control is-invalid':'form-control'" [(ngModel)]="group.flowRate">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">是否测试分组</label>
+                            </div>
+                            <div class="col-auto">
+                                <label class="col-form-label"><input type="checkbox" [(ngModel)]="group.test"> 是</label>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">终端组特征标签（英文逗号分隔）</label>
+                            </div>
+                            <div class="col">
+                                <textarea class="form-control" [(ngModel)]="tags"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">终端组描述</label>
+                            </div>
+                            <div class="col">
+                                <textarea class="form-control" maxlength="300" [(ngModel)]="group.description"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    选择终端&nbsp;&nbsp;<span style="color: red" *ngIf="isQuery&&qvalid!==''">{{qvalid}}</span>
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <div class="form-group row">
+                            <div class="col-auto">
+                                <label class="col-form-label">终端区间:</label>
+                            </div>
+                            <div class="col-auto" style="width: 200px;">
+                                <input type="text" class="form-control" placeholder="开始区间" [(ngModel)]="deviceQuery.startSn">
+                            </div>
+                            <div class="col-auto">
+                                <label class="col-form-label">至</label>
+                            </div>
+                            <div class="col-auto" style="width: 200px;">
+                                <input type="text" class="form-control" placeholder="结束区间" [(ngModel)]="deviceQuery.endSn">
+                            </div>
+                            <div class="col-auto" style="width: 200px;"  *ngIf="currentUser.userType==='1'">
+                                <input type="text" class="form-control" placeholder="终端型号" [(ngModel)]="deviceQuery.productionModel">
+                            </div>
+                            <div class="col-auto" >
+                                <button *appPermision="'zhongduan_fenzu'" type="submit" class="btn btn-primary" (click)="findDevices();">查询</button>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-5">
+                                <label class="col-form-label">待选取终端</label>
+                                <select multiple class="form-control" style="height: 200px;" [(ngModel)]="addDeviceIds" (dblclick)="selectDevice()">
+                                    <option *ngFor="let device of surplusDevices" value="{{device.id}}">{{device.sn}}</option>
+                                </select>
+                            </div>
+                            <div class="col-auto" *appPermision="'zhongduan_fenzu'">
+                                <div style="margin-top: 40px;">
+                                    <div class="form-group row" style="justify-content: center">
+                                        <button type="button" class="btn btn-primary btn-sm" (click)="selectDevice()">移入</button>
+                                    </div>
+                                    <div class="form-group row">
+                                        <button type="button" class="btn btn-primary btn-sm" (click)="selectAllDevice()">全部移入</button>
+                                    </div>
+                                    <div class="form-group row" style="justify-content: center">
+                                        <button type="button" class="btn btn-danger btn-sm" (click)="removeDevice()">移出</button>
+                                    </div>
+                                    <div class="form-group row">
+                                        <button type="button" class="btn btn-danger btn-sm" (click)="removeAllDevice()">全部移出</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-5">
+                                <label class="col-form-label">已选取终端</label>
+                                <select multiple class="form-control" style="height: 200px;" [(ngModel)]="removeDeviceIds" (dblclick)="removeDevice();">
+                                    <option *ngFor="let device of selectedDevices" value="{{device.id}}">{{device.sn}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" *appPermision="'zhongduan_fenzu'">
+        <div class="mx-auto">
+            <button type="submit" (click)="submitForm()" class="btn btn-primary">
+                <i class="fa fa-fw fa-floppy-o fa-2x" ></i>
+                <span style="font-size: 1.7rem;">保 存</span>
+            </button>
+            <button type="submit" (click)="deleteGroup()" class="btn btn-danger" *ngIf="group.id!=null&&group.id!==''">
+                <i class="fa fa-fw fa-floppy-o fa-2x" ></i>
+                <span style="font-size: 1.7rem;">删 除</span>
+            </button>
+        </div>
+    </div>
+</div>

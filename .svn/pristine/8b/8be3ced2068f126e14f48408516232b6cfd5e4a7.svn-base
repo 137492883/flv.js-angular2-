@@ -1,0 +1,25 @@
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {ListComponent} from './list.component';
+import {ListRoutingModule} from './list-routing.module';
+import { PaginationModule } from 'ngx-bootstrap/pagination';
+import {FormsModule} from '@angular/forms';
+import {DeviceService} from '../../../../shared/services/device/device.service';
+import {AlertModule, PopoverModule} from 'ngx-bootstrap';
+import {DirectiveModule} from "../../../../shared/directives/directive/directive.module";
+
+@NgModule({
+    imports: [
+        CommonModule,
+        FormsModule,
+        PaginationModule.forRoot(),
+        AlertModule.forRoot(),
+        PopoverModule.forRoot(),
+        ListRoutingModule,
+        DirectiveModule
+    ],
+    declarations: [ListComponent],
+    providers: [DeviceService]
+})
+export class ListModule {
+}

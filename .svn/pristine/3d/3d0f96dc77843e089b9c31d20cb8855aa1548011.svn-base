@@ -1,0 +1,8 @@
+import { CdnurlPipe } from './cdnurl.pipe';
+
+describe('CdnurlPipe', () => {
+  it('create an instance', () => {
+    const pipe = new CdnurlPipe();
+    expect(pipe).toBeTruthy();
+  });
+});

@@ -1,0 +1,16 @@
+/**
+ * Created by wuzhenxue on 2017/11/9.
+ */
+export class TimeSlot {
+
+    startTime: any;
+    endTime: any;
+    key: string;
+    constructor(startTime: any, endTime: any , key: string) {
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.key = key;
+    }
+
+
+}

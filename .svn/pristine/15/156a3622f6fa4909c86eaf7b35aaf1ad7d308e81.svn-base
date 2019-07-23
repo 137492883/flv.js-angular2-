@@ -1,0 +1,64 @@
+import {BaseEntity} from './BaseEntity';
+import {UpgradeTask} from './UpgradeTask';
+/**
+ * Created by wuzhenxue on 2017/9/2.
+ */
+export class UpgradePlan extends BaseEntity {
+    /**
+     * 升级任务
+     * @type {UpgradeTask}
+     */
+    upgradeTask: UpgradeTask = new UpgradeTask();
+    /**
+     * 计划名称
+     */
+    name: string;
+    /**
+     * 操作者id
+     */
+    creatorId: string;
+    /**
+     * 操作者姓名
+     */
+    creatorName: string;
+    /**
+     * 审核
+     */
+    audit = '1';
+    /**
+     * 是否测试
+     */
+    test: boolean;
+    /**
+     * 1 是终端升级计划  2是应用升级计划
+     */
+    planType: string;
+    /**
+     * 1 是终端升级计划  2是应用升级计划
+     */
+    internalType: string;
+    /**
+     * 终端组id
+     */
+    deviceGroupIds: Array<string> = new Array<string>();
+    /**
+     * 终端组名称
+     */
+    deviceNames: Array<string> = new Array<string>();
+    /**
+     * 开始时间
+     */
+    startDate: Date;
+    /**
+     * 结束时间
+     */
+    endDate: Date;
+    /**
+     * 开始时间
+     */
+    startTime: Date = new Date();
+    /**
+     * 结束时间
+     */
+    endTime: Date = new Date();
+}

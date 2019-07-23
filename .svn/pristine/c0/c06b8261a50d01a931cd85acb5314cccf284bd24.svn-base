@@ -1,0 +1,124 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-table"></i>租户用户管理</li>
+                <div class="float-right">
+                    <button type="button" class="btn btn-danger btn-sm" (click)="addUser()">新增用户</button>
+                </div>
+            </ol>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-3">
+            <div class="card mb-3">
+                <div class="card-header">
+                    组织机构
+                </div>
+                <div class="card-body">
+                    <tree-root [nodes]="nodes" [options]="treeOptions"></tree-root>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <tabset>
+                <tab>
+                    <ng-template tabHeading>用户管理</ng-template>
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <form>
+                                <div class="form-row align-items-center pl-2">
+                                    <div class="col-auto">
+                                        <input type="text" class="form-control mb-2 mb-sm-0" id="inlineFormInputName"
+                                               placeholder="请输入用户名">
+                                    </div>
+                                    <div class="col-auto">
+                                        <button type="submit" class="btn btn-primary">查询</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class=" table-responsive">
+                            <table class="table table-hover ">
+                                <thead class="bg-secondary text-white ">
+                                <tr>
+                                    <th>序号</th>
+                                    <th>用户编号</th>
+                                    <th>用户名称</th>
+                                    <th>用户角色</th>
+                                    <th>用户状态</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr *ngFor="let user of users ,let i = index;" placement="bottom">
+                                    <th scope="row">{{i+1}}</th>
+                                    <td><a href="Javascript:void(0)" [routerLink]="['/system/platform/user/save',user.id]">
+                                        {{user.username}}
+                                    </a></td>
+                                    <td>{{user.username}}</td>
+                                    <td>{{user.roles}}</td>
+                                    <td>{{user.enabled}}</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer d-flex justify-content-end">
+                            <pagination [totalItems]="queryResult.totalElements"
+                                        class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'" [nextText]="'后一页'"
+                                        [boundaryLinks]="true" [rotate]="false"  (pageChanged)="onPageChange($event)"></pagination>
+                        </div>
+                    </div>
+                </tab>
+                <tab>
+                    <ng-template tabHeading>角色管理</ng-template>
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <form>
+                                <div class="form-row align-items-center pl-2">
+                                    <div class="col-auto">
+                                        <input type="text" class="form-control mb-2 mb-sm-0" id="inlineFormInputName"
+                                               placeholder="请输入用户名">
+                                    </div>
+                                    <div class="col-auto">
+                                        <button type="submit" class="btn btn-primary">查询</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class=" table-responsive">
+                            <table class="table table-hover ">
+                                <thead class="bg-secondary text-white ">
+                                <tr>
+                                    <th>序号</th>
+                                    <th>用户编号</th>
+                                    <th>用户名称</th>
+                                    <th>用户角色</th>
+                                    <th>用户状态</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr *ngFor="let user of users ,let i = index;" placement="bottom">
+                                    <th scope="row">{{i+1}}</th>
+                                    <td><a href="Javascript:void(0)" [routerLink]="['/system/platform/user/save',user.id]">
+                                        {{user.username}}
+                                    </a></td>
+                                    <td>{{user.username}}</td>
+                                    <td>{{user.roles}}</td>
+                                    <td>{{user.enabled}}</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer d-flex justify-content-end">
+                            <pagination [totalItems]="queryResult.totalElements"
+                                        class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'" [nextText]="'后一页'"
+                                        [boundaryLinks]="true" [rotate]="false"  (pageChanged)="onPageChange($event)"></pagination>
+                        </div>
+                    </div>
+                </tab>
+            </tabset>
+
+        </div>
+    </div>
+</div>

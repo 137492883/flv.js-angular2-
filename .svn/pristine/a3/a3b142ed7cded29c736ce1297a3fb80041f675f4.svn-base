@@ -1,0 +1,42 @@
+import {BaseEntity} from './BaseEntity';
+/**
+ * Created by wuzhenxue on 2017/9/2.
+ */
+export class Organization extends BaseEntity {
+    /**
+     * 0:平台 1：租户
+     **/
+    pid: string;
+    /**
+     * 0:平台 1：租户
+     */
+    hirerNum: string;
+    rootid: string;
+    /**
+     * 租户编号
+     */
+    type: string;
+    status: string; // 1:审核通过 2：审核不通过 3：停用
+    updatedstatus: string ; //  申请状态 1:开户申请中  3：停用申请中
+    /**
+     * 联系人
+     */
+    contactUserName: string;
+    /**
+     * 联系电话
+     */
+    contactTelNum: string;
+    /**
+     * 邮箱
+     */
+    contactEmail: string;
+    /**
+     * 邮箱
+     */
+    name: string;
+    /**
+     * 邮箱
+     */
+    description: string;
+
+}

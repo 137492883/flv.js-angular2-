@@ -1,0 +1,19 @@
+$topnav-background-color: #1976D2;
+:host {
+    display: block;
+}
+.login-page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100%;
+    //overflow: auto;
+    //background: $topnav-background-color;
+    background:url('../../assets/new/images/bg@2x.png') no-repeat;
+    background-size: 100%;
+    text-align: center;
+    color: #fff;
+
+}

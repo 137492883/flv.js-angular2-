@@ -1,0 +1,14 @@
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import {PermisionDirective} from './permision.directive';
+
+@NgModule({
+  imports: [
+    CommonModule
+  ],
+  declarations: [PermisionDirective],
+    exports: [
+        PermisionDirective,
+    ]
+})
+export  class DirectiveModule { }

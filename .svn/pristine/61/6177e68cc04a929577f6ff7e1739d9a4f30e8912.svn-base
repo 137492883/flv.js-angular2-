@@ -1,0 +1,127 @@
+/* You can add global styles to this file, and also import other style files */
+$blue: #2D456B;
+@import "scss/bootstrap";
+@import "spinner";
+@import "utils";
+@import "rtl";
+@import "responsive";
+
+body{
+    background-color: #f1f2f3;
+    .amap-marker-label {
+        position: absolute;
+        z-index: 2;
+        border: 1px solid #007bff !important;
+        background-color: #007bff !important;
+        white-space: nowrap;
+        cursor: default;
+        padding: 3px;
+        font-size: 14px;
+        color: #ffffff;
+        line-height: 14px;
+    }
+}
+//以下为二次改版样式
+.breadcrumb{
+    padding-top: 0.75rem;
+    padding-right: 1rem;
+    padding-bottom: 0.75rem;
+    padding-left: 1rem;
+    margin-bottom: 1rem;
+    list-style: none;
+    background-color: #ffffff;
+    margin-left: -30px;
+    margin-top: -10px;
+    border-radius: 0rem !important;
+    font-size: 18px;
+    color: #3F3B3B;
+    letter-spacing: 1px;
+
+}
+.breadcrumb-item:before {
+    display: inline-block;
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+    color: #868e96;
+    content: "" !important;
+}
+.jb-warp{
+    margin-top: -11px;
+    margin-left:-20px;
+    transform: rotate(-180deg);
+    background: #FFFFFF;
+    box-shadow: -1px -1px 4px 0 #2F3740;
+    width: 50px;
+    height: 50px;
+    position: relative;
+}
+
+.jb-warp:after{
+    position: absolute;
+    top: 0;
+    left: 0;
+    content:'';
+    width: 0;
+    height: 0;
+    border: 25px solid transparent;
+    border-bottom: 25px solid  #2D456B;
+    border-right: 25px solid  #2D456B;
+}
+.bg-secondary{
+    background-color:#4F6684 !important;
+}
+.page-item.active .page-link {
+    z-index: 2;
+    color: #fff;
+    background-color: #FFB800;
+    border-color: #FFB800;
+}
+.table-responsive{
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    margin-top:20px;
+}
+.card{
+    border:0px !important;
+}
+.card-header{
+    border-bottom:0px solid rgba(0, 0, 0, 0.125) !important;
+}
+.card-footer{
+    border-top:0px solid rgba(0, 0, 0, 0.125) !important;
+    background: #ffffff;
+}
+a{
+    color:#00A9F1;
+}
+.labelTxt{
+    color: #999;
+    font-size: small;
+}
+.table thead th {
+    vertical-align: bottom;
+    border-bottom: 0px solid #e9ecef;
+}
+.form-control.is-invalid{
+    border: 1px solid rgba(0,0,0,0.15);
+
+}
+label{
+    color: #999;
+    font-size: 15px;
+}
+label.customrequired:after{
+    content: '';
+    width: 6px;
+    height: 6px;
+    background-color: red;
+    position: absolute;
+    right: 0px;
+    top: 16px;
+    border-radius: 50%;
+
+}
+//.table th{
+//    padding: 0.75rem;
+//    vertical-align: top;
+//    border-top: 0px solid #e9ecef;
+//}

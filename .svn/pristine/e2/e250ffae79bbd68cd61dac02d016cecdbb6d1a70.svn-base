@@ -1,0 +1,16 @@
+<div class="row">
+    <div class="col-xl-12">
+        <!--<h4 class="page-header" >-->
+            <!--&lt;!&ndash;{{heading}}&ndash;&gt;-->
+        <!--</h4>-->
+        <ol class="breadcrumb">
+            <!--<li class="breadcrumb-item">-->
+                <!--<i class="fa fa-dashboard"></i> <a href="Javascript:void(0)" [routerLink]="['/dashboard']">首页</a>-->
+            <!--</li>-->
+            <li class="breadcrumb-item active"><i class="fa {{icon}}"></i> {{heading}}</li>
+           <!--<div class="float-right">-->
+               <!--<button type="button" class="btn btn-danger btn-sm">新增广告</button>-->
+           <!--</div>-->
+        </ol>
+    </div>
+</div>

@@ -1,0 +1,93 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-table"></i> 终端应用管理</li>
+                <div class="float-right" *appPermision="'shenjijihua_guanli'">
+                    <button type="button" class="btn btn-primary btn-sm" (click)="addPlan()">新建终端应用</button>
+                </div>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <div class="form-row align-items-center pl-2">
+                        <div class="col-auto">
+                            <input type="text" class="form-control mb-2 mb-sm-0" id="inlineFormInputName"
+                                   placeholder="请输入终端应用名称" [(ngModel)]="queryObj.name">
+                        </div>
+                        <div class="col-auto">
+                            <label class="col-form-label">审核状态</label>
+                        </div>
+                        <div class="col-auto">
+                            <select  class="form-control" [(ngModel)]="queryObj.audit">
+                                <option selected value="">全部</option>
+                                <option value="3">已审核</option>
+                                <option value="1">待审核</option>
+                                <option value="2">退回</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary" (click)="findObjects('/applicationupgrade/findUpgradePlans')">查询</button>
+                        </div>
+                    </div>
+                </div>
+                <div class=" table-responsive">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th>序号</th>
+                            <th>终端应用名称</th>
+                            <th>应用名称</th>
+                            <th>是否测试应用</th>
+                            <th>应用类型</th>
+                            <th>操作者</th>
+                            <th>审核状态</th>
+                            <th>升级终端组</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let plan of objects ,let i = index;" placement="bottom">
+                            <th>{{i+1}}</th>
+                            <td><a href="Javascript:void(0)" [routerLink]="['/device/apk-plan/save',plan.id]">
+                                {{plan.name}}
+                            </a></td>
+                            <td><a href="Javascript:void(0)"
+                                   [routerLink]="['/device/apk-task/save',plan.upgradeTask.id]">{{plan.upgradeTask
+                                .name}}</a></td>
+                            <td>{{plan.test?'是':'否'}}</td>
+                            <td [ngSwitch]="plan.internalType">
+                                <span *ngSwitchCase="1">内置</span>
+                                <span *ngSwitchCase="2">预置</span>
+                            </td>
+                            <td>{{plan.creatorName}}</td>
+                            <td [ngSwitch]="plan?.audit">
+                                <span *ngSwitchCase="3" class="text-success">
+                                    审核通过
+                                    <span *appPermision="'shenjijihua_jiesuo'">
+                                        <a href="Javascript:void(0)" (click)="unlock(plan)">（解锁）</a>
+                                    </span>
+                                </span>
+                                <span *ngSwitchCase="1">待审核</span>
+                                <span *ngSwitchCase="2" class="text-warning">退回</span>
+                            </td>
+                            <td title="{{plan.deviceGroupNames.toString()}}">{{disposeStr(plan.deviceGroupNames.toString(),10)}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="queryResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'" [nextText]="'后一页'"
+                                [boundaryLinks]="true" [rotate]="false" (numPages)="numPages = $event" (pageChanged)="onPageChange($event,'/applicationupgrade/findUpgradePlans')"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

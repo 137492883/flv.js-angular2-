@@ -1,0 +1,98 @@
+import {Component, OnInit} from '@angular/core';
+import {routerTransition} from '../../../../router.animations';
+import {ActivatedRoute, Router} from '@angular/router';
+import {UpgradeTask} from '../../../../shared/model/UpgradeTask';
+import {DeviceService} from '../../../../shared/services/device/device.service';
+import {BaseComponent} from '../../../../shared/components/BaseComponent';
+import {systemconst} from '../../../../systemconst';
+import {UpgradePlan} from '../../../../shared/model/UpgradePlan';
+import {PopoverConfig} from 'ngx-bootstrap';
+/**
+ * 描述:终端升级任务白名单列表页面操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/08 16:04:24
+ */
+@Component({
+    selector: 'app-device-group-list',
+    templateUrl: './list.component.html',
+    styleUrls: ['./list.component.scss'],
+    animations: [routerTransition()],
+})
+export class ListComponent extends BaseComponent implements OnInit {
+
+    /**
+     * 当前升级任务
+     * @type {UpgradeTask}
+     */
+    taskQuery: UpgradeTask = new UpgradeTask();
+    numPages: any;
+    /**
+     * 升级计划
+     * @type {UpgradePlan[]}
+     */
+    plans: Array<UpgradePlan> = new Array<UpgradePlan>();
+    /**
+     * 当前升级计划
+     * @type {UpgradePlan}
+     */
+    plan: UpgradePlan = new UpgradePlan();
+
+    constructor(public config: PopoverConfig, public route: ActivatedRoute, public deviceService: DeviceService,
+                public router: Router) {
+        super();
+        this.queryObj = this.taskQuery;
+        this.baseService = this.deviceService;
+        this.config.triggers = 'hover';
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        if (systemconst.alertMessage !== '') {
+            this.showSuccessMsg(systemconst.alertMessage);
+            systemconst.alertMessage = '';
+        }
+        this.queryObj.white=true;
+        this.findObjects('/applicationupgrade/findUpgradeTasks');
+    }
+
+    /**
+     * 跳转到保存页面
+     */
+    addTask() {
+        this.router.navigate(['/device/apk-white/save', 'null']);
+    }
+
+    /**
+     * 解锁任务
+     * @param task
+     */
+    unlocked(task: UpgradeTask) {
+        this.deviceService.getObject1('/applicationupgrade/findAppUpgradePlanByTaskId1', {id: task.id}).subscribe((result) => {
+            this.plans = result;  // 这是所有根据这个任务id  查询出来的  通过审核的计划
+            if ( this.plans.length <= 0 ) { // 如果是长度等于0 说明没有 则可以解锁
+               task.locked = false;
+                this.deviceService.save('/applicationupgrade/saveApplicationUpgradeTask', task).subscribe((task1) => {
+                });
+            } else {   // 已锁定 并且被终端应用使用
+                 const a = [];
+                 for ( let i = 0; i < this.plans.length; i++ ) {
+                     a.push( this.plans[i].name);
+                 }
+                this.showErrorMsg('本应用已被终端应用【' + a + '】使用，如需解锁，请先删除上述终端应用或修改上述终端应用中的应用任务为其他任务。')
+            }
+        });
+    }
+
+    /**
+     * 锁定任务
+     * @param task
+     */
+    locked(task: UpgradeTask) {
+        task.locked = true;
+        this.deviceService.save('/applicationupgrade/saveApplicationUpgradeTask', task).subscribe((task1) => {
+        });
+    }
+
+}

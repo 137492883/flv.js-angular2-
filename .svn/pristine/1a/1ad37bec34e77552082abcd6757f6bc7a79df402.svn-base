@@ -1,0 +1,99 @@
+<div class="pos-f-t fixed-top header">
+    <nav class="navbar fixed-top navbar-expand-md navbar-dark ">
+        <img src="assets/new/images/denglu_logo@2x.png" style="height: 35px;">
+        <div class="collapse navbar-collapse">
+            <a class="navbar-brand" href="javascript:void(0)"
+               style="    letter-spacing: 0.04rem;font-size: 1.7rem;"><small>(V2.0.2)</small></a>
+            <div class="navbar-nav ml-auto mt-2 mt-md-0 float-right">
+                <img src="assets/images/zrbm.png" style="height: 50px;">
+                <li class="nav-item dropdown" ngbDropdown style="    padding-right: 40px;">
+                    <a href="javascript:void(0)" class="nav-link" ngbDropdownToggle>
+                        <i class="fa fa-user" style="padding-right: 10px;"></i> {{currentUser.username}}
+                        <b class="caret"></b>
+                    </a>
+                    <div ngbDropdownMenu class="dropdown-menu dropdown-menu-right">
+                        <a class="dropdown-item" href="javascript:void(0)"
+                           [routerLink]="['/system/platform/user/save',currentUser.id]"><i class="fa fa-fw fa-user"></i>
+                            基本信息</a>
+                        <a class="dropdown-item" href="javascript:void(0)" (click)="updatePassword(content)"><i
+                            class="fa fa-fw fa-gear"></i> 修改密码</a>
+                        <a class="dropdown-item" [routerLink]="['/login']" (click)="onLoggedout()">
+                            <i class="fa fa-fw fa-power-off"></i> 登出</a>
+                    </div>
+                </li>
+            </div>
+        </div>
+        <button class="navbar-toggler" (click)="toggleSidebar()">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </nav>
+</div>
+
+<ng-template #content>
+    <div class="container">
+        <div class="modal-header">
+                <h6><strong>修改密码</strong></h6><small class="text-danger">数字、字母(区分大小写)和特殊字符(!@#$%^&*.)组合</small>
+                <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+        </div>
+        <div class="modal-body">
+
+            <form #myForm>
+                <div *ngIf="message === 'ok'"  class="text-center text-primary">
+                    <h5>密码修改成功</h5>
+                </div>
+                <div class="form-group row" *ngIf="message !== 'ok'">
+                    <label for="oldpassword" class="col-sm-4 control-label text-right"> 旧密码:</label>
+                    <div class="col-sm-6">
+                        <input type="password" class="form-control input-sm" #oldpassword id="oldpassword"
+                               (click)="clean()"
+                               placeholder="请输入旧密码">
+                    </div>
+                </div>
+                <div class="form-group row" *ngIf="message !== 'ok'">
+                    <label for="firstpassword" class="col-sm-4 control-label text-right"> 新密码:</label>
+                    <div class="col-sm-6">
+                        <input type="password" class="form-control input-sm" #firstpassword id="firstpassword"
+                               (click)="clean()"
+                               placeholder="请输入新密码">
+                    </div>
+                </div>
+                <div class="form-group row" *ngIf="message !== 'ok'">
+                    <label for="lastpassword" class="col-sm-4 control-label text-right">确认密码:</label>
+                    <div class="col-sm-6">
+                        <input type="password" class="form-control input-sm" #lastpassword id="lastpassword"
+                               (click)="clean()"
+                               placeholder="请再次确认新密码">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="form-group row" *ngIf="message !== 'ok'">
+            <div class="mx-auto">
+                <span style="color: red">{{message}}</span>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="mx-auto">
+                <span class="text-danger">{{prompt}}</span>
+            </div>
+        </div>
+        <div class="modal-footer form-group row">
+            <div class="mx-auto">
+                <button type="submit"
+                        (click)="save(myForm.oldpassword.value, myForm.firstpassword.value, myForm.lastpassword.value); myForm.oldpassword.value='';myForm.firstpassword.value='';myForm.lastpassword.value=''"
+                        class="btn btn-primary btn-sm" *ngIf="message !== 'ok'">
+                    <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                    <span style="font-size: 1.7rem;">保 存</span>
+                </button>
+                <button type="button"
+                        (click)="modalRef.hide()"
+                        class="btn btn-secondary" *ngIf="message === 'ok'">
+                    <span style="font-size: 1rem;">关 闭</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</ng-template>
+

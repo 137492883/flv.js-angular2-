@@ -1,0 +1,17 @@
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { PageHeaderModule } from './../../shared';
+import {UserComponent} from './user.component';
+import {UserRoutingModule} from './user-routing.module';
+import {TreeModule} from 'angular-tree-component/dist/angular-tree-component';
+
+@NgModule({
+    imports: [
+        CommonModule,
+        UserRoutingModule,
+        PageHeaderModule,
+        TreeModule
+    ],
+    declarations: [UserComponent]
+})
+export class UserModule { }

@@ -1,0 +1,46 @@
+import {BaseEntity} from './BaseEntity';
+/**
+ * Created by wuzhenxue on 2017/10/24.
+ */
+export class ScheduleStats extends BaseEntity {
+    /**
+     * 终端id
+     */
+    deviceid: string;
+    /**
+     * 播放计划id
+     */
+    playScheduleId: string;
+    /**
+     * 播放时长：秒
+     */
+    playDuration: string;
+    /**
+     * 播放次数
+     */
+    playTime: string;
+    /**
+     * 下载时长
+     */
+    downloadDuration: object;
+    /**
+     * 下载状态
+     */
+    downloadState: string;
+    /**
+     * 播放状态
+     */
+    playState: string;
+    /**
+     * 播放计划名称
+     */
+    broadCastPlanName: string;
+    /**
+     * 下载进度
+     */
+    downloadSchedule:number;
+    constructor (deviceid: string) {
+        super();
+        this.deviceid = deviceid;
+    }
+}

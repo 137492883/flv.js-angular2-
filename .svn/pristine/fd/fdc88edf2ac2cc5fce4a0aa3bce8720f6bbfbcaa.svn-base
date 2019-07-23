@@ -1,0 +1,126 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-table"></i> 内容管理</li>
+                <div class="float-right" *appPermision="'neirong_guanli'">
+                    <button type="button" class="btn btn-primary btn-sm" (click)="goSaveAdvertisement()">新增内容</button>
+                </div>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <div class="form-row align-items-center pl-2">
+                        <div class="col-auto">
+                            <input type="text" [(ngModel)]="advQuery.name" name="name" style="width: 150px;"
+                                   class="form-control mb-2 mb-sm-0" id="inlineFormInputName"
+                                   placeholder="请输入内容名称">
+                        </div>
+                        <div class="col-auto">
+                            审核状态
+                            <select class="custom-select mb-2 mr-sm-2 mb-sm-0" [(ngModel)]="advQuery.status">
+                                <option selected value=''>全部</option>
+                                <option value="1">待审核</option>
+                                <option value="2">审核不通过</option>
+                                <option value="3">审核通过</option>
+                            </select>
+
+                            <select class="custom-select mb-2 mr-sm-2 mb-sm-0" [(ngModel)]="advQuery.distribute">
+                                <option selected value="">全部</option>
+                                <option value="1">已分发</option>
+                                <option value="2">待分发</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            内容类型
+                            <select class="custom-select mb-2 mr-sm-2 mb-sm-0" [(ngModel)]="advQuery.fileType"
+                                    name="fileType">
+                                <option selected value="">全部</option>
+                                <option value="1">视频</option>
+                                <option value="2">图片</option>
+                                <option value="3">文字</option>
+                                <option value="4">流媒体</option>
+                                <option value="5">文档</option>
+                                <option value="6">扩展组件</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" [(ngModel)]="advQuery.createtime"
+                                   class="form-control mb-2 mb-sm-0" style="width: 150px;"
+                                   placeholder="创建时间">
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary btn-sm" (click)="findObjects('findAdvertisements')">查询
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class=" table-responsive">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th>序号</th>
+                            <th>内容名称</th>
+                            <th>创建时间</th>
+                            <th>产品类型</th>
+                            <th>测试内容</th>
+                            <th>审核状态</th>
+                            <th>启用状态</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let adv of objects ,let i = index;"
+                            popover="{{(adv.description===''||adv.description==null)?'暂无描述':adv.description}}">
+                            <th scope="row">{{i+1}}</th>
+                            <td><a href="Javascript:void(0)" [routerLink]="['/advertisement/save/',adv.id]">
+                                {{adv.name}} </a></td>
+                            <td>{{adv.createtime}}</td>
+                            <td [ngSwitch]="adv.fileType">
+                                <span *ngSwitchCase="'1'">视频</span>
+                                <span *ngSwitchCase="'2'">图片</span>
+                                <span *ngSwitchCase="'3'">文字</span>
+                                <span *ngSwitchCase="'4'">流媒体</span>
+                                <span *ngSwitchCase="'5'">文档</span>
+                                <span *ngSwitchCase="'6'">扩展组件</span>
+                            </td>
+                            <td>{{adv.test?'是':'否'}}</td>
+                            <td [ngSwitch]="adv.status">
+                                <span *ngSwitchCase="'1'">待审核</span>
+                                <span *ngSwitchCase="'2'" class="text-warning">退回</span>
+                                <span *ngSwitchCase="'3'" class="text-success">审核通过<a href="Javascript:void(0)"
+                                                                                      *appPermision="'neirong_jiesuo'"
+                                                                                      (click)="unlock(adv)">（解锁）</a></span>
+                            </td>
+                            <td [ngSwitch]="adv.distribute">
+                                <span *ngSwitchCase="'1'">已分发<a href="Javascript:void(0)"
+                                                                *appPermision="'neirong_fenfa'"
+                                                                (click)="distribute(adv,'2')">（关闭）</a></span>
+                                <span *ngSwitchCase="'2'">待分发
+                                    <span *appPermision="'neirong_fenfa'">
+                                        <a href="Javascript:void(0)" *ngIf="adv.status==='3'"
+                                           (click)="distribute(adv,'1')">（开启）</a>
+                                    </span>
+                                </span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="queryResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'"
+                                [nextText]="'后一页'"
+                                [boundaryLinks]="true" [rotate]="false"
+                                (pageChanged)="onPageChange($event,'findAdvertisements')"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

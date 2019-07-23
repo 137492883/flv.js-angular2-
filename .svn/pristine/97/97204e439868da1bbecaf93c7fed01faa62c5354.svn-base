@@ -1,0 +1,154 @@
+import {Component, NgZone, OnInit} from '@angular/core';
+import {routerTransition} from '../../../../router.animations';
+import {ActivatedRoute, Router} from '@angular/router';
+import {Paging} from '../../../../shared/model/Paging';
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {BroadcastPlan} from '../../../../shared/model/BroadcastPlan';
+import {BroadcastService} from '../../../../shared/services/broadcast/broadcast.service';
+import {BaseComponent} from '../../../../shared/components/BaseComponent';
+/**
+ * 描述:分发计划列表页面操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/06 20:53:13
+ */
+@Component({
+    selector: 'app-broadcast-plan-list',
+    templateUrl: './list.component.html',
+    styleUrls: ['./list.component.scss'],
+    animations: [routerTransition()],
+})
+export class ListComponent extends  BaseComponent implements OnInit {
+
+    /**
+     * 播放计划
+     */
+    plan: BroadcastPlan;
+    /**
+     * 播放计划
+     * @type {BroadcastPlan[]}
+     */
+    plans: Array<BroadcastPlan> = new Array<BroadcastPlan>();
+    /**
+     * 置顶计划
+     * @type {BroadcastPlan[]}
+     */
+    topPlans: Array<BroadcastPlan> = new Array<BroadcastPlan>();
+    /**
+     * 模态框
+     */
+    model: any;
+    /**
+     * 分页显示
+     * @type {Paging}
+     */
+    queryResult: Paging = new Paging();
+    /**
+     * 播放计划查询条件
+     * @type {BroadcastPlan}
+     */
+    broadcastPlanQuery: BroadcastPlan = new BroadcastPlan();
+    /**
+     * 播放计划查询条件
+     * @type {BroadcastPlan}
+     */
+    broadcastTopPlanQuery: BroadcastPlan = new BroadcastPlan();
+
+    constructor(public route: ActivatedRoute, private modalService: NgbModal,
+                public router: Router, public broadcastService: BroadcastService, public ngZone: NgZone) {
+        super();
+        this.broadcastPlanQuery.auditingStatus = '';
+        this.queryObj = this.broadcastPlanQuery;
+        this.baseService = this.broadcastService;
+        this.plans = [];
+    }
+
+    /**
+     * 页面初始化方法
+     */
+    ngOnInit() {
+        document.getElementById('lmask').style.display = 'block';
+        console.log(this.broadcastPlanQuery)
+        this.broadcastService.findBroadcastPlans(this.broadcastPlanQuery).subscribe((result) => {
+            this.queryResult =  result;
+            this.plans = result.content;
+            this.objects = this.plans;
+            document.getElementById('lmask').style.display = 'none';
+        })
+        this.broadcastTopPlanQuery.isTop = true;
+        this.broadcastService.findBroadCastPlansByIsTopAndOrgId(this.broadcastTopPlanQuery).subscribe((result) => {
+            this.topPlans = result;
+        })
+    }
+
+    /**
+     * 查询播放计划
+     */
+    queryBroadcastPlans() {
+        document.getElementById('lmask').style.display = 'block';
+        this.broadcastService.findBroadcastPlans(this.broadcastPlanQuery).subscribe((result) => {
+            this.queryResult =  result;
+            this.showSuccessMsg('查询成功，共计查询' + result.totalElements + '条记录');
+            this.plans = result.content;
+            this.objects = this.plans;
+            document.getElementById('lmask').style.display = 'none';
+        })
+        this.broadcastTopPlanQuery.isTop = true;
+        this.broadcastService.findBroadCastPlansByIsTopAndOrgId(this.broadcastTopPlanQuery).subscribe((result) => {
+            this.topPlans = result;
+        })
+    }
+
+    /**
+     * 翻页
+     * @param event
+     */
+    public pageChanged(event: any): void {
+        document.getElementById('lmask').style.display = 'block';
+        this.broadcastPlanQuery.currentPage = event.page - 1;
+        this.broadcastService.findBroadcastPlans(this.broadcastPlanQuery).subscribe((result) => {
+            this.queryResult =  result;
+            this.plans = result.content;
+            this.objects = this.plans;
+            document.getElementById('lmask').style.display = 'none';
+        })
+
+    }
+
+    /**
+     * 跳转到保存页面
+     */
+    goSaveBroadcastPlan() {
+        this.router.navigate(['/broadcast/plan/save', 'null']);
+    }
+
+    /**
+     * 关闭模态框
+     */
+    closeModal() {
+        this.model.close();
+    }
+
+    /**
+     * 解锁审核
+     * @param plan
+     */
+    unlockAudit(plan: BroadcastPlan) {
+        plan.auditingStatus = '1';
+        plan.distributeStatus = '1';
+        this.broadcastService.save('//broadcast/unlockDistribute', plan).subscribe((p) => {
+            this.showSuccessMsg('操作成功！');
+        });
+    }
+
+    /**
+     * 开启或关闭广告
+     * @param plan
+     * @param status
+     */
+    unlockDistribute(plan: BroadcastPlan, status) {
+        plan.distributeStatus = status;
+        this.broadcastService.save('//broadcast/unlockDistribute', plan).subscribe((p) => {
+            this.showSuccessMsg('操作成功！');
+        });
+    }
+}

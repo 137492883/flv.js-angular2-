@@ -1,0 +1,125 @@
+import {Component, OnInit} from '@angular/core';
+import {Device} from '../../../shared/model/Device';
+import {BaseComponent} from '../../../shared/components/BaseComponent';
+import {DeviceService} from '../../../shared/services/device/device.service';
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {systemconst} from '../../../systemconst';
+import {routerTransition} from "../../../router.animations";
+/**
+ * 描述:终端划拨列表页操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/08 16:07:27
+ */
+@Component({
+    selector: 'app-divide',
+    templateUrl: './divide.component.html',
+    styleUrls: ['./divide.component.scss'],
+    animations: [routerTransition()],
+})
+export class DivideComponent extends BaseComponent implements OnInit {
+
+    model: any;
+    /**
+     * 已选择的终端
+     * @type {Device[]}
+     */
+    selectedDevices: Array<Device> = new Array<Device>();
+    /**
+     * 终端查询条件
+     * @type {Device}
+     */
+    deviceQuery: Device = new Device();
+    deviceSee: Device = new Device();
+    /**
+     * 所属机构
+     * @type {string}
+     */
+    tenantOrgId = '';
+    /**
+     * 是否提交
+     * @type {boolean}
+     */
+    isSubmit = false;
+
+    constructor(private modalService: NgbModal, public deviceService: DeviceService) {
+        super();
+        this.queryObj = this.deviceQuery;
+        this.baseService = this.deviceService;
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        if (systemconst.alertMessage !== '') {
+            this.showSuccessMsg(systemconst.alertMessage);
+            systemconst.alertMessage = '';
+        }
+        this.baseService.find('/system/getCurrentUserFirstLevelOrgs', {}).subscribe((result) => {
+            this.organizations = result;
+            // 如果当前用户这两个id相等，就证明其是顶级用户
+            if (systemconst.currentUser.organization.id === systemconst.currentUser.topOrganization.id) {
+                this.queryObj.orgId = systemconst.currentUser.organization.id;
+            } else {
+                this.deviceQuery.tenantOrgIds.push(systemconst.currentUser.organization.id);
+                for (let i = 0; i < this.organizations.length; i++) {
+                    this.deviceQuery.tenantOrgIds.push(this.organizations[i].id);
+                }
+            }
+            this.findObjects('/device/findDevices');
+        })
+    }
+
+    /**
+     * 查看终端
+     * @param content 弹出框
+     * @param id 要查看的终端id
+     */
+    openSee(content, id) {
+        this.deviceSee = this.objects.filter((item) => {
+            return item.id === id;
+        })[0];
+        this.model = this.modalService.open(content, {size: 'lg'});
+    }
+
+    /**
+     * 关闭弹出框
+     */
+    closeModal() {
+        this.model.close();
+    }
+
+    /**
+     * 打开弹出框
+     * @param content
+     */
+    openModel(content) {
+        this.isSubmit = false;
+        this.selectedDevices = this.objects.filter((item) => {
+            return item.checked;
+        });
+        if (this.selectedDevices.length === 0) {
+            this.showErrorMsg('请选择要划拨的记录！');
+            return;
+        }
+        this.model = this.modalService.open(content, {size: 'lg'});
+    }
+
+    /**
+     * 划拨终端
+     */
+    divideDevice() {
+        this.isSubmit = true;
+        if (this.tenantOrgId === '') {
+            return;
+        }
+        for (let i = 0; i < this.selectedDevices.length; i++) {
+            this.selectedDevices[i].tenantOrgId = this.tenantOrgId;
+        }
+        this.baseService.save('/device/saveAllDevice', this.selectedDevices).subscribe((device) => {
+            this.findObjects('/device/findDevices');
+            this.showSuccessMsg('操作成功！');
+            this.closeModal();
+        });
+    }
+}

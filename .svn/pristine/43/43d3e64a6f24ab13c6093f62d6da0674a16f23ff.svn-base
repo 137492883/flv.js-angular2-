@@ -1,0 +1,141 @@
+<div>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-edit"></i>
+                    {{title}}
+                </li>
+                <div class="float-right" *appPermision="'kaihu_guanli'">
+                    <button type="button" class="btn btn-danger btn-sm" *ngIf="deleteabe(organization)"
+                            (click)="deleteOrg()">删除
+                    </button>
+                </div>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    租户信息<span style="color: red" *ngIf="isSubmit&&valid!==''">{{valid}}</span>
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">租户编号</label>
+                            </div>
+                            <div class="col d-flex">
+                                <input type="text" required maxlength="100" [class]="organization.hirerNum==null||organization.hirerNum===''?'form-control is-invalid':'form-control'" [(ngModel)]="organization.hirerNum">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">租户名称</label>
+                            </div>
+                            <div class="col">
+                                <input class="form-control" required  maxlength="50" [class]="organization.name==null||organization.name===''?'form-control is-invalid':'form-control'"  [(ngModel)]="organization.name">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">联系人</label>
+                            </div>
+                            <div class="col">
+                                <input type="text" maxlength="10" [class]="organization.contactUserName==null||organization.contactUserName===''?'form-control is-invalid':'form-control'" [(ngModel)]="organization.contactUserName">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">联系电话</label>
+                            </div>
+                            <div class="col">
+                                <input type="text" maxlength="11" [class]="organization.contactTelNum==null||organization.contactTelNum===''?'form-control is-invalid':'form-control'" [(ngModel)]="organization.contactTelNum">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row"  >
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">电子邮箱</label>
+                            </div>
+                            <div class="col">
+                                <input type="text" maxlength="50" [class]="organization.contactEmail==null||organization.contactEmail===''?'form-control is-invalid':'form-control'" [disabled]="organization.id" [(ngModel)]="organization.contactEmail">
+                                <small id="contractEmailHelp" class="text-warning">
+                                    该邮箱将作为新建机构的超级管理员账户,且不能修改，初始密码为：01010086@chinamobile.com &nbsp;&nbsp;&nbsp;
+                                    <a  href="Javascript: void(0)" class="text-primary" (click)="resetPassword()"
+                                              *ngIf="organization.id">重置管理员密码</a>
+                                </small>
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">描述信息</label>
+                            </div>
+                            <div class="col">
+                                <textarea class="form-control" maxlength="500" [(ngModel)]="organization.description"></textarea>
+                            </div>
+                        </div>
+                        <!--<div class="form-group row">
+                            <div class="mx-auto">
+                                &lt;!&ndash; 操作员&ndash;&gt;
+                                <span *appPermision="'kaihu_guanli'">
+                                    <button type="submit" (click)="submitForm()" [disabled]="!organization.contactEmail" class="btn btn-warning">
+                                        <i class="fa fa-fw fa-floppy-o fa-2x" ></i>
+                                        <span style="font-size: 1.7rem;" *ngIf="!organization.id">开 户</span>
+                                        <span style="font-size: 1.7rem;" *ngIf="organization.id">修 改</span>
+                                    </button>
+                                    <button type="submit" *ngIf="stopable()" (click)="applyStop()" class="btn btn-warning">
+                                        <i class="fa fa-fw fa-floppy-o fa-2x" ></i>
+                                        <span style="font-size: 1.7rem;">申请停用</span>
+                                    </button>
+                                    <button type="submit" *ngIf="reusable()" (click)="applyReuse()" class="btn btn-warning">
+                                        <i class="fa fa-fw fa-floppy-o fa-2x" ></i>
+                                        <span style="font-size: 1.7rem;">申请恢复</span>
+                                    </button>
+                                    <button type="submit" *ngIf="reopenable()" (click)="applyReuse()" class="btn btn-warning">
+                                        <i class="fa fa-fw fa-floppy-o fa-2x" ></i>
+                                        <span style="font-size: 1.7rem;">重新申请开户</span>
+                                    </button>
+                                </span>
+                                &lt;!&ndash; 审核主管 &ndash;&gt;
+                                <span *appPermision="'kaihu_shenhe'">
+                                    <button type="submit"  class="btn btn-warning" *ngIf="organization.status !== organization.updatedstatus " (click)="pass()">
+                                        <i class="fa fa-fw fa-floppy-o fa-2x" ></i>
+                                        <span style="font-size: 1.7rem;">通过申请
+                                        </span>
+                                    </button>
+                                    <button type="submit"  class="btn btn-warning" *ngIf="organization.status !== organization.updatedstatus " (click)="reject()">
+                                        <i class="fa fa-fw fa-floppy-o fa-2x" ></i>
+                                        <span style="font-size: 1.7rem;">拒绝申请
+                                        </span>
+                                    </button>
+                                </span>
+
+                            </div>
+                        </div>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>

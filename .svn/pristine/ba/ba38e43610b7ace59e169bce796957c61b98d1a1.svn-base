@@ -1,0 +1,89 @@
+import {Injectable} from '@angular/core';
+@Injectable()
+export class CommonUtil {
+
+    public base64Image: string;
+
+    constructor() {
+
+    }
+
+    isEmpty(val: string) {
+        return val != null && val.trim() !== '';
+    }
+
+    trimObject(obj:any){
+        for(var k in obj){
+            if(typeof obj[k]==='string'){
+                obj[k]=obj[k].trim();
+            }
+        }
+    }
+
+    isNull(val: number) {
+        return val != null ;
+    }
+
+    getCurrentDate() {
+        const today = new Date(),
+            year = today.getFullYear(),
+            month = today.getMonth(),
+            day = today.getDate();
+        return year + '-' + (month + 1 < 10 ? '0' + (month + 1) : month + 1) + '-' + (day < 10 ? '0' + day : day);
+    }
+
+    /**
+     * 获取格式化的日期
+     * @param date
+     * @param format YYYY-MM-DD hh:mm:ss,YYYY年MM月DD日 hh时mm分ss秒
+     * @returns {string}
+     */
+    getDate(date: Date, format?: string) {
+        const year = date.getFullYear(),
+            month = date.getMonth() + 1,
+            day = date.getDate(),
+            hour = date.getHours(),
+            minutes = date.getMinutes(),
+            sec = date.getSeconds();
+
+        const monthStr = (month < 10 ? '0' + month : month),
+            dayStr = (day < 10 ? '0' + day : day),
+            hourStr = (hour < 10 ? '0' + hour : hour),
+            minutesStr = (minutes < 10 ? '0' + minutes : minutes),
+            secStr = (sec < 10 ? '0' + sec : sec);
+        if (!this.isEmpty(format)) {
+            return year + '-' + monthStr + '-' + dayStr + ' ' + hourStr + ':' + minutesStr + ':' + secStr;
+        }
+        return format.replace('YYYY', year + '')
+            .replace('MM', monthStr + '')
+            .replace('DD', dayStr + '')
+            .replace('hh', hourStr + '')
+            .replace('mm', minutesStr + '')
+            .replace('ss', secStr + '');
+    }
+
+    getFormatTime(duration: number) {
+        const hour = Math.floor(duration / 3600),
+            m = duration % 3600;
+        if (m > 0) {
+            const minute = Math.floor(m / 60), s = m % 60;
+            if (s > 0) {
+                return hour + '小时' + minute + '分钟' + s + '秒';
+            } else {
+                return hour + '小时' + minute + '分钟' + '0秒';
+            }
+
+        } else {
+            return hour + '小时' + '0分0秒';
+        }
+    }
+
+    replaceAll(val: string, rep1: string, rep2: string) {
+        if (val.indexOf(rep1) > -1) {
+            val = val.replace(rep1, rep2);
+            return this.replaceAll(val, rep1, rep2);
+        } else {
+            return val;
+        }
+    }
+}

@@ -1,0 +1,72 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-table"></i> 升级任务</li>
+                <div class="float-right"  *appPermision="'shenjirenwu_guanli'">
+                    <button type="button" class="btn btn-primary btn-sm" (click)="addTask()">新建升级任务</button>
+                </div>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <div class="form-row align-items-center pl-2">
+                        <div class="col-auto">
+                            <input type="text" class="form-control mb-2 mb-sm-0" id="inlineFormInputName"
+                                   placeholder="请输入任务名称" [(ngModel)]="queryObj.name">
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary" (click)="findObjects('/device/findTasks')">查询</button>
+                        </div>
+                    </div>
+                </div>
+                <div class=" table-responsive">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th>序号</th>
+                            <th>任务名称</th>
+                            <th>版本号</th>
+                            <th>上传时间</th>
+                            <th>操作者</th>
+                            <th>测试任务</th>
+                            <th>强制升级</th>
+                            <th>任务描述</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let task of objects ,let i = index;" placement="bottom">
+                            <th>{{i+1}}</th>
+                            <td><a href="Javascript:void(0)" [routerLink]="['/device/task/save',task.id]">
+                                {{task.name}}
+                            </a></td>
+                            <td>{{task.version}}</td>
+                            <td>{{task.createtime}}</td>
+                            <td>{{task.creatorName}}</td>
+                            <td>{{task.test?'是':'否'}}</td>
+                            <td>{{task.forced==='1'?'是':'否'}}</td>
+                            <td *ngIf="task.description!==null&&task.description!==''" title="{{task.description}}">{{disposeStr(task.description,10)}}</td>
+                            <td *ngIf="task.description==null||task.description===''"></td>
+                            <td *ngIf="task.locked">已锁定（<a href="Javascript:void(0)" (click)="unlocked(task)">解锁</a>）</td>
+                            <td *ngIf="!task.locked"><a *ngIf="!task.test" href="Javascript:void(0)" (click)="locked(task)">锁定</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="queryResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'" [nextText]="'后一页'"
+                                [boundaryLinks]="true" [rotate]="false" (numPages)="numPages = $event" (pageChanged)="onPageChange($event,'/device/findTasks')"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

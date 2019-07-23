@@ -1,0 +1,43 @@
+import {BaseEntity} from './BaseEntity';
+/**
+ * Created by wuzhenxue on 2017/10/25.
+ */
+export class AdvertisementStats extends  BaseEntity {
+    /**
+     * 终端id
+     */
+    deviceId: string;
+    /**
+     * 播放计划id
+     */
+    playScheduleId: string;
+    positionId: string;
+    /**
+     * 播放素材id
+     */
+    playDetailId: string;
+    /**
+     * 播放时长：秒
+     */
+    playDuration: string;
+    /**
+     * 播放次数
+     */
+    playTime: string;
+    /**
+     * 素材名称
+     */
+    playDetailName: string;
+    /**
+     * 文件类型
+     */
+    fileType: string;
+    /**
+     * 下载进度
+     */
+    downloadPercent: string;
+    /**
+     * 下载状态
+     */
+    downloadState: string;
+}

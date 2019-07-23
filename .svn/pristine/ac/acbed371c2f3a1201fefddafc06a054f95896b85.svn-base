@@ -1,0 +1,91 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-table"></i>入网开户</li>
+                <!--<div class="float-right" >
+                    <button *appPermision="'kaihu_guanli'" type="button" class="btn btn-link " (click)="addOrganization()">
+                        <i class="fa fa-plus-circle  text-primary pr-1" style="font-size: 1.2rem;">租户开户</i>
+                    </button>
+                </div>-->
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <form>
+                        <div class="form-row align-items-center pl-2">
+                            <div class="col-auto">
+                                <input type="text" class="form-control mb-2 mb-sm-0" id="inlineFormInputName"
+                                       placeholder="请输入租户名称" [(ngModel)]="organizationQuery.name" name="orgname">
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-primary" (click)="findHireOrg()">查询</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class=" table-responsive">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th>序号</th>
+                            <th>租户编号</th>
+                            <th>租户名称</th>
+                            <th>联系人</th>
+                            <th>手机号</th>
+                            <!--<th>租户状态</th>
+                            <th>审核状态</th>-->
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let organization of organizations ,let i = index;" placement="bottom">
+                            <th scope="row">{{i+1}}</th>
+                            <td><a href="Javascript:void(0)" [routerLink]="['/system/platform/organization/update',organization.id]">
+                                {{organization.hirerNum}}
+                            </a></td>
+                            <td>{{organization.name}}</td>
+                            <td>{{organization.contactUserName}}</td>
+                            <td>{{organization.contactTelNum}}</td>
+                            <!--<td [ngSwitch]="organization.status">
+                                <span *ngSwitchCase="'1'" >正常</span>
+                                <span *ngSwitchCase="'2'" >开户失败</span>
+                                <span *ngSwitchCase="'3'" >停用 </span>
+                                <span *ngSwitchDefault >待开户</span>
+                            </td>
+                            <td [ngSwitch]="organization.updatedstatus">
+                                <span *ngSwitchCase="'1'"  class="text-success">
+                                    <span [ngSwitch]="organization.status">
+                                        <span *ngSwitchCase="'1'" ></span>
+                                        <span *ngSwitchCase="'2'" >重新申请中</span>
+                                        <span *ngSwitchCase="'3'" >恢复申请中 </span>
+                                        <span *ngSwitchDefault >开户审核中</span>
+                                    </span>
+                                </span>
+                                <span *ngSwitchCase="'3'" class="text-success">
+                                    <span [ngSwitch]="organization.status">
+                                        <span *ngSwitchCase="'1'" >停用申请中</span>
+                                        <span *ngSwitchDefault ></span>
+                                    </span>
+                                </span>
+                                <span *ngSwitchDefault class="text-success"></span>
+                            </td>-->
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="queryResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'" [nextText]="'后一页'"
+                                [boundaryLinks]="true" [rotate]="false"  (pageChanged)="onPageChange($event)"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

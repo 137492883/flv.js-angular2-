@@ -1,0 +1,135 @@
+import {Component, NgZone, OnInit} from '@angular/core';
+import {routerTransition} from '../../../../../router.animations';
+import {User} from '../../../../../shared/model/user';
+import {CommonUtil} from '../../../../../shared/providers/CommonUtil';
+import {ActivatedRoute, Router} from '@angular/router';
+import {SystemService} from '../../../../../shared/services/sysmanage/system.service';
+import {Role} from '../../../../../shared/model/Role';
+import {BaseComponent} from '../../../../../shared/components/BaseComponent';
+import {systemconst} from '../../../../../systemconst';
+/**
+ * 描述:用户编辑页面操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/09 15:23:22
+ */
+@Component({
+    selector: 'app-save',
+    templateUrl: './save.component.html',
+    styleUrls: ['./save.component.scss'],
+    animations: [routerTransition()]
+})
+export class SaveComponent extends BaseComponent implements OnInit {
+
+    titleName = '新增用户';
+    user: User = new User();
+    valid = '';
+    isSubmit = false;
+    role: Role = new Role();
+    selectedRoleid: string;
+    selectedRole: Role = new Role();
+    currentOrgRoles: Array<Role> = new Array<Role>();
+    currentUser: User = new User();
+
+
+    constructor(public commonUtil: CommonUtil, public router: Router, public activatedRoute: ActivatedRoute,
+                public systemService: SystemService, public ngZone: NgZone) {
+        super();
+    }
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        this.currentUser = this.systemService.getCurrentUser();
+        this.systemService.getCurrentUserOrgRolesNonPage(this.role).subscribe(roles => {
+            this.currentOrgRoles = roles;
+        })
+        const id = this.activatedRoute.snapshot.paramMap.get('id');
+        if (id) {
+            this.titleName = '编辑用户';
+            this.user.id = id;
+            this.systemService.findUsersByID(this.user).subscribe(user => {
+                this.user = user;
+                this.selectedRole = this.user.role;
+                this.selectedRoleid = this.selectedRole.id;
+            })
+        }
+    }
+
+    /**
+     * 选择角色
+     */
+    selectRole() {
+        this.selectedRole = this.currentOrgRoles.filter((r) => r.id === this.selectedRoleid)[0];
+        this.user.role = this.selectedRole;
+    }
+
+    /**
+     * 保存用户
+     */
+    submitForm() {
+        if (this.user.id) {
+            /*更新用户*/
+            this.valid = '';
+            this.isSubmit = true;
+            if (!this.commonUtil.isEmpty(this.user.username && this.user.realname)) {/*填的名字是空的*/
+                this.valid = systemconst.validEmptyMessage;
+            } else {
+                this.systemService.updateUser(this.user).subscribe(user => {
+                    this.router.navigate(['system/platform/user/list'])
+                }, err => {
+                    this.showErrorMsg(err.message = '用户已经存在');
+                })
+            }
+        } else {/*添加用户*/
+            this.valid = '';
+            this.isSubmit = true;
+            if (!this.commonUtil.isEmpty(this.user.username && this.user.realname)) {/*填的名字是空的*/
+                this.valid = systemconst.validEmptyMessage;
+            } else {
+                this.systemService.saveUserForCurrentOrg(this.user).subscribe(user => {
+                    this.router.navigate(['system/platform/user/list'])
+                }, err => {
+                    this.showErrorMsg(err.message = '用户已经存在');
+                })
+            }
+        }
+    }
+
+    /**
+     * 重置密码
+     */
+    resetPasswords() {
+        this.systemService.resetPasswords(this.user).subscribe(user => {
+            this.showSuccessMsg('密码重置成功，初始密码为：01010086@chinamobile.com');
+        })
+    }
+
+    /**
+     * 删除用户
+     */
+    deleteUser() {
+        this.systemService.deleteUser(this.user).subscribe(user => {
+            this.router.navigate(['system/platform/user/list'])
+        })
+    }
+
+    /**
+     * 停用或启用
+     */
+    disableOrStart() {
+        if (this.user.enabled) {/*当前用户状态是true  点击停用*/
+            this.systemService.disableUser(this.user).subscribe(user => {
+                this.showSuccessMsg('用户已停用');
+                this.user = user;
+                /*双向绑定  这样的目的: 你点完请用按钮，按钮立即变为启用的状态*/
+            })
+        } else {
+            console.log(this.user);
+            this.systemService.startUser(this.user).subscribe(user => {
+                this.showSuccessMsg('用户已启用');
+                this.user = user;
+            })
+
+        }
+    }
+}

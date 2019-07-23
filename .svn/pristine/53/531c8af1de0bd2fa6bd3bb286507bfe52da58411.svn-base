@@ -1,0 +1,41 @@
+import {Component, OnInit} from "@angular/core";
+import {routerTransition} from "../../../../router.animations";
+import {ActivatedRoute, Router} from "@angular/router";
+import {BaseComponent} from "../../../../shared/components/BaseComponent";
+import {OrderService} from "../../../../shared/services/order/order.service";
+import {RatePlan} from "../../../../shared/model/RatePlan";
+/**
+ * 描述:资费套餐操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/06 21:10:43
+ */
+@Component({
+    selector: 'app-order-zftc-list',
+    templateUrl: './list.component.html',
+    styleUrls: ['./list.component.scss'],
+    animations: [routerTransition()],
+})
+export class ListComponent extends  BaseComponent implements OnInit {
+
+    /**
+     * 查询条件
+     * @type {RatePlan}
+     */
+    ratePlanQuery:RatePlan=new RatePlan();
+    constructor(public route: ActivatedRoute,
+                public orderService: OrderService,
+                public router: Router) {
+        super();
+        this.baseService=orderService;
+        this.queryObj = this.ratePlanQuery;
+    }
+
+    /**
+     * 页面初始化方法
+     */
+    ngOnInit() {
+        this.ratePlanQuery.orderId=this.route.snapshot.paramMap.get('id');
+        console.log(this.ratePlanQuery.orderId)
+        this.findObjects('/rate/findRatePlans');
+    }
+}

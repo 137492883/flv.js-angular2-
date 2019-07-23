@@ -1,0 +1,29 @@
+import {BaseEntity} from './BaseEntity';
+/**
+ * 接口日志实体
+ */
+export class SystemLog extends BaseEntity {
+    /**
+     * 开始时间
+     */
+    startTime: string;
+    /**
+     * 结束时间
+     */
+    endTime: string;
+    // 终端Id
+    deviceId: string;
+    // 终端sn号
+    deviceSn: string;
+    // 请求的参数
+    param: any;
+    // 返回的结果
+    res: any;
+    // 访问状态  失败或成功
+    status: string;
+
+    // 操作描述
+    actionDes: string;
+    // 接口类型列表
+    actionDesList: Array<string> = new Array<string>();
+}

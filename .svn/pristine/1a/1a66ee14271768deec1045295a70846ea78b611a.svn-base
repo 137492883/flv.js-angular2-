@@ -1,0 +1,394 @@
+import {Component, OnInit, TemplateRef, ViewChild} from "@angular/core";
+import {routerTransition} from "../../../../router.animations";
+import {Device} from "../../../../shared/model/Device";
+import {ActivatedRoute, Router} from "@angular/router";
+import {DeviceService} from "../../../../shared/services/device/device.service";
+import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
+import {BaseComponent} from "../../../../shared/components/BaseComponent";
+import {systemconst} from "../../../../systemconst";
+import {FileUploader} from "ng2-file-upload";
+import {DeviceApDTO} from "../../../../shared/model/DeviceApDTO";
+import {List} from "linqts";
+import {BsModalService} from "ngx-bootstrap";
+import {CommonUtil} from "../../../../shared/providers/CommonUtil";
+/**
+ * 描述:终端录入列表页面操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/08 16:09:50
+ */
+@Component({
+    selector: 'app-device-list',
+    templateUrl: './list.component.html',
+    styleUrls: ['./list.component.scss'],
+    animations: [routerTransition()],
+})
+export class ListComponent extends BaseComponent implements OnInit {
+    @ViewChild('waitForProbeON')
+    waitForProbeON: TemplateRef<any>;
+    probeResponse: any;
+    model: any;
+    content: any;
+    public importAlerts: any = [];
+    public bindCardAlerts: any = [];
+    importOrgId = '';
+    bindCardNum = '';
+    downLoadImportUrl = '';
+    downLoadBindUrl = '';
+    deviceQuery: Device = new Device();
+    deviceSee: Device = new Device();
+    deviceBindCard: Device = new Device();
+    deviceBindCards: Array<Device> = new Array<Device>();
+    isExcel1: boolean;
+    isExcel2: boolean;
+    isSubmit = false;
+    numPages: any;
+    apOpen_ = false;
+    set_add = true;
+    set_ap = false;
+    set_bindCard = false;
+    set_factoryinit = false;
+    deviceApDTO: DeviceApDTO = new DeviceApDTO();
+    public importAllUploader: FileUploader = new FileUploader({});
+
+    public bindAllUploader: FileUploader = new FileUploader({
+        authToken: 'Bearer ' + localStorage.getItem('id_token'),
+        url: systemconst.api_url + 'device/batchBindCard'
+    });
+
+    constructor(public route: ActivatedRoute, private modalService: NgbModal,public commonUtil: CommonUtil,
+                public router: Router, public deviceService: DeviceService, private bsmodalService: BsModalService) {
+        super();
+        const op_flag = this.route.snapshot.paramMap.get('flag');
+        //如果是设置热点
+        if (op_flag === 'ap') {
+            this.set_ap = true;
+            this.set_add = false;
+            this.set_bindCard = false;
+            this.set_factoryinit = false;
+        //如果是机卡绑定
+        } else if (op_flag === 'bindCard') {
+            this.set_bindCard = true;
+            this.set_ap = false;
+            this.set_add = false;
+            this.set_factoryinit = false;
+        //如果是激活探针
+        } else if (op_flag === 'factoryinit') {
+            this.set_bindCard = false;
+            this.set_ap = false;
+            this.set_add = false;
+            this.set_factoryinit = true;
+        } else {
+            this.set_ap = false;
+            this.set_add = true;
+            this.set_bindCard = false;
+            this.set_factoryinit = false;
+        }
+        this.queryObj = this.deviceQuery;
+        this.baseService = this.deviceService;
+        this.importAllUploader.onAfterAddingFile = (fileItem) => {
+            this.importAllUploader.queue[this.importAllUploader.queue.length - 1].onSuccess = (response, status, headers) => {
+                if (status === 200) {
+                    if (response === '') {
+                        setTimeout(() => {
+                            this.showSuccessMsg();
+                            this.findObjects('/device/findDevices');
+                            this.importOrgId = '';
+                            this.importAllUploader.clearQueue();
+                            this.closeModal();
+                        }, 2000);
+                    } else {
+                        this.isSubmit = false;
+                        this.importAllUploader.clearQueue();
+                        const messages = JSON.parse(response)[0].message.split(',');
+                        for (let i = 0; i < messages.length; i++) {
+                            if (messages[i] !== '') {
+                                this.importAlerts.push({
+                                    type: 'danger',
+                                    msg: messages[i]
+                                });
+                            }
+                        }
+                        this.closeModal();
+                        this.openModel(this.content);
+                    }
+                } else {
+                }
+            };
+        };
+        this.bindAllUploader.onAfterAddingFile = (fileItem) => {
+            this.bindAllUploader.queue[this.bindAllUploader.queue.length - 1].onSuccess = (response, status, headers) => {
+                if (status === 200) {
+                    if (response === '') {
+                        setTimeout(() => {
+                            this.showSuccessMsg();
+                            this.findObjects('/device/findDevices');
+                            this.bindAllUploader.clearQueue();
+                            this.closeModal();
+                        }, 2000)
+                    } else {
+                        this.isSubmit = false;
+                        this.bindAllUploader.clearQueue();
+                        const messages = JSON.parse(response)[0].message.split(',');
+                        for (let i = 0; i < messages.length; i++) {
+                            if (messages[i] !== '') {
+                                this.bindCardAlerts.push({
+                                    type: 'danger',
+                                    msg: messages[i]
+                                });
+                            }
+                        }
+                        this.closeModal();
+                        this.openModel(this.content);
+                    }
+                } else {
+                }
+            };
+        };
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        if (systemconst.alertMessage !== '') {
+            this.showSuccessMsg(systemconst.alertMessage);
+            systemconst.alertMessage = '';
+        }
+        this.findHireOrganizations()
+        this.findObjects('/device/findDevices');
+        this.deviceService.getObject('/device/templateDownload', {}).subscribe((result) => {
+            this.downLoadImportUrl = result.url;
+        });
+        this.deviceService.getObject('/device/bindCardTemplateDownload', {}).subscribe((result) => {
+            this.downLoadBindUrl = result.url;
+        });
+    }
+
+    /**
+     * 跳转到编辑终端页面
+     */
+    addDevice() {
+        this.router.navigate(['/device/entering/save', 'null']);
+    }
+
+    deleteDevices(content,saveUrl: string, listUrl: string) {
+        let delObjects = this.objects.filter((item) => {
+            return item.checked;
+        });
+        let str="";
+        for(let i = 0; i < delObjects.length; i++){
+            if(this.commonUtil.isEmpty(delObjects[i].tenantOrgName)){
+                str+="终端【"+delObjects[i].sn+"】已经划拨到【"+delObjects[i].tenantOrgName+"】；";
+            }
+            for(let j=0;j<delObjects[i].groupNames.length;j++){
+                let type='';
+                if(delObjects[i].groupTypes[j]==='1'){
+                    type="平台用户";
+                }else{
+                    type="租户";
+                }
+                str+="终端【"+delObjects[i].sn+"】已经被"+type+"【"+delObjects[i].groupOrgNames[j]+"】划分到【"+delObjects[i].groupNames[j]+"】组；";
+            }
+        }
+        if(str!==""){
+            str+="确认删除吗？"
+            this.showErrorMsg(str);
+            this.model = this.modalService.open(content, {size: 'lg'});
+            return;
+        }
+        super.deleteObjects(saveUrl,listUrl);
+    }
+
+    doDelete(saveUrl: string, listUrl: string){
+        super.deleteObjects(saveUrl,listUrl);
+        this.closeModal();
+    }
+
+    public showErrorMsg(msg?: string, showTime?: number): void {
+        this.alerts=[];
+        let msgs=msg.split('；');
+        for(let i=0;i<msgs.length;i++){
+            this.alerts.push({
+                type: 'danger',
+                msg: msgs[i] ? msgs[i] : ''
+            });
+        }
+    }
+
+    /**
+     * 查看终端
+     * @param content 弹出框
+     * @param id 要查看的终端id
+     */
+    openSee(content, id) {
+        this.deviceSee = this.objects.filter((item) => {
+            return item.id === id;
+        })[0];
+        this.model = this.modalService.open(content, {size: 'lg'});
+    }
+
+    /**
+     * 打开绑卡界面
+     * @param content
+     */
+    openBindCard(content) {
+        const selectedDevices = this.objects.filter((item) => {
+            return item.checked;
+        });
+        //如果没有选中终端
+        if (selectedDevices.length === 0) {
+            this.showErrorMsg('请选择要操作的记录！');
+            return;
+        }
+        //如果选中多个终端
+        if (selectedDevices.length > 1) {
+            this.showErrorMsg('只能选择一条记录的记录！');
+            return;
+        }
+        this.deviceBindCard = selectedDevices[0];
+        this.bindCardNum = '';
+        this.model = this.modalService.open(content, {size: 'lg'});
+    }
+
+    /**
+     * 打开设置热点窗口
+     * @param content
+     */
+    openApCard(content) {
+        const selectedDevices = this.objects.filter((item) => {
+            return item.checked;
+        });
+        //如果没有选中终端
+        if (selectedDevices.length === 0) {
+            this.showErrorMsg('请选择要操作的记录！');
+            return;
+        }
+        this.deviceBindCards = selectedDevices;
+        this.bindCardNum = '';
+        this.model = this.modalService.open(content, {size: 'lg'});
+    }
+
+    /**
+     * 设置热点
+     */
+    doSetAp() {
+        if (this.apOpen_) {
+            this.deviceApDTO.apOpen = '1';
+        } else {
+            this.deviceApDTO.apOpen = '0';
+        }
+        this.deviceApDTO.deviceids = new List<any>(this.deviceBindCards).Select(x => x.id).Distinct().ToArray();
+        this.deviceService.setAp(this.deviceApDTO).subscribe(resp => {
+            this.showSuccessMsg('设置成功');
+            this.closeModal();
+            for (let i = 0; i < this.objects.length; i++) {
+                this.objects[i].checked = false;
+            }
+        })
+    }
+
+    /**
+     * 激活探针
+     */
+    factoryInitBatch() {
+        const selectedDevices = this.objects.filter((item) => {
+            return item.checked;
+        });
+        if (selectedDevices.length === 0) {
+            this.showErrorMsg('请选择要操作的记录！');
+            return;
+        }
+        this.bsmodalService.show(this.waitForProbeON);
+        this.deviceApDTO.deviceids = new List<any>(selectedDevices).Select(x => x.id).Distinct().ToArray();
+        this.deviceService.factoryInitBatch(this.deviceApDTO).subscribe(resp => {
+            this.probeResponse = resp;
+            this.findObjects('/device/findDevices');
+        })
+    }
+
+    /**
+     * 获取设备码
+     * @param deviceid 要查找的设备id
+     * @returns {string|null}
+     */
+    deviceSN(deviceid) {
+        return this.objects.filter(obj => {
+            return obj.id === deviceid
+        })[0].sn;
+    }
+
+    openModel(content) {
+        this.content = content;
+        this.isSubmit = false;
+        this.isExcel1 = true;
+        this.isExcel2 = true;
+        this.bindAllUploader.clearQueue();
+        this.importAllUploader.clearQueue();
+        this.model = this.modalService.open(content, {size: 'lg'});
+    }
+
+    closeModal() {
+        this.model.close();
+    }
+
+    /**
+     * 导入终端
+     */
+    doImportAll() {
+        this.isSubmit = true;
+        if (this.importAllUploader.queue.length === 0) {
+            return;
+        }
+        if (this.importOrgId === '') {
+            return;
+        }
+        this.importAllUploader.setOptions({
+            authToken: 'Bearer ' + localStorage.getItem('id_token'),
+            additionalParameter: {org_id: this.importOrgId},
+            url: systemconst.api_url + 'device/excelUploadAndImport'
+        });
+        const type = this.importAllUploader.queue[this.importAllUploader.queue.length - 1].file.type;
+        //如果文件类型不是excel文件
+        if (type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && type !== 'application/vnd.ms-excel') {
+            this.isExcel1 = false;
+            return;
+        } else {
+            this.isExcel1 = true;
+        }
+        this.importAlerts = [];
+        this.importAllUploader.queue[this.importAllUploader.queue.length - 1].upload();
+    }
+
+    /**
+     * 绑卡
+     */
+    doBindCard() {
+        this.isSubmit = true;
+        this.deviceBindCard.cardNum = this.bindCardNum;
+        this.deviceService.save('/device/saveDevice', this.deviceBindCard).subscribe((device) => {
+            this.deviceBindCard.checked = false;
+            this.showSuccessMsg();
+            this.closeModal();
+        });
+    }
+
+    /**
+     * 批量绑卡
+     */
+    doBindAll() {
+        this.isSubmit = true;
+        if (this.bindAllUploader.queue.length === 0) {
+            return;
+        }
+        const type = this.bindAllUploader.queue[this.bindAllUploader.queue.length - 1].file.type;
+        //如果文件类型不是excel文件
+        if (type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && type !== 'application/vnd.ms-excel') {
+            this.isExcel2 = false;
+            return;
+        } else {
+            this.isExcel2 = true;
+        }
+        this.bindCardAlerts = [];
+        this.bindAllUploader.queue[this.bindAllUploader.queue.length - 1].upload();
+    }
+}

@@ -1,0 +1,43 @@
+import {BaseEntity} from './BaseEntity';
+import {Device} from './Device';
+/**
+ * 终端组实体类
+ */
+export class DeviceGroup extends BaseEntity {
+    /**
+     * 所属机构id
+     */
+    orgId: string;
+    /**
+     * 组名称
+     */
+    groupName: string;
+    /**
+     * 组名称集合
+     */
+    deviceGroupNames: Array<string> = new Array<string>();
+    /**
+     * 标签
+     */
+    tags: Array<string>;
+    /**
+     * 包含的终端
+     */
+    devices: Array<Device> = new Array<Device>();
+    /**
+     * 描述
+     */
+    description: string;
+    /**
+     * 组类型
+     */
+    groupType = '';
+    /**
+     * 流量
+     */
+    flowRate: number;
+    /**
+     * 是否测试
+     */
+    test = false;
+}

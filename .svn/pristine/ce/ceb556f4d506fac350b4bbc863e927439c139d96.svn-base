@@ -1,0 +1,643 @@
+import {Component, OnInit} from "@angular/core";
+import {ActivatedRoute, Router} from "@angular/router";
+import {routerTransition} from "../../../router.animations";
+import {Advertisement} from "../../../shared/model/advertisement";
+import {AdvertisementService} from "../../../shared/services/advertisement/advertisement.service";
+import {systemconst} from "../../../systemconst";
+import {FileUploader} from "ng2-file-upload";
+import {CommonUtil} from "../../../shared/providers/CommonUtil";
+import {BaseComponent} from "../../../shared/components/BaseComponent";
+import {DomSanitizer, SafeResourceUrl, SafeUrl} from '@angular/platform-browser';
+declare var browserMD5File: any;
+/**
+ * 描述:内容编辑页面操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/04 09:53:05
+ */
+@Component({
+    selector: 'app-adsave',
+    templateUrl: './adsave.component.html',
+    styleUrls: ['./adsave.component.scss'],
+    animations: [routerTransition()],
+})
+export class AdsaveComponent extends BaseComponent implements OnInit {
+    tishixinxi='文件校验中，请稍候...';
+    /**
+     * 广告内容
+     * @type {Advertisement}
+     */
+    advertisement: Advertisement = new Advertisement();
+    /**
+     * 验证信息
+     * @type {string}
+     */
+    valid = '';
+    /**
+     * 是否提交
+     * @type {boolean}
+     */
+    isSubmit = false;
+    /**
+     * 验证图片
+     */
+    isPhoto: boolean;
+    /**
+     * 验证文字背景图片
+     */
+    isBackgroundPhoto: boolean;
+    /**
+     * 验证媒体
+     */
+    isMedia: boolean;
+    /**
+     * 验证PDF
+     */
+    isPDF: boolean;
+    /**
+     * 是否加粗
+     * @type {boolean}
+     */
+    jiacu = false;
+    /**
+     * 是否倾斜
+     * @type {boolean}
+     */
+    qingxie = false;
+    /**
+     * 是否下划线
+     * @type {boolean}
+     */
+    xiahuaxian = false;
+    /**
+     * 文字翻转
+     * @type {boolean}
+     */
+    docReverse = false;
+    /**
+     * 字号
+     */
+    fileSize: number;
+    /**
+     * 时
+     */
+    hour: number;
+    /**
+     * 分
+     */
+    minute: number;
+    /**
+     * 秒
+     */
+    seconds: number;
+    /**
+     * 标题
+     * @type {string}
+     */
+    title = '新增内容';
+    /**
+     * 格式工厂下载地址
+     * @type {string}
+     */
+    downLoadBindUrl = systemconst.fastdfs_nginxUrl + 'group1/M00/00/00/CnCodloBdYqAYwq1Aue8wGaU9qY960.zip?filename=格式工厂.zip';
+    /**
+     * 格式转换工具使用说明下载地址
+     * @type {string}
+     */
+    downLoadBindUrlSysm = systemconst.fastdfs_nginxUrl + 'group1/M00/00/00/CnCodloBdYqAYwq1Aue8wGaU9qY960.pdf?filename=格式转换工具使用说明.pdf';
+    /**
+     * 当前文件md5值
+     * @type {string}
+     */
+    currentFileMd5 = '';
+    /**
+     * 当前背景图片md5值
+     * @type {string}
+     */
+    currentBackgroundMd5 = '';
+    /**
+     * pdf文件路径
+     * @type {string}
+     */
+    pdfSrc: any;
+    safeUrl: SafeResourceUrl;
+    /**
+     * 上传实体类型的文件
+     * @type {FileUploader}
+     */
+    public uploader: FileUploader = new FileUploader({
+        authToken: 'Bearer ' + localStorage.getItem('id_token'),
+        url: systemconst.api_url + 'device/UploadFile',
+    });
+    /**
+     * 上传文本内容中的背景图片
+     * @type {FileUploader}
+     */
+    public backgrounduploader: FileUploader = new FileUploader({
+        authToken: 'Bearer ' + localStorage.getItem('id_token'),
+        url: systemconst.api_url + 'device/UploadFile',
+    });
+
+    constructor(public router: Router,
+                public advertisementService: AdvertisementService,
+                private sanitizer: DomSanitizer,
+                public route: ActivatedRoute,
+                public commonUtil: CommonUtil) {
+        super();
+        //上传实体文件后的回调方法
+        this.uploader.onAfterAddingFile = (fileItem) => {
+            this.fileSize = fileItem.file.size / 1000000;
+            const file = this.uploader.queue[this.uploader.queue.length - 1];
+            file.onSuccess = (response, status, headers) => {
+                document.getElementById('lmask').style.display = 'none';
+                if (status === 200) {
+                    this.advertisement.fileUrl = systemconst.fastdfs_nginxUrl + JSON.parse(response).url;
+                    console.log(JSON.parse(response))
+                    //如果广告id为空
+                    if (!this.commonUtil.isEmpty(this.advertisement.id)) {
+                        this.advertisement.status = '1';
+                        this.advertisement.distribute = '2';
+                        this.advertisement.orgId = systemconst.currentUser.organization.id;
+                        this.advertisement.topOrgId = systemconst.currentUser.topOrganization.id;
+                    }
+                    this.advertisement.size = JSON.parse(response).size;
+                    this.advertisement.fileUrl = JSON.parse(response).url;
+                    this.advertisement.md5 = JSON.parse(response).md5;
+                    this.advertisement.duration = Math.floor(JSON.parse(response).playlength);
+                }
+            };
+            file.onError =(response, status, headers) => {
+                document.getElementById('lmask').style.display = 'none';
+                this.tishixinxi = '文件上传失败，文件过大或者网络超时';
+                alert('文件上传失败，您选择文件过大或者文件服务器网络超时，必要的时候，请联系管理员！');
+            }
+            file.onProgress = (progress) => {
+                console.log(progress)
+            }
+        };
+        //上传文本背景图片后的回调方法
+        this.backgrounduploader.onAfterAddingFile = (fileItem) => {
+            this.fileSize = fileItem.file.size / 1000000;
+            const file = this.backgrounduploader.queue[this.backgrounduploader.queue.length - 1];
+            file.onSuccess = (response, status, headers) => {
+                document.getElementById('lmask').style.display = 'none';
+                if (status === 200) {
+                    this.backgrounduploader.clearQueue();
+                    this.advertisement.md5 = JSON.parse(response).md5;
+                    this.advertisement.advertisementtextsetting.backgroundImgUrl = systemconst.fastdfs_nginxUrl + JSON.parse(response).url;
+                }
+            };
+            file.onProgress = (progress) => {
+                console.log(progress)
+            }
+        };
+    }
+
+    ngOnInit() {
+        const id = this.route.snapshot.paramMap.get('id');
+        //如果是编辑已有内容
+        if (id !== 'null') {
+            this.title = '编辑内容';
+            this.advertisement.id = id;
+            this.advertisementService.findById(this.advertisement).subscribe((ad) => {
+                this.advertisement = ad;
+                //如果字号为空
+                if (!this.commonUtil.isEmpty(this.advertisement.advertisementtextsetting.fontSize)) {
+                    this.advertisement.advertisementtextsetting.fontSize = "14";
+                }
+                //如果滚动方向为空
+                if (!this.commonUtil.isEmpty(this.advertisement.advertisementtextsetting.textScroll)) {
+                    this.advertisement.advertisementtextsetting.textScroll = "0";
+                }
+                //如果字体为空
+                if (!this.commonUtil.isEmpty(this.advertisement.advertisementtextsetting.fontFamily)) {
+                    this.advertisement.advertisementtextsetting.fontFamily = "0";
+                }
+                //如果滚动速度为空
+                if (!this.commonUtil.isEmpty(this.advertisement.advertisementtextsetting.textScrollSpeed)) {
+                    this.advertisement.advertisementtextsetting.textScrollSpeed = "0";
+                }
+                //如果加粗不为空
+                if (this.commonUtil.isEmpty(this.advertisement.advertisementtextsetting.fontWeight)) {
+                    this.jiacu = true;
+                }
+                //如果下划线不为空
+                if (this.commonUtil.isEmpty(this.advertisement.advertisementtextsetting.textLine)) {
+                    this.xiahuaxian = true;
+                }
+                //如果倾斜不为空
+                if (this.commonUtil.isEmpty(this.advertisement.advertisementtextsetting.fontStyle)) {
+                    this.qingxie = true;
+                }
+                if (this.advertisement.advertisementtextsetting.textScroll == "2") {
+                    this.docReverse = true;
+                }
+                //如果文件地址不为空并且不包含系统定义的http地址
+                if (this.advertisement.fileUrl != null && this.advertisement.fileUrl.indexOf(systemconst.fastdfs_nginxUrl) < 0) {
+                    this.advertisement.fileUrl = systemconst.fastdfs_nginxUrl + this.advertisement.fileUrl;
+                    if (this.advertisement.fileType === '5') {
+                        this.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.advertisement.fileUrl);
+                    }
+                }
+            })
+        }
+
+        /*this.advertisementService.getObject('getVideoConvertToolsUrl', {}).subscribe((result) => {
+         this.downLoadBindUrl = result.GSGC_URL;
+         this.downLoadBindUrlSysm = result.SYSM_URL;
+         });*/
+    }
+
+    /**
+     * 选择文件触发的事件
+     * @param event
+     */
+    selectedFileOnChanged(event: any) {
+        const files = event.target.files;
+        this.uploader.clearQueue();
+        //如果文件类型为m4v或mp4
+        if (files[0].name.lastIndexOf('.mp4') < 0
+            && files[0].name.lastIndexOf('.MP4') < 0
+            && this.advertisement.fileType === '1') {
+            this.isMedia = false;
+            return;
+        }
+        //如果文件类型为jpg或png
+        if (files[0].name.lastIndexOf('.jpg') < 0
+            && files[0].name.lastIndexOf('.JPG') < 0
+            && this.advertisement.fileType === '2') {
+            this.isPhoto = false;
+            return;
+        }
+        if (files[0].name.lastIndexOf('.pdf') < 0
+            && files[0].name.lastIndexOf('.PDF') < 0
+            && this.advertisement.fileType === '5') {
+            this.isPDF = false;
+            return;
+        }
+        if (this.advertisement.fileType === '5') {
+            this.isPDF = true;
+        }
+        this.isPhoto = true;
+        this.isMedia = true;
+        this.currentFileMd5='计算';
+        browserMD5File(files[0], (err, md5) => {
+            this.currentFileMd5 = md5;
+        });
+        this.uploader.addToQueue(files);
+
+        if (this.advertisement.fileType === '5') {
+            let $img: any = document.querySelector('#nrwj');
+            if (typeof (FileReader) !== 'undefined') {
+                let reader = new FileReader();
+                reader.onload = (e: any) => {
+                    this.pdfSrc = e.target.result;
+                    // this.pdfSrc = "http://118.190.93.53:8889/group1/M00/00/6A/dr5dNVtW0W-AZ8zVAADdTTJ72G0488.pdf";
+                };
+                reader.readAsArrayBuffer($img.files[0]);
+            }
+        }
+    }
+
+    /**
+     * 选择背景图片触发的事件
+     * @param event
+     */
+    selectedBackGroundImgOnChanged(event: any) {
+        const files = event.target.files;
+        browserMD5File(files[0], (err, md5) => {
+            this.currentBackgroundMd5 = md5;
+        });
+        this.backgrounduploader.clearQueue();
+        this.backgrounduploader.addToQueue(files);
+    }
+
+    /**
+     * 触发上传文件按钮的点击事件
+     */
+    onFileClick() {
+        const nrwj = document.getElementById("nrwj");
+        nrwj.click();
+    }
+
+    previewPdf(){
+        window.open(this.advertisement.fileUrl);
+    }
+
+    /**
+     * 触发上传背景图片按钮的点击事件
+     */
+    onBackGroundImgClick() {
+        const bjtp = document.getElementById("bjtp");
+        bjtp.click();
+    }
+
+    /**
+     * 上传文件
+     */
+    uploadFile() {
+        this.advertisementService.getFileByMd5(this.currentFileMd5).subscribe((fileInfo) => {
+            if (!this.commonUtil.isEmpty(fileInfo.id)) {
+                const fileName = this.uploader.queue[this.uploader.queue.length - 1].file.name;
+                //如果文件类型为m4v或mp4
+                if (fileName.lastIndexOf('.mp4') < 0
+                    && fileName.lastIndexOf('.MP4') < 0
+                    && this.advertisement.fileType === '1') {
+                    this.isMedia = false;
+                    return;
+                }
+                //如果文件类型为jpg或png
+                if (fileName.lastIndexOf('.jpg') < 0
+                    && fileName.lastIndexOf('.JPG') < 0
+                    && this.advertisement.fileType === '2') {
+                    this.isPhoto = false;
+                    return;
+                }
+                //如果文件类型不是pdf
+                if (fileName.lastIndexOf('.pdf') < 0
+                    && fileName.lastIndexOf('.PDF') < 0
+                    && this.advertisement.fileType === '5') {
+                    this.isPDF = false;
+                    return;
+                }
+                this.isPhoto = true;
+                this.isMedia = true;
+                //如果文件类型为图片并且大小超过500M
+                if (this.advertisement.fileType === '2' && this.fileSize > 500) {
+                    return;
+                }
+                //如果文件类型为视频并且大小超过2000M
+                if (this.advertisement.fileType === '1' && this.fileSize > 2000) {
+                    return;
+                }
+                if (this.advertisement.fileType === '5') {
+                    this.isPDF = true;
+                }
+                this.uploader.queue[this.uploader.queue.length - 1].upload();
+                document.getElementById('lmask').style.display = 'block';
+            } else {
+                this.advertisement.size = fileInfo.size;
+                this.advertisement.fileUrl = fileInfo.filePath;
+                if (this.advertisement.fileType === '5') {
+                    this.pdfSrc = systemconst.fastdfs_nginxUrl + fileInfo.filePath;
+                }
+                this.advertisement.md5 = fileInfo.md5;
+                this.advertisement.duration = Math.floor(fileInfo.playlength);
+                this.showSuccessMsg('上传成功');
+            }
+            this.valid='';
+        });
+
+    }
+
+    /**
+     * 上传背景图片
+     */
+    uploadBackground() {
+        this.advertisementService.getFileByMd5(this.currentBackgroundMd5).subscribe((fileInfo) => {
+            if (!this.commonUtil.isEmpty(fileInfo.id)) {
+                const fileName = this.backgrounduploader.queue[this.backgrounduploader.queue.length - 1].file.name;
+                if (fileName.lastIndexOf('.jpg') < 0
+                    && fileName.lastIndexOf('.JPG') < 0) {
+                    this.isBackgroundPhoto = false;
+                    this.backgrounduploader.clearQueue();
+                    return;
+                } else {
+                    this.isBackgroundPhoto = true;
+                }
+                this.backgrounduploader.queue[this.backgrounduploader.queue.length - 1].upload();
+                document.getElementById('lmask').style.display = 'block';
+            } else {
+                this.advertisement.md5 = fileInfo.md5;
+                this.advertisement.advertisementtextsetting.backgroundImgUrl = systemconst.fastdfs_nginxUrl + fileInfo.filePath;
+            }
+        });
+    }
+
+    /**
+     * 清除背景图片
+     */
+    clearBackgroundImg() {
+        this.advertisement.advertisementtextsetting.backgroundImgUrl = '';
+        this.advertisement.md5='';
+    }
+
+    /**
+     * 改变文件类型触发的事件
+     * @param event
+     */
+    changeFileType(event: any) {
+        if (this.advertisement.fileType === '4'||this.advertisement.fileType === '6') {
+            this.advertisement.md5 = '';
+            this.advertisement.size = '';
+        }
+    }
+
+    /**
+     * 改变文本编辑框背景颜色触发的事件
+     * @param event
+     */
+    colorChange(event: any) {
+        this.advertisement.advertisementtextsetting.backgroundColor = event.target.value;
+    }
+
+    /**
+     * 获取字体中文名
+     * @returns {string}
+     */
+    getFontFamily() {
+        let fa = "";
+        switch (this.advertisement.advertisementtextsetting.fontFamily) {
+            case "0":
+                fa = "宋体";
+                break;
+            case "1":
+                fa = "黑体";
+                break;
+            case "2":
+                fa = "隶书";
+                break;
+            case "3":
+                fa = "楷体";
+                break;
+        }
+        return fa;
+    }
+
+    /**
+     * 改变滚动方向的事件
+     * @param event
+     */
+    onChangeTextScroll(event: any) {
+        /*if(this.advertisement.advertisementtextsetting.textScroll=="2"){
+         this.docReverse=true;
+         this.reverseDoc();
+         }else if(this.docReverse){
+         this.docReverse=false;
+         this.reverseDoc();
+         }*/
+    }
+
+    /**
+     * 翻转文字
+     */
+    reverseDoc() {
+        let a = this.advertisement.doc, b = "";
+        for (let i = a.length - 1; i >= 0; i--) {
+            b += a[i];
+        }
+        this.advertisement.doc = b;
+    }
+
+    /**
+     * 保存广告
+     */
+    saveAd() {
+        this.valid = '';
+        this.isSubmit = true;
+        //如果内容名称为空
+        if (!this.commonUtil.isEmpty(this.advertisement.name)) {
+            this.valid = systemconst.validEmptyMessage;
+        }
+        //如果内容类型为实体型并且没有选择文件类型
+        if (!this.commonUtil.isEmpty(this.advertisement.fileType)) {
+            this.valid = systemconst.validEmptyMessage;
+        }
+        //如果内容类型为实体并且文件类型非文本但是没上传文件
+        if ((this.advertisement.fileType === '1'||this.advertisement.fileType === '2'||this.advertisement.fileType === '5') && this.advertisement.size === '') {
+            this.valid = '请先上传文件！';
+        }
+        //如果文件类型为流媒体或扩展组件
+        if ((this.advertisement.fileType === '4'||this.advertisement.fileType === '6')&&!this.commonUtil.isEmpty(this.advertisement.url)) {
+            this.valid = systemconst.validEmptyMessage;
+        }
+        //如果没通过验证
+        if (this.valid === '') {
+            //如果是新增内容
+            if (!this.commonUtil.isEmpty(this.advertisement.id)) {
+                this.advertisement.status = '1';
+                this.advertisement.distribute = '2';
+                this.advertisement.orgId = systemconst.currentUser.organization.id;
+                this.advertisement.topOrgId = systemconst.currentUser.topOrganization.id;
+            }
+            //如果是测试内容
+            if (this.advertisement.test) {
+                this.advertisement.status = '3';
+            }
+            //如果文件地址不为空
+            if (this.advertisement.fileUrl != null) {
+                this.advertisement.fileUrl = this.advertisement.fileUrl.replace(systemconst.fastdfs_nginxUrl, '');
+            }
+            //如果文件类型为流媒体或扩展组件
+            if (this.advertisement.fileType === '4'||this.advertisement.fileType === '6') {
+                this.advertisement.fileUrl=null;
+            }else{
+                this.advertisement.url=null;
+            }
+            //如果文件类型为文本
+            if (this.advertisement.fileType === '3') {
+                this.advertisement.fileUrl=null;
+                this.advertisement.url=null;
+                //如果字体颜色值为空
+                if (!this.commonUtil.isEmpty(this.advertisement.advertisementtextsetting.color)) {
+                    this.advertisement.advertisementtextsetting.color = "#FFFFFF";
+                }
+                this.advertisement.advertisementtextsetting.fontColor = "#" + this.advertisement.advertisementtextsetting.transparent + this.advertisement.advertisementtextsetting.color.replace("#", "");
+            }
+            this.commonUtil.trimObject(this.advertisement);
+            // 保存广告
+            this.advertisementService.saveAdvertisement(this.advertisement).subscribe((ad) => {
+                systemconst.alertMessage = '操作成功！';
+                this.router.navigate(['/advertisement/list']);
+            });
+        }
+    }
+
+    /**
+     * 改变文件地址触发的事件
+     * @param e
+     */
+    changeUrl(e) {
+        //如果文件类型为流媒体
+        if (this.advertisement.fileType === '4') {
+            if (this.advertisement.url != null && this.advertisement.url.lastIndexOf('m3u8') > -1) {
+                const script = document.createElement('script');
+                script.src = 'assets/js/sewise.player.min.js?server=vod&type=m3u8&videourl=' + this.advertisement.url + '&autostart=true&starttime=0&lang=zh_CN&logo=http://onvod.sewise.com/libs/swfplayer/skin/images/logo.png&title=M3U8 Cross Platform&buffer=5&claritybutton=disable&skin=vodFlowPlayer';
+                const videoDiv = document.getElementById('videoDiv');
+                videoDiv.appendChild(script);
+            }
+        }
+    }
+
+    /**
+     * 审核通过
+     * @param audit
+     */
+    audit(audit) {
+        this.advertisement.status = audit;
+        this.saveAd();
+    }
+
+    /**
+     * 删除广告
+     */
+    deleteAdv() {
+        this.advertisementService.getObject('/broadcast/checkAdvertisementConflict', {
+            advertisementId: this.advertisement.id
+        }).subscribe((result) => {
+            //如果已经被内容组使用
+            if (result.length > 0) {
+                let planName = '';
+                for (let i = 0; i < result.length; i++) {
+                    planName += result[i].name + ',';
+                }
+                planName = planName.substring(0, planName.length - 1);
+                const message = ('本内容已被播放任务【' + planName + '】使用，如需删除，请将内容从上述播放任务中删除。');
+                this.showErrorMsg(message);
+            } else {
+                this.advertisement.deleted = true;
+                this.advertisementService.saveAdvertisement(this.advertisement).subscribe((ad) => {
+                    systemconst.alertMessage = '操作成功！';
+                    this.router.navigate(['/advertisement/list']);
+                })
+            }
+        });
+    }
+
+    /**
+     * 加粗
+     */
+    changeJiacu() {
+        if (!this.jiacu) {
+            this.advertisement.advertisementtextsetting.fontWeight = "bold";
+        } else {
+            this.advertisement.advertisementtextsetting.fontWeight = "";
+        }
+    }
+
+    /**
+     * 倾斜
+     */
+    changeQingxie() {
+        if (!this.qingxie) {
+            this.advertisement.advertisementtextsetting.fontStyle = "italic";
+        } else {
+            this.advertisement.advertisementtextsetting.fontStyle = "";
+        }
+    }
+
+    /**
+     * 下划线
+     */
+    changeXiahuaxian() {
+        if (!this.xiahuaxian) {
+            this.advertisement.advertisementtextsetting.textLine = "underline";
+        } else {
+            this.advertisement.advertisementtextsetting.textLine = "";
+        }
+    }
+
+    testAd() {
+        this.advertisementService.advertisementList().subscribe((ad) => {
+        })
+    }
+}

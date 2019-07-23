@@ -1,0 +1,7 @@
+.custom-file-control::before{
+    content: "浏览" !important;
+}
+
+.custom-file-control:empty::after{
+    content: "请选择广告文件" !important;
+}

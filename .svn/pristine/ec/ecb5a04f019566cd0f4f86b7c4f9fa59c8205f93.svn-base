@@ -1,0 +1,38 @@
+import {Component, EventEmitter, HostListener, OnInit} from '@angular/core';
+import {BsModalRef, BsModalService} from 'ngx-bootstrap';
+import {PermisionalertComponent} from './shared/components/permisionalert/permisionalert.component';
+import {AuthService} from './shared/services/auth.service';
+import {systemconst} from './systemconst';
+import {Router} from '@angular/router';
+@Component({
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.scss']
+})
+export class AppComponent implements OnInit {
+    public bsModalRef: BsModalRef;
+    constructor(private modalService: BsModalService, public authService: AuthService, public router: Router) {
+        // setTimeout(() => {
+        //     this.openModalWithComponent();
+        // }, 9000)
+        authService.getForBiddenEvent().subscribe((a) => {
+            console.log('!!!!!!!!!!!!!!!', a);
+            this.openModalWithComponent();
+        });
+    }
+
+    ngOnInit() {
+        systemconst.currentUser  = this.authService.getCurrentUser();
+        if (! systemconst.currentUser.id) {
+            this.router.navigate(['/login']);
+        }
+
+    }
+    public openModalWithComponent() {
+        const list = ['1、如果您确认您的账户确实有操作该功能的权限，请重新登录再试！',
+            '2、您如需要进行该权限操作，请联系您所在机构管理员为您授权'];
+        this.bsModalRef = this.modalService.show(PermisionalertComponent);
+        this.bsModalRef.content.title = '您没有权限进行该操作！';
+        this.bsModalRef.content.list = list;
+    }
+}

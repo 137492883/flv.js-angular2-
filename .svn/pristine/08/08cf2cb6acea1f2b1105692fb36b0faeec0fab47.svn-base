@@ -1,0 +1,65 @@
+import {Component, OnInit} from "@angular/core";
+import {routerTransition} from "../../../../router.animations";
+import {Router} from "@angular/router";
+import {UpgradePlan} from "../../../../shared/model/UpgradePlan";
+import {DeviceService} from "../../../../shared/services/device/device.service";
+import {BaseComponent} from "../../../../shared/components/BaseComponent";
+import {PopoverConfig} from "ngx-bootstrap";
+import {systemconst} from "../../../../systemconst";
+import {CommonUtil} from "../../../../shared/providers/CommonUtil";
+/**
+ * 描述:终端应用列表操作接口
+ * 作者:刘斌
+ * 创建时间:2018/05/08 16:00:53
+ */
+@Component({
+    selector: 'app-device-group-list',
+    templateUrl: './list.component.html',
+    styleUrls: ['./list.component.scss'],
+    animations: [routerTransition()],
+})
+export class ListComponent extends BaseComponent implements OnInit {
+
+    /**
+     * 升级计划查询条件
+     * @type {UpgradePlan}
+     */
+    planQuery: UpgradePlan = new UpgradePlan();
+    numPages: any;
+
+
+    constructor(public commonUtil: CommonUtil, public config: PopoverConfig, public router: Router, public deviceService: DeviceService) {
+        super();
+        config.triggers = 'hover';
+        config.placement = 'bottom';
+        this.planQuery.audit = '';
+        this.queryObj = this.planQuery;
+        this.baseService = this.deviceService;
+    }
+
+    ngOnInit() {
+        if (systemconst.alertMessage !== '') {
+            this.showSuccessMsg(systemconst.alertMessage);
+            systemconst.alertMessage = '';
+        }
+        this.findObjects('/applicationupgrade/findUpgradePlans');
+    }
+
+    /**
+     * 跳转到编辑页面
+     */
+    addPlan() {
+        this.router.navigate(['/device/apk-plan/save', 'null']);
+    }
+
+    /**
+     * 解锁应用
+     * @param plan 被解锁的应用
+     */
+    unlock(plan: UpgradePlan) {
+        plan.audit = '1';
+        this.deviceService.save('/applicationupgrade/saveApplicationUpgradePlan', plan).subscribe((device) => {
+            this.showSuccessMsg('操作成功！');
+        });
+    }
+}

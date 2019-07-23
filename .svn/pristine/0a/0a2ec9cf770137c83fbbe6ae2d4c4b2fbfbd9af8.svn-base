@@ -1,0 +1,76 @@
+import {EventEmitter, Injectable} from "@angular/core";
+import {JwtHelper, tokenNotExpired} from "angular2-jwt";
+import {Headers, Http} from "@angular/http";
+import {Observable} from "rxjs/Rx";
+import {User} from "../model/user";
+import {systemconst} from "../../systemconst";
+@Injectable()
+export class AuthService {
+    jwtHelper: JwtHelper = new JwtHelper();
+    idToken: string;
+
+    private setHeaders(): Headers {
+        const myHeader = new Headers();
+        myHeader.append('Access-Control-Allow-Origin', '*');
+        myHeader.append('Content-Type', 'application/json');
+        myHeader.append('Accept', 'application/json');
+        return myHeader;
+    }
+
+    private forbiddenEvent: EventEmitter<any> = new EventEmitter();
+
+    constructor(private http: Http) {
+    }
+
+    private formatErrors(error: any) {
+        return Observable.throw(error.json());
+    }
+
+    public sendForBiddenSignal() {
+        this.forbiddenEvent.emit('ForBidden');
+    }
+
+    public getForBiddenEvent() {
+        return this.forbiddenEvent;
+    }
+
+    public authenticated() {
+
+        return localStorage.get('id_token').then((token) => {
+            const obj = this.jwtHelper.decodeToken(token);
+            return tokenNotExpired('id_token', token);
+        })
+
+    }
+
+    public getCurrentUser(): User {
+        if (localStorage.getItem('id_token')) {
+            return this.jwtHelper.decodeToken(localStorage.getItem('id_token')).currentUser
+        } else {
+            return new User();
+        }
+    }
+
+
+    attemptAuth(user: User): Observable<any> {
+
+        return this.http.post(`${systemconst.api_url}user/auth`, user).map(data => {
+            const token = data.json().token;
+            localStorage.setItem('id_token', token);
+        });
+    }
+
+    loginFailed(): Observable<any> {
+        return this.http.post(`${systemconst.api_url}loginFailed`,{}).map(data => data.json());
+    }
+
+    loginSuccess(): Observable<any> {
+        return this.http.post(`${systemconst.api_url}loginSuccess`,{}).map(data => data.json());
+    }
+
+
+    logout() {
+        localStorage.remove('id_token');
+    }
+
+}

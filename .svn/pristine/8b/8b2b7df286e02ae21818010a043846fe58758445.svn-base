@@ -1,0 +1,225 @@
+import {Component, OnInit} from "@angular/core";
+import {routerTransition} from "../../../../router.animations";
+import {CommonUtil} from "../../../../shared/providers/CommonUtil";
+import {UpgradePlan} from "../../../../shared/model/UpgradePlan";
+import {ActivatedRoute, Router} from "@angular/router";
+import {DeviceService} from "../../../../shared/services/device/device.service";
+import {UpgradeTask} from "../../../../shared/model/UpgradeTask";
+import {DeviceGroup} from "../../../../shared/model/DeviceGroup";
+import {systemconst} from "../../../../systemconst";
+import {BaseComponent} from "../../../../shared/components/BaseComponent";
+
+/**
+ * 描述:终端应用编辑页面操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/08 16:02:10
+ */
+@Component({
+    selector: 'app-save',
+    templateUrl: './save.component.html',
+    styleUrls: ['./save.component.scss'],
+    animations: [routerTransition()]
+})
+export class SaveComponent extends BaseComponent implements OnInit {
+    /**
+     * 当前升级计划
+     * @type {UpgradePlan}
+     */
+    plan: UpgradePlan = new UpgradePlan();
+    usefulTasks: Array<UpgradeTask> = new Array<UpgradeTask>();
+    tasks: Array<UpgradeTask> = new Array<UpgradeTask>();
+    usefulGroups: Array<DeviceGroup> = new Array<DeviceGroup>();
+    groups: Array<DeviceGroup> = new Array<DeviceGroup>();
+    /**
+     * 验证信息
+     * @type {string}
+     */
+    valid = '';
+    /**
+     * 是否提交
+     * @type {boolean}
+     */
+    isSubmit = false;
+    showMeri = false;
+    mouseWheel = false;
+    /**
+     * 标题
+     * @type {string}
+     */
+    title = '新建终端应用';
+
+    constructor(public commonUtil: CommonUtil, public route: ActivatedRoute, public router: Router, public deviceService: DeviceService) {
+        super();
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        this.plan.upgradeTask.id = '';
+        const id = this.route.snapshot.paramMap.get('id');
+        //如果是编辑应用
+        if (id !== 'null') {
+            this.title = '编辑终端应用';
+            this.deviceService.getObject1('/applicationupgrade/findUpgradePlanById', {id: id}).subscribe((plan) => {
+                this.plan = plan;
+                this.deviceService.findNoPage('/applicationupgrade/findAllGroups', {
+                    groupType: '1'
+                }).subscribe((result) => {
+                    this.usefulGroups = result;
+                    this.groups = this.usefulGroups.filter(group => group.test === this.plan.test)
+                    for (let i = 0; i < this.groups.length; i++) {
+                        if (this.plan.deviceGroupIds.indexOf(this.groups[i].id) > -1) {
+                            this.groups[i].checked = true;
+                        } else {
+                            this.groups[i].checked = false;
+                        }
+                    }
+                });
+                this.deviceService.findNoPage('/applicationupgrade/findUpgradeTasks1', {
+                    taskType: '2',
+                }).subscribe((result) => {
+                    this.usefulTasks = result;
+                    this.tasks = this.usefulTasks.filter(task => task.locked ===
+                        this.plan.upgradeTask.locked && task.test === this.plan.upgradeTask.test)
+                });
+            });
+        } else {
+            // 获得全部应用升级任务
+            this.deviceService.findNoPage('/applicationupgrade/findUpgradeTasks1', {
+                taskType: '2'
+            }).subscribe((result) => {
+                this.usefulTasks = result;
+                // 获得已锁定的 并且不是测试的 全部应用
+                this.tasks = this.usefulTasks.filter(task => task.locked === true && task.test !== true)
+            });
+            // 获得全部终端分组
+            this.deviceService.findNoPage('/applicationupgrade/findAllGroups', {
+                groupType: '1'
+            }).subscribe((result) => {
+                this.usefulGroups = result;
+                // 获得不是测试的全部终端分组
+                this.groups = this.usefulGroups.filter(group => group.test !== true)
+            });
+            this.plan.audit = '1';
+        }
+    }
+
+    /**
+     * 删除计划
+     */
+    deletePlan() {
+        this.plan.deleted = true;
+        this.deviceService.save('/applicationupgrade/saveApplicationUpgradePlan', this.plan).subscribe((device) => {
+            systemconst.alertMessage = '删除成功！';
+            this.router.navigate(['/device/apk-plan/list']);
+        });
+    }
+
+    /**
+     * 更改状态
+     * @param audit 状态值
+     */
+    audit(audit) {
+        if (!this.commonUtil.isEmpty(this.plan.name)) {
+            this.showErrorMsg('请输入终端应用的名称！', 2000);
+            return;
+        }
+        if (!this.commonUtil.isEmpty(this.plan.upgradeTask.id)) {
+            this.showErrorMsg('请选择应用任务！', 2000);
+            return;
+        }
+        const groups1 = this.groups.filter((item) => {
+            return item.checked;
+        });
+        if (groups1.length === 0) {
+            this.showErrorMsg('请选择待升级的终端组！', 2000);
+            return;
+        }
+        if (this.plan.internalType == null) {
+            this.showErrorMsg('请选择应用类型！', 2000);
+            return;
+        }
+        this.plan.deviceGroupIds = [];
+        for (let i = 0; i < groups1.length; i++) {
+            this.plan.deviceGroupIds.push(groups1[i].id);
+        }
+        if (audit === '3') {
+                this.plan.audit = audit;
+                this.deviceService.save('/applicationupgrade/saveApplicationUpgradePlan', this.plan).subscribe((device) => {
+                    systemconst.alertMessage = '操作成功！';
+                    this.router.navigate(['/device/apk-plan/list']);
+                });
+            }
+        if (audit === '2') { // 如果是 2（退回）  直接保存
+            this.plan.audit = audit;
+            this.commonUtil.trimObject(this.plan);
+            this.deviceService.save('/applicationupgrade/saveApplicationUpgradePlan', this.plan).subscribe((device) => {
+                systemconst.alertMessage = '操作成功！';
+                this.router.navigate(['/device/apk-plan/list']);
+            });
+        }
+    }
+
+    /**
+     * 提交表单
+     */
+    submitForm() {
+        this.isSubmit = true;
+        if (!this.commonUtil.isEmpty(this.plan.name)) {
+            this.showErrorMsg('请输入终端应用的名称！', 2000);
+            return;
+        }
+        if (!this.commonUtil.isEmpty(this.plan.upgradeTask.id)) {
+            this.showErrorMsg('请选择应用任务！', 2000);
+            return;
+        }
+        const groups1 = this.groups.filter((item) => {
+            return item.checked;
+        });
+        if (groups1.length === 0) {
+            this.showErrorMsg('请选择待升级的终端组！', 2000);
+            return;
+        }
+        if (this.plan.internalType == null) {
+            this.showErrorMsg('请选择应用类型！', 2000);
+            return;
+        }
+        this.plan.deviceGroupIds = [];
+        for (let i = 0; i < groups1.length; i++) {
+            this.plan.deviceGroupIds.push(groups1[i].id);
+        }
+
+        this.plan.creatorId = systemconst.currentUser.id;
+        if (this.plan.test) {
+            this.plan.audit = '3'; // 已审核
+        } else {
+            this.plan.audit = '1'; // 待审核
+        }
+        // 新增终端应用
+        if (this.plan.name !== null && this.plan.upgradeTask.id !== null && groups1.length !== 0 && this.plan.internalType != null) {
+            this.commonUtil.trimObject(this.plan);
+            this.deviceService.save('/applicationupgrade/saveApplicationUpgradePlan', this.plan).subscribe((upgradePlan) => {
+                systemconst.alertMessage = '保存成功！';
+                this.router.navigate(['/device/apk-plan/list']);
+            });
+        }
+    }
+
+    /**
+     * 改变测试
+     */
+    changeTest() {
+        if (this.plan.test) { // 打钩了
+            this.tasks = null;
+            this.groups = null;
+            this.tasks = this.usefulTasks.filter(task => task.locked === true && task.test !== true)
+            this.groups = this.usefulGroups.filter(group => group.test !== true)
+        } else {
+            this.tasks = null;
+            this.groups = null;
+            this.tasks = this.usefulTasks.filter(task => task.test === true)
+            this.groups = this.usefulGroups.filter(group => group.test === true)
+        }
+    }
+}

@@ -1,0 +1,266 @@
+import {Injectable} from '@angular/core';
+import {BaseService} from '../base.service';
+import {ApiService} from '../api.service';
+import {Observable} from 'rxjs/Rx';
+import {Role} from '../../model/Role';
+import {User} from '../../model/user';
+import {Organization} from '../../model/Organization';
+import {Log} from '../../model/log';
+import {SystemConfig} from '../../model/SystemConfig';
+import {TeleControlCommand} from '../../model/TeleControlCommand';
+import {SystemLog} from '../../model/SystemLog';
+
+@Injectable()
+export class SystemService extends BaseService {
+
+    constructor(public apiService: ApiService) {
+        super(apiService);
+    }
+
+    serverCurrentTime(): Observable<any> {
+        return this.apiService.get('/system/serverCurrentTime');
+    }
+
+    getDistributablePermisions(): Observable<any> {
+        return this.apiService.get('/system/getDistributablePermisions')
+            .map(data => data.json());
+    }
+
+    /**
+     * 保存角色
+     * @param role
+     * @returns {Observable<R>}
+     */
+    saveRole(role: Role): Observable<any> {
+        return this.apiService.post('/system/saveRole', role)
+            .map(data => data.json());
+    }
+
+    /**
+     * 获取当前用户角色
+     * @param role
+     * @returns {Observable<R>}
+     */
+    getCurrentUserOrgRoles(role: Role): Observable<any> {
+        return this.apiService.post('/system/getCurrentUserOrgRoles', role)/*去后端找到了Controller  返回角色列表*/
+            .map(data => data.json());
+    }
+
+    /**
+     * 获取当前用户所有角色
+     * @param role
+     * @returns {Observable<R>}
+     */
+    getCurrentUserOrgRolesNonPage(role: Role): Observable<any> {
+        return this.apiService.post('/system/getCurrentUserOrgRolesNonPage', role)/*去后端找到了Controller  返回角色列表*/
+            .map(data => data.json());
+    }
+
+    /**
+     * 通过id获取角色
+     * @param role
+     * @returns {Observable<R>}
+     */
+    getRoleById(role: Role): Observable<any> {
+        return this.apiService.post('/system/getCurrentUserOrgRoleById', role)
+            .map(data => data.json());
+    }
+
+    /*删除角色*/
+    deleteRole(role: Role): Observable<any> {
+        return this.apiService.post('/system/deleteRole', role)
+            .map(data => data.json());
+    }
+
+    /**
+     * 查找用户
+     * @param user
+     * @returns {Observable<R>}
+     */
+    findUsersByCurrentOrg(user: User): Observable<any> {
+        return this.apiService.post('/system/findUsersByCurrentOrg', user)
+            .map(data => data.json());
+    }
+
+    /**
+     * 保存用户
+     * @param user
+     * @returns {Observable<R>}
+     */
+    saveUserForCurrentOrg(user: User): Observable<any> {
+        return this.apiService.post('/system/saveUserForCurrentOrg', user)
+            .map(data => data.json());
+    }
+
+    /**
+     * 查找用户
+     * @param user
+     * @returns {Observable<R>}
+     */
+    findUsersByID(user: User): Observable<any> {
+        return this.apiService.post('/system/findUsersByID', user)
+            .map(data => data.json());
+    }
+
+    /**
+     * 查找用户
+     * @param user
+     * @returns {Observable<R>}
+     */
+    findUserByName(user: User): Observable<any> {
+        return this.apiService.post('/system/findUserByName', user)
+            .map(data => data.json());
+    }
+
+    /**
+     * 查找顶级机构
+     * @param org
+     * @returns {Observable<R>}
+     */
+    findHireOrganizations(org: Organization): Observable<any> {
+        return this.apiService.post('/system/findHireOrganizations', org)
+            .map(data => data.json());
+    }
+
+    openHire(org: Organization): Observable<any> {
+        return this.apiService.post('/system/openHire', org)
+            .map(data => data.json());
+    }
+
+    /**
+     * 查找机构通过id
+     * @param org
+     * @returns {Observable<R>}
+     */
+    findOrganizationById(org: Organization): Observable<any> {
+        return this.apiService.post('/system/findOrganizationById', org)
+            .map(data => data.json());
+    }
+
+    /**
+     * 更新机构
+     * @param org
+     * @returns {Observable<R>}
+     */
+    updateOrganization(org: Organization): Observable<any> {
+        return this.apiService.post('/system/updateOrganization', org)
+            .map(data => data.json());
+    }
+
+    // 重置组织机构密码
+    resetOrgPassword(org: Organization): Observable<any> {
+        return this.apiService.post('/system/resetOrgPassword', org)
+            .map(data => data.json());
+    }
+
+    saveOrganizationAndInitSystemUser(org: Organization): Observable<any> {
+        return this.apiService.post('/system/saveOrganizationAndInitSystemUser', org)
+            .map(data => data.json());
+    }
+
+    deleteOrganization(orgs: Array<Organization>): Observable<any> {
+        return this.apiService.post('/organization/deleteOrganization', orgs)
+            .map(data => data.json());
+    }
+
+    /**
+     * 获取机构列表
+     * @returns {Observable<R>}
+     */
+    findCurrentOrganizationList(): Observable<any> {
+        return this.apiService.post('/system/findCurrentOrganizationList')
+            .map(data => data.json());
+    }
+    /**
+     * 获取机构列表
+     * @returns {Observable<R>}
+     */
+    findOrganizationListByPId(pid): Observable<any> {
+        return this.apiService.post('/organization/findOrganizationListByPId?pid='+pid)
+            .map(data => data.json());
+    }
+
+    /*重置密码*/
+    resetPasswords(user: User): Observable<any> {
+        return this.apiService.post('/system/resetPasswords', user)
+            .map(data => data.json());
+    }
+
+    /*删除用户*/
+    deleteUser(user: User): Observable<any> {
+        return this.apiService.post('/system/deleteUser', user)
+            .map(data => data.json());
+    }
+
+    /*停用该用户*/
+    disableUser(user: User): Observable<any> {
+        return this.apiService.post('/system/disableUser', user)
+            .map(data => data.json());
+    }
+
+    /*启用该用户*/
+    startUser(user: User): Observable<any> {
+        return this.apiService.post('/system/startUser', user)
+            .map(data => data.json());
+    }
+
+    /*更新用户*/
+    updateUser(user: User): Observable<any> {
+        return this.apiService.post('/system/updateUser', user)
+            .map(data => data.json());
+    }
+
+    /*获取日志列表*/
+    getLogs(log: Log): Observable<any> {
+        return this.apiService.post('system/getLogs', log)
+            .map(data => data.json());
+    }
+    /*获取接口日志列表*/
+    getSystemLogs(systemLog: SystemLog): Observable<any> {
+        return this.apiService.post('system/getSystemLogs', systemLog)
+            .map(data => data.json());
+    }
+    /*根据id获取接口日志对象*/
+    getSystemLogById(systemLog: SystemLog): Observable<any> {
+        return this.apiService.post('system/getSystemLogById', systemLog)
+            .map(data => data.json());
+    }
+    /*查询日志*/
+    findLogsByTypeAndTime(log: Log): Observable<any> {
+        return this.apiService.post('system/findLogsByTypeAndTime', log)
+            .map(data => data.json());
+    }
+
+    /*修改密码*/
+    updatePassword(user: User): Observable<any> {
+        return this.apiService.post('/system/updatePassword', user)
+            .map(data => data.json());
+    }
+
+    /**
+     * 获取系统配置
+     * @param sysConfig
+     * @returns {Observable<R>}
+     */
+    findSystemConfig(sysConfig: SystemConfig): Observable<any> {
+        return this.apiService.post('system/findSystemConfig', sysConfig)
+            .map(data => data.json());
+    }
+
+    /*更新系统配置*/
+    updateSystemConfig(sysConfig: SystemConfig): Observable<any> {
+        return this.apiService.post('system/updateSystemConfig', sysConfig)
+            .map(data => data.json());
+    }
+
+    /*远程控制*/
+    deviceControl(teleCommand: TeleControlCommand): Observable<any> {
+        return this.apiService.post('system/deviceControl', teleCommand)
+            .map(data => data.json());
+    }
+
+    getMetrics(): Observable<any> {
+        return this.apiService.get('metrics')
+            .map(data => data.json());
+    }
+}

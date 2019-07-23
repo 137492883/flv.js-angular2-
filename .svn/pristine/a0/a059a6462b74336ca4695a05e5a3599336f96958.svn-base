@@ -1,0 +1,104 @@
+import {Component, OnInit} from '@angular/core';
+import {routerTransition} from '../../../../../router.animations';
+import {CommonUtil} from '../../../../../shared/providers/CommonUtil';
+import {ActivatedRoute, Router} from '@angular/router';
+import {Role} from '../../../../../shared/model/Role';
+import {SystemService} from '../../../../../shared/services/sysmanage/system.service';
+import {Permision} from '../../../../../shared/model/Permision';
+import {BaseComponent} from '../../../../../shared/components/BaseComponent';
+import {systemconst} from '../../../../../systemconst';
+/**
+ * 描述:角色管理编辑页面
+ * 作者:刘斌
+ * 创建时间:2018/05/09 15:07:51
+ */
+@Component({
+    selector: 'app-save',
+    templateUrl: './save.component.html',
+    styleUrls: ['./save.component.scss'],
+    animations: [routerTransition()]
+})
+export class SaveComponent extends BaseComponent implements OnInit {
+
+    titleName = '新增角色';
+    role: Role = new Role();
+    valid = '';
+    isSubmit = false;
+    distributablePermisions: Array<Permision> = new Array<Permision>();
+
+    constructor(public commonUtil: CommonUtil, public activatedRoute: ActivatedRoute,
+                public router: Router, public systemService: SystemService) {
+        super();
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        const id = this.activatedRoute.snapshot.paramMap.get('id');
+        /*获得参数id*/
+        if (id != null) {
+            this.titleName = '编辑角色';
+            this.role.id = id;
+            this.systemService.getRoleById(this.role).subscribe(role => {
+                this.role = role;
+            })
+        }
+        this.systemService.getDistributablePermisions().subscribe(permisions => {
+            this.distributablePermisions = permisions;
+        })
+    }
+
+    /**
+     * 添加权限
+     * @param perminsion
+     */
+    addPermision(perminsion: Permision) {
+        const index = this.role.permisions.findIndex(per => per.id === perminsion.id);
+        if (index >= 0) {
+            this.showSuccessMsg('该权限已经添加');
+        } else {
+            this.role.permisions.push(perminsion);
+        }
+
+    }
+
+    /**
+     * 删除权限
+     * @param perminsion
+     */
+    removePermision(perminsion: Permision) {
+        if (perminsion.buildinadminpermision && this.role.buildinadmin) {
+            this.showSuccessMsg('内置角色的内置权限，不能删除');
+        } else {
+            const index = this.role.permisions.findIndex(per => per.id === perminsion.id);
+            this.role.permisions.splice(index, 1);
+        }
+    }
+
+    /**
+     * 提交表单
+     */
+    submitForm() {
+        this.valid = '';
+        this.isSubmit = true;
+        if (!this.commonUtil.isEmpty(this.role.name)) {/*填的名字是空的*/
+            this.valid = systemconst.validEmptyMessage;
+        } else {
+            this.systemService.saveRole(this.role).subscribe(role => {
+                this.router.navigate(['/system/platform/role/list'])
+            }, err => {
+                this.showErrorMsg(err.message = '该角色已存在');
+            })
+        }
+    }
+
+    /*删除角色*/
+    deleteRole() {
+        this.systemService.deleteRole(this.role).subscribe(role => {
+            this.router.navigate(['/system/platform/role/list'])
+        }, err => {
+            this.showErrorMsg(err.message);
+        })
+    }
+}

@@ -1,0 +1,17 @@
+<div class="row">
+    <div class="col-xl-12">
+        <ol class="breadcrumb">
+            <li class="jb-warp breadcrumb-item"></li>
+            <!--<li class="breadcrumb-item ">-->
+                <!--<i class="fa fa-table"></i>-->
+                <!--<a href="Javascript:void(0)" [routerLink]="['/device/monitoring']">终端监控</a>-->
+            <!--</li>-->
+            <li class="breadcrumb-item "><i class="fa fa-map"></i> 地图展示</li>
+        </ol>
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        <div id="mapcontainer" style="width: 100%;min-height: 560px;"></div>
+    </div>
+</div>

@@ -1,0 +1,249 @@
+<aside class="sidebar hl-jb hl-repeat">
+    <div class="layui-side ">
+        <div class="layui-side-scroll">
+
+            <div class="layui-nav layui-nav-tree site-demo-nav">
+                <!--  内容管理  -->
+                <dl  class="ns-tree-warp app-mb-5" *ngIf="currentUser.userType === '2'">
+                    <dd class="ns-nav-tree">
+                        <span class="bq-warp app-ml-l">内容管理</span>
+                        <span class="app-mr-2  f_right layui-icon">&#xe61a;</span>
+                    </dd>
+                    <dt class="ns-nav-list ns-list-active">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" [routerLink]="['/advertisement/list']"
+                           [routerLinkActive]="['router-link-active']" >
+                            <span class="fa fa-fw fa-file-archive-o  app-ml-2 app-mr-3"></span>内容管理
+                        </a>
+                    </dt>
+                </dl>
+                <!--  播放管理   -->
+                <dl  class="ns-tree-warp app-mb-5" *ngIf="currentUser.userType === '2'">
+                    <dd class="ns-nav-tree">
+                        <span class="bq-warp app-ml-l">播放管理</span>
+                        <span class="app-mr-2  f_right layui-icon">&#xe61a;</span>
+                    </dd>
+                    <dt class="ns-nav-list">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/broadcast/task/list"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-shuju app-ml-2 app-mr-3"></span>播放计划
+                        </a>
+                    </dt>
+                    <dt class="ns-nav-list">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/broadcast/plan/list"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-wendang app-ml-2 app-mr-3"></span>分发计划
+                        </a>
+                    </dt>
+                </dl>
+                <!--  订单管理   -->
+                <dl  class="ns-tree-warp app-mb-5" *ngIf="currentUser.userType === '1'">
+                    <dd class="ns-nav-tree">
+                        <span class="bq-warp app-ml-l">订单管理</span>
+                        <span class="app-mr-2  f_right layui-icon">&#xe61a;</span>
+                    </dd>
+                    <dt class="ns-nav-list">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/order/ddxx/list"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-shuju app-ml-2 app-mr-3"></span>订单查询
+                        </a>
+                    </dt>
+                    <dt class="ns-nav-list">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/order/gdxx/list"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-wendang app-ml-2 app-mr-3"></span>归档信息
+                        </a>
+                    </dt>
+                </dl>
+                <!--  开户管理   -->
+                <dl   class="ns-tree-warp app-mb-5">
+                    <dd class="ns-nav-tree" *ngIf="currentUser.userType === '1'">
+                        <span class="bq-warp app-ml-l">企业客户管理</span>
+                        <span class="app-mr-2  f_right layui-icon">&#xe61a;</span>
+                    </dd>
+                    <dt class="ns-nav-list " >
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" [routerLink]="['/system/platform/organization/list']"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-gengduoneirong app-ml-2 app-mr-3"></span>企业客户管理
+                        </a>
+                    </dt>
+                </dl>
+                <!--  终端管理   -->
+                <dl class="ns-tree-warp app-mb-5">
+                    <dd class="ns-nav-tree">
+                        <span class="bq-warp app-ml-l">终端管理</span>
+                        <span class="app-mr-2  f_right layui-icon">&#xe61a;</span>
+                    </dd>
+                    <dt class="ns-nav-list " *ngIf="currentUser.userType === '1'">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/device/entering/list"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-gengduoneirong app-ml-2 app-mr-3"></span>终端录入
+                        </a>
+                    </dt>
+                    <dt class="ns-nav-list" *ngIf="currentUser.userType === '1'">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" [routerLink]="['/device/entering/bindCard','bindCard']"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-shuju app-ml-2 app-mr-3"></span>机卡绑定
+                        </a>
+                    </dt>
+                    <dt class="ns-nav-list" *ngIf="currentUser.userType === '1'">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" [routerLink]="['/device/entering/setAp','ap']"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-shuju app-ml-2 app-mr-3"></span>设置热点
+                        </a>
+                    </dt>
+                    <dt class="ns-nav-list" *ngIf="currentUser.userType === '1'">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" [routerLink]="['/device/entering/factoryinit','factoryinit']"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-shuju app-ml-2 app-mr-3"></span>激活探针
+                        </a>
+                    </dt>
+                    <dt class="ns-nav-list">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/device/group/list"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-shuju app-ml-2 app-mr-3"></span>终端分组
+                        </a>
+                    </dt>
+                    <dt class="ns-nav-list" *ngIf="currentUser.userType === '2'">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" [routerLink]="['/device/divide']"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-shuju app-ml-2 app-mr-3"></span>终端划拨
+                        </a>
+                    </dt>
+                </dl>
+                <!--  终端监控   -->
+                <dl class="ns-tree-warp app-mb-5">
+                    <dd class="ns-nav-tree">
+                        <span class="bq-warp app-ml-l">终端监控</span>
+                        <span class="app-mr-2  f_right layui-icon">&#xe61a;</span>
+                    </dd>
+                    <dt class="ns-nav-list ">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" [routerLink]="['/device/monitoring']" [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-gengduoneirong app-ml-2 app-mr-3"></span>终端监控
+                        </a>
+                    </dt>
+                </dl>
+                <!--  升级管理   -->
+                <dl class="ns-tree-warp app-mb-5" *ngIf="currentUser.userType === '1'">
+                    <dd class="ns-nav-tree">
+                        <span class="bq-warp app-ml-l">升级管理</span>
+                        <span class="app-mr-2  f_right layui-icon">&#xe61a;</span>
+                    </dd>
+                    <dt class="ns-nav-list ">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/device/task/list"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-gengduoneirong app-ml-2 app-mr-3"></span>升级任务
+                        </a>
+                    </dt>
+                    <dt class="ns-nav-list">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/device/plan/list"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-shuju app-ml-2 app-mr-3"></span>升级计划
+                        </a>
+                    </dt>
+                </dl>
+                <!--  应用管理   -->
+                <dl class="ns-tree-warp app-mb-5" *ngIf="currentUser.userType === '1'">
+                    <dd class="ns-nav-tree">
+                        <span class="bq-warp app-ml-l">应用管理</span>
+                        <span class="app-mr-2  f_right layui-icon">&#xe61a;</span>
+                    </dd>
+                    <dt class="ns-nav-list ">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/device/apk-task/list"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-gengduoneirong app-ml-2 app-mr-3"></span>应用内容管理
+                        </a>
+                    </dt>
+                    <dt class="ns-nav-list ">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/device/apk-white/list"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-gengduoneirong app-ml-2 app-mr-3"></span>应用白名单
+                        </a>
+                    </dt>
+                    <dt class="ns-nav-list">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/device/apk-plan/list"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-shuju app-ml-2 app-mr-3"></span>终端应用管理
+                        </a>
+                    </dt>
+                </dl>
+                <!--  系统管理   -->
+                <dl class="ns-tree-warp app-mb-5">
+                    <dd class="ns-nav-tree">
+                        <span class="bq-warp app-ml-l">系统管理</span>
+                        <span class="app-mr-2  f_right layui-icon">&#xe61a;</span>
+                    </dd>
+                    <dt class="ns-nav-list " *appPermision="'yonghu_guanli'">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/system/platform/user/list"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-gengduoneirong app-ml-2 app-mr-3"></span>用户管理
+                        </a>
+                    </dt>
+                    <dt class="ns-nav-list" *appPermision="'juese_guanli'">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/system/platform/role/list"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-shuju app-ml-2 app-mr-3"></span>角色管理
+                        </a>
+                    </dt>
+                    <dt class="ns-nav-list" *appPermision="'zuzhijigou_guanli'">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/system/tenant/organization/list"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-shuju app-ml-2 app-mr-3"></span>租户机构管理
+                        </a>
+                    </dt>
+                    <dt class="ns-nav-list">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/system/log/list"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-shuju app-ml-2 app-mr-3"></span>日志管理
+                        </a>
+                    </dt>
+                    <dt class="ns-nav-list" *ngIf="currentUser.username==='admin'">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/system/log_new/list"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-shuju app-ml-2 app-mr-3"></span>接口日志
+                        </a>
+                    </dt>
+                    <dt class="ns-nav-list" *appPermision="'system_config'">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/system/systemConfig/save"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-shuju app-ml-2 app-mr-3"></span>系统配置管理
+                        </a>
+                    </dt>
+                    <dt class="ns-nav-list" *appPermision="'system_config'">
+                        <span class="ns-active"></span>
+                        <a href="javascript:void(0);" routerLink="/dashboard"
+                           [routerLinkActive]="['router-link-active']">
+                            <span class="ns-iconfont icon-shuju app-ml-2 app-mr-3"></span>服务器参数
+                        </a>
+                    </dt>
+                </dl>
+
+            </div>
+
+        </div>
+    </div>
+</aside>
+

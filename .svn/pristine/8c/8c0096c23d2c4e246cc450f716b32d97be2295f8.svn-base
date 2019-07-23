@@ -1,0 +1,32 @@
+import {BroadCastAdvertisementLocation} from "./BroadCastAdvertisementLocation";
+import {BroadCastScreenConfig} from "./BroadCastScreenConfig";
+/**
+ * Created by lichuan on 2017/9/11.
+ */
+export class BroadCastScreen {
+    /**
+     * 屏幕zindex
+     */
+    zindex: number;
+    /**
+     * 背景颜色
+     */
+    backgroundColor : string;
+    /**
+     * 背景图片地址
+     */
+    backgroundImageUrl = '';
+    /**
+     * 是否jpg文件
+     */
+    isJPG = true;
+    /**
+     * 广告位
+     **/
+    broadCastAdvertisementLocation: Array<BroadCastAdvertisementLocation> = [ ];
+
+    /**
+     * 屏幕配置
+     */
+    config: BroadCastScreenConfig = new BroadCastScreenConfig();
+}

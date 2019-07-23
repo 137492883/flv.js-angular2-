@@ -1,0 +1,176 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-edit"></i>
+                    {{title}}
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    请按要求填写相关终端信息（红框为必填项）<span style="color: red" *ngIf="isSubmit&&valid!==''">{{valid}}</span>
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">租户组织机构</label>
+                            </div>
+                            <div class="col" *ngIf="deviceId==='null'">
+                                <select  [class]="device.orgId==null||device.orgId===''?'form-control is-invalid':'form-control'" [(ngModel)]="device.orgId">
+                                    <option selected value="">选择租户组织结构</option>
+                                    <option *ngFor="let org of organizations" [value]="org.id">{{org.name}}</option>
+                                </select>
+                            </div>
+                            <div class="col" *ngIf="deviceId!=='null'">
+                                <label class="col-form-label">{{device.orgName}}</label>
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger" *ngIf="deviceId==='null'">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">终端SN</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text"   (blur)="onBlur()" [class]="device.sn==null||device.sn===''?'form-control is-invalid':'form-control'" [(ngModel)]="device.sn">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                            <div class="col-sm-2">
+                                <label class="col-form-label">物联网模块IMEI</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text"  class="form-control"
+                                       [class]="device.wulianwangimei==null||device.wulianwangimei===''?'form-control is-invalid':'form-control'" [(ngModel)]="device.wulianwangimei">
+                            </div>
+                            <div class="col">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">终端IMEI</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text"  class="form-control"
+                                       [class]="device.deviceimei==null||device.deviceimei===''?'form-control is-invalid':'form-control'" [(ngModel)]="device.deviceimei">
+                            </div>
+                            <div class="col">
+                            </div>
+                            <div class="col-sm-2">
+                                <label class="col-form-label">物联网模块SN</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text"
+                                       [class]="device.wulianwangsn==null||device.wulianwangsn===''?'form-control is-invalid':'form-control'" [(ngModel)]="device.wulianwangsn">
+                            </div>
+                            <div class="col">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">终端MAC地址</label>
+                            </div>
+                            <div class="col">
+                                <input type="text"  (blur)="onBlur()"
+                                       [class]="device.wulianwnagmac==null||device.wulianwnagmac===''?'form-control is-invalid':'form-control'"
+                                       [(ngModel)]="device.wulianwnagmac">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项(大写英文字母或数字)</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">软件版本号</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text"  class="form-control" [class]="device.softVersion==null||device.softVersion===''?'form-control is-invalid':'form-control'"
+                                       [(ngModel)]="device.softVersion">
+                            </div>
+                            <div class="col">
+                            </div>
+                            <div class="col-sm-2">
+                                <label class="col-form-label">安卓版本号</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text"  class="form-control" [class]="device.androidVersion==null||device.androidVersion===''?'form-control is-invalid':'form-control'"
+                                       [(ngModel)]="device.androidVersion">
+                            </div>
+                            <div class="col">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">平台类型</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text"  class="form-control" [class]="device.platformType==null||device.platformType===''?'form-control is-invalid':'form-control'"
+                                       [(ngModel)]="device.platformType">
+                            </div>
+                            <div class="col-sm">
+                            </div>
+                            <div class="col-sm-2">
+                                <label class="col-form-label">产品型号</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text"  class="form-control" [class]="device.productionModel==null||device.productionModel===''?'form-control is-invalid':'form-control'"
+                                       [(ngModel)]="device.productionModel">
+                            </div>
+                            <div class="col">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">开启热点</label>
+                            </div>
+                            <div class="col">
+                                <input type="checkbox" [(ngModel)]="apOpen_" (change)="changeApOpen()"> 是
+                            </div>
+                            <div class="col-sm-2">
+                                <label class="col-form-label">客流提交地址</label>
+                            </div>
+                            <div class="col">
+                                <input type="text"  class="form-control"
+                                       [(ngModel)]="device.apSubmitUrl">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">热点用户名</label>
+                            </div>
+                            <div class="col">
+                                <input type="text"  class="form-control"
+                                       [(ngModel)]="device.apUserName">
+                            </div>
+                            <div class="col-sm-2">
+                                <label class="col-form-label">热点密码</label>
+                            </div>
+                            <div class="col">
+                                <input type="text" class="form-control"
+                                       [(ngModel)]="device.apPasswd">
+                            </div>
+                        </div>
+                        <div class="form-group row" *appPermision="'zhongduan_guanli'">
+                            <div class="mx-auto">
+
+                                <button type="submit" (click)="submitForm()" class="btn btn-primary">
+                                    <i class="fa fa-fw fa-floppy-o fa-2x" ></i>
+                                    <span style="font-size: 1.7rem;">保 存</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

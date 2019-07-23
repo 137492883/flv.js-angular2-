@@ -1,0 +1,18 @@
+import {Injectable} from '@angular/core';
+
+@Injectable()
+export class UserData {
+
+    constructor() {
+    }
+
+    getIdToken() {
+        return localStorage.getItem('id_token');
+    }
+
+    saveIdToken(token: string) {
+        localStorage.set('id_token', token);
+    }
+
+
+}

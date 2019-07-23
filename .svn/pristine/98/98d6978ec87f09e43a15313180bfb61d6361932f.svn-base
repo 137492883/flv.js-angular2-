@@ -1,0 +1,24 @@
+{
+  "name": "browser-md5-file",
+  "description": "MD5 file in browser",
+  "main": "dist/browser-md5-file.js",
+  "authors": [
+    "forsigner"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "browser-md5-file",
+    "browser",
+    "file",
+    "md5.js"
+  ],
+  "homepage": "https://github.com/forsigner/browser-md5-file",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "src/bower_components",
+    "test",
+    "tests"
+  ]
+}

@@ -1,0 +1,13 @@
+一、前端获取当前用户
+    XxxService 继承 BaseService, 然后即可获得当前用户  getCurrentUser（）
+
+二、添加页面操作成功或者失败提醒步骤（详细例子见 layout/tables）
+    1、XxxComponent  extends  BaseComponent
+    2、Xxx.module  import：AlertModule.forRoot()
+    3、Xxx.component.html 中在需要提示的地方加上
+        <div *ngFor="let alert of alerts">
+            <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+        </div>
+    4、在需要添加提示的 XxxComponent 中添加
+        this.showSuccessMsg()或者 this.showErrorMsg()，不带参数的话，系统默认一些简单提示
+        如：this.showSuccessMsg('查询成功，共计查询' + result.totalElements + '条记录');

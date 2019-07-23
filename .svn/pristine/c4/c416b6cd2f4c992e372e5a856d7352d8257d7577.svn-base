@@ -1,0 +1,95 @@
+import {Injectable} from '@angular/core';
+import {ApiService} from '../api.service';
+import {BroadcastPlan} from '../../model/BroadcastPlan';
+import {BroadcastTask} from '../../model/BroadcastTask';
+import {Paging} from '../../model/Paging';
+import {Observable} from 'rxjs/Observable';
+import {BaseService} from '../base.service';
+
+@Injectable()
+export class BroadcastService extends BaseService {
+
+    constructor(public apiService: ApiService) {
+        super(apiService);
+    }
+
+    /**
+     * 保存播放计划
+     * @param broadcastPlan
+     * @returns {Observable<R>}
+     */
+    saveBroadcastPlan(broadcastPlan: BroadcastPlan): Observable<any> {
+        return this.apiService.post('broadcast/saveBroadcastPlan', broadcastPlan)
+            .map(data => data.json());
+    }
+
+    /**
+     * 查找播放计划
+     * @param queryParam
+     * @returns {Observable<R>}
+     */
+    findBroadcastPlans(queryParam: BroadcastPlan): Observable<Paging> {
+        return this.apiService.post('broadcast/findBroadcastPlans', queryParam)
+            .map(data => data.json());
+    }
+
+    /**
+     *
+     * @param queryParam
+     * @returns {Observable<R>}
+     */
+    findBroadCastPlansByIsTopAndOrgId(queryParam: BroadcastPlan): Observable<any> {
+        return this.apiService.post('broadcast/findBroadCastPlansByIsTopAndOrgId', queryParam)
+            .map(data => data.json());
+    }
+
+    /**
+     * 通过id查找播放计划
+     * @param queryParam
+     * @returns {Observable<R>}
+     */
+    findBroadcastPlanById(queryParam: BroadcastPlan): Observable<BroadcastPlan> {
+        return this.apiService.post('broadcast/findBroadcastPlanById', queryParam)
+            .map(data => data.json());
+    }
+
+    /**
+     * 保存播放任务
+     * @param broadcastTask
+     * @returns {Observable<R>}
+     */
+    saveBroadcastTask(broadcastTask: BroadcastTask): Observable<any> {
+        return this.apiService.post('broadcast/saveBroadcastTask', broadcastTask)
+            .map(data => data.json());
+    }
+
+    /**
+     * 查找播放任务
+     * @param queryParam
+     * @returns {Observable<R>}
+     */
+    findBroadcastTasks(queryParam: BroadcastTask): Observable<Paging> {
+        return this.apiService.post('broadcast/findBroadcastTasks', queryParam)
+            .map(data => data.json());
+    }
+
+    /**
+     * 查找所有播放任务
+     * @param queryParam
+     * @returns {Observable<R>}
+     */
+    findAllBroadcastTasks(queryParam: BroadcastTask): Observable<any> {
+        return this.apiService.post('broadcast/findAllBroadcastTasks', queryParam)
+            .map(data => data.json());
+    }
+
+    /**
+     * 通过id查找播放任务
+     * @param queryParam
+     * @returns {Observable<R>}
+     */
+    findBroadcastTaskById(queryParam: BroadcastTask): Observable<any> {
+        return this.apiService.post('broadcast/findBroadcastTaskById', queryParam)
+            .map(data => data.json());
+    }
+}

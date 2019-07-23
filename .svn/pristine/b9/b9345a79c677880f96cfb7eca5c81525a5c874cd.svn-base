@@ -1,0 +1,5 @@
+export class TelecontrolScreen {
+    randomcode: string;
+    deviceid: string;
+    url: string;
+}

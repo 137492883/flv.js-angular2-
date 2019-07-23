@@ -1,0 +1,212 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-table"></i> 播放计划</li>
+                <div class="float-right" *appPermision="'bofangjihua_guanli'">
+                    <button type="button" class="btn btn-primary btn-sm" (click)="goSaveBroadcastPlan()">添加播放计划</button>
+                </div>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <form>
+                        <div class="form-row align-items-center pl-2">
+                            <div class="col-auto">
+                                <input type="text" [(ngModel)]="broadcastPlanQuery.name" name="name"
+                                       class="form-control mb-2 mb-sm-0" id="inlineFormInputName"
+                                       placeholder="请输入播放计划名称">
+                            </div>
+                            <div class="col-auto">
+                                <select class="custom-select mb-2 mr-sm-2 mb-sm-0" id="inlineFormCustomSelect"
+                                        [(ngModel)]="broadcastPlanQuery.auditingStatus" name="auditingStatus">
+                                    <option selected value="">全部</option>
+                                    <option value="1">待审核</option>
+                                    <option value="3">审核通过</option>
+                                    <option value="2">退回</option>
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-primary" (click)="queryBroadcastPlans()">查询
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th>序号</th>
+                            <th>播放计划名称</th>
+                            <th>播放任务名称</th>
+                            <th>播放时间区间</th>
+                            <th>审核状态</th>
+                            <th>分发状态</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let plan of topPlans ,let i = index;" placement="bottom">
+                            <th>置顶</th>
+                            <td>
+                                <a href="Javascript:void(0)" [routerLink]="['/broadcast/plan/save',plan.id]">
+                                    {{plan.name}}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="Javascript:void(0)"
+                                   [routerLink]="['/broadcast/task/save',plan.broadCastTask.id]">
+                                    <span *ngIf="plan.broadCastTask	">{{plan.broadCastTask.name}}</span>
+                                </a>
+                            </td>
+                            <td>{{plan.startTime |
+                                date:'yyyy年MM月dd日'}}--{{plan.endTime | date:'yyyy年MM月dd日'}}
+                            </td>
+                            <td [ngSwitch]="plan.auditingStatus">
+                                <span *ngSwitchCase="'1'">待审核</span>
+                                <span *ngSwitchCase="'2'" class="text-warning">退回</span>
+                                <span *ngSwitchCase="'3'" class="text-success">审核通过</span>
+                                <span *appPermision="'bofangjihua_jiesuo'">
+                                    <a href="Javascript:void(0)" *ngIf="plan.auditingStatus==='3'"
+                                       (click)="unlockAudit(plan)">（解锁）</a>
+                                </span>
+                            </td>
+                            <td [ngSwitch]="plan.distributeStatus">
+                                <span *ngSwitchCase="'1'">待分发
+                                    <span *appPermision="'bofangjihua_fenfa'">
+                                        <a href="Javascript:void(0)" *ngIf="plan.auditingStatus==='3'"
+                                           (click)="unlockDistribute(plan,'2')">（开启）</a>
+                                    </span>
+                                </span>
+                                <span *ngSwitchCase="'2'">已分发
+                                     <span *appPermision="'bofangjihua_fenfa'">
+                                        <a href="Javascript:void(0)" *ngIf="plan.auditingStatus==='3'"
+                                           (click)="unlockDistribute(plan,'1')">（关闭）</a>
+                                     </span>
+                                </span>
+                                <span *ngSwitchDefault>状态错误</span>
+                            </td>
+                        </tr>
+                        <tr *ngFor="let plan of objects ,let i = index;" placement="bottom">
+                            <th>{{i+1}}</th>
+                            <td>
+                                <a href="Javascript:void(0)" [routerLink]="['/broadcast/plan/save',plan.id]">
+                                    {{plan.name}}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="Javascript:void(0)"
+                                   [routerLink]="['/broadcast/task/save',plan.broadCastTask.id]">
+                                    <span *ngIf="plan.broadCastTask	">{{plan.broadCastTask.name}}</span>
+                                </a>
+                            </td>
+                            <td>{{plan.startTime |
+                                date:'yyyy年MM月dd日'}}--{{plan.endTime | date:'yyyy年MM月dd日'}}
+                            </td>
+                            <td [ngSwitch]="plan.auditingStatus">
+                                <span *ngSwitchCase="'1'">待审核</span>
+                                <span *ngSwitchCase="'2'" class="text-warning">退回</span>
+                                <span *ngSwitchCase="'3'" class="text-success">审核通过</span>
+                                <span *appPermision="'bofangjihua_jiesuo'">
+                                    <a href="Javascript:void(0)" *ngIf="plan.auditingStatus==='3'"
+                                       (click)="unlockAudit(plan)">（解锁）</a>
+                                </span>
+                            </td>
+                            <td [ngSwitch]="plan.distributeStatus">
+                                <span *ngSwitchCase="'1'">待分发
+                                     <span *appPermision="'bofangjihua_fenfa'">
+                                        <a href="Javascript:void(0)" *ngIf="plan.auditingStatus==='3'"
+                                           (click)="unlockDistribute(plan,'2')">（开启）</a>
+                                     </span>
+                                </span>
+                                <span *ngSwitchCase="'2'">已分发
+                                     <span *appPermision="'bofangjihua_fenfa'">
+                                         <a href="Javascript:void(0)" *ngIf="plan.auditingStatus==='3'"
+                                            (click)="unlockDistribute(plan,'1')">（关闭）</a>
+                                     </span>
+                                </span>
+                                <span *ngSwitchDefault>状态错误</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="queryResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'"
+                                [nextText]="'后一页'"
+                                [boundaryLinks]="true" [rotate]="false"
+                                (pageChanged)="pageChanged($event)"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #content let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">播放计划描述</h5>
+    </div>
+    <div class="modal-body">
+        <div class="container">
+            <form>
+                <div class="form-group row">
+                    <div class="col-sm-2">
+                        <label class="col-form-label">播放计划名称</label>
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" readonly value="{{plan.name}}">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-2">
+                        <label class="col-form-label">播放任务名称</label>
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" readonly value="{{plan.broadCastTask?.name}}">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-2">
+                        <label class="col-form-label">播放时间</label>
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" readonly
+                               value="{{plan.startTime | date:'yyyy年MM月dd日'}}--{{plan.endTime | date:'yyyy年MM月dd日'}}">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-2">
+                        <label class="col-form-label">审核状态</label>
+                    </div>
+                    <div class="col" [ngSwitch]="plan.auditingStatus">
+                        <input type="text" class="form-control" readonly *ngSwitchCase="'3'" value="审核通过"/>
+                        <input type="text" class="form-control" readonly *ngSwitchCase="'2'" value="退回">
+                        <input type="text" class="form-control" readonly *ngSwitchCase="'1'" value="待审核">
+                        <input type="text" class="form-control" readonly *ngSwitchDefault value="状态错误">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-2">
+                        <label class="col-form-label">分发状态</label>
+                    </div>
+                    <div class="col" [ngSwitch]="plan.distributeStatus">
+                        <input type="text" class="form-control" readonly *ngSwitchCase="'1'" value="待分发"/>
+                        <input type="text" class="form-control" readonly *ngSwitchCase="'2'" value="已分发"/>
+                        <input type="text" class="form-control" readonly *ngSwitchDefault value="状态错误">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="closeModal()">关闭</button>
+    </div>
+</ng-template>

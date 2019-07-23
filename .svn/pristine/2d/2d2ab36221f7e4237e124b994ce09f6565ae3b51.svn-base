@@ -1,0 +1,8 @@
+/**
+ * Created by wuzhenxue on 2017/11/7.
+ */
+export class WatcherFlow  {
+    deviceId: string;
+    startTime: string;
+    endTime: string;
+}

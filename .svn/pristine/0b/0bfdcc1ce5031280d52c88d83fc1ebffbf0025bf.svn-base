@@ -1,0 +1,30 @@
+import {Component, OnInit} from '@angular/core';
+import {routerTransition} from '../../../../../router.animations';
+import {CommonUtil} from '../../../../../shared/providers/CommonUtil';
+import {ActivatedRoute} from '@angular/router';
+import {Role} from '../../../../../shared/model/Role';
+
+@Component({
+    selector: 'app-save',
+    templateUrl: './save.component.html',
+    styleUrls: ['./save.component.scss'],
+    animations: [routerTransition()]
+})
+export class SaveComponent implements OnInit {
+
+    role: Role = new Role();
+    valid = '';
+    isSubmit = false;
+
+    constructor(public commonUtil: CommonUtil, public route: ActivatedRoute) {
+    }
+
+    ngOnInit() {
+        const id = this.route.snapshot.paramMap.get('id');
+    }
+
+    submitForm() {
+        this.valid = '';
+        this.isSubmit = true;
+    }
+}

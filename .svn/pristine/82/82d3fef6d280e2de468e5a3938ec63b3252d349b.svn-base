@@ -1,0 +1,248 @@
+import {Component, OnInit, ViewChild} from "@angular/core";
+import {ActivatedRoute, Router} from "@angular/router";
+import {SystemService} from "../../../../../shared/services/sysmanage/system.service";
+import {Paging} from "../../../../../shared/model/Paging";
+import {routerTransition} from "../../../../../router.animations";
+import {Organization} from "../../../../../shared/model/Organization";
+import {IActionMapping, ITreeOptions, KEYS, TREE_ACTIONS, TreeModel, TreeNode} from "angular-tree-component";
+import {BsModalService} from "ngx-bootstrap";
+import {User} from "../../../../../shared/model/user";
+import arrayToTree from "array-to-tree";
+import {BaseComponent} from "../../../../../shared/components/BaseComponent";
+import {systemconst} from "../../../../../systemconst";
+import {CommonUtil} from "../../../../../shared/providers/CommonUtil";
+import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
+/**
+ * 描述:租户组织机构管理列表操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/09 15:26:27
+ */
+@Component({
+    selector: 'app-device-group-list',
+    templateUrl: './list.component.html',
+    styleUrls: ['./list.component.scss'],
+    animations: [routerTransition()],
+})
+export class ListComponent extends BaseComponent implements OnInit {
+    valid = '';
+    isSubmit = false;
+    user: User = new User();
+    messages=[];
+    deleteOrgs=[];
+    organizations: Array<Organization> = new Array<Organization>();
+    queryResult: Paging = new Paging();
+    organization: Organization = new Organization();
+    parentOrganization: Organization = new Organization();
+    selectedOrganization: Organization = new Organization();
+    nodes: any;
+    model: any;
+    saveNewOrgFlag = false;
+    @ViewChild(TreeModel)
+    tree: TreeModel;
+    currentUserChildrenNodes: TreeNode[] = [];
+    permisionFlag = false;
+    actionMapping: IActionMapping = {
+        mouse: {
+            contextMenu: (tree, node, $event) => {
+                $event.preventDefault();
+                alert(`context menu for ${node.data.name}`);
+            },
+            dblClick: (tree, node, $event) => {
+                if (node.hasChildren) {
+                    TREE_ACTIONS.TOGGLE_EXPANDED(tree, node, $event);
+                }
+            },
+            click: (tree, node, $event) => {
+                $event.shiftKey
+                    ? TREE_ACTIONS.TOGGLE_SELECTED_MULTI(tree, node, $event)
+                    : TREE_ACTIONS.TOGGLE_SELECTED(tree, node, $event);
+                this.setSelectedOrganization(node)
+
+            }
+        },
+        keys: {
+            [KEYS.ENTER]: (tree, node, $event) => alert(`This is ${node.data.name}`)
+        }
+    };
+    treeOptions: ITreeOptions = {
+        actionMapping: this.actionMapping,
+        isExpandedField: 'expanded',
+        idField: 'uuid',
+        nodeHeight: 23,
+        animateExpand: true,
+        animateSpeed: 30,
+        animateAcceleration: 1.2
+    }
+
+    constructor(public route: ActivatedRoute, public router: Router, public systemService: SystemService,
+                public commonUtil: CommonUtil,private modalService: NgbModal) {
+        super();
+    }
+
+    onEvent(event) {
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        this.user = this.systemService.getCurrentUser();
+        this.initOrganizationsAndTree();
+
+    }
+
+    /**
+     * 更新角色
+     */
+    updateOrg() {
+        this.isSubmit = true;
+        this.valid = '';
+        if (!this.commonUtil.isEmpty(this.organization.name)) {
+            this.valid = systemconst.validEmptyMessage;
+        } else if (!this.commonUtil.isEmpty(this.organization.contactUserName)) {
+            this.valid = systemconst.validEmptyMessage;
+        } else if (!this.commonUtil.isEmpty(this.organization.contactTelNum)) {
+            this.valid = systemconst.validEmptyMessage;
+        } else if (!this.commonUtil.isEmpty(this.organization.contactEmail)) {
+            this.valid = systemconst.validEmptyMessage;
+        } else if (this.organization.contactEmail.indexOf('@') < 0) {
+            this.valid = '邮箱不符合规范';
+        } else {
+            this.systemService.updateOrganization(this.organization).subscribe((org) => {
+                this.saveNewOrgFlag = false;
+                this.selectedOrganization = new Organization();
+                this.organization = new Organization();
+                this.initOrganizationsAndTree();
+            }, err => {
+                this.showErrorMsg(err.message);
+            })
+        }
+    }
+
+    /**
+     * 初始化
+     */
+    initOrganizationsAndTree() {
+        this.systemService.findCurrentOrganizationList().subscribe(result => {
+            this.organizations = result;
+            const treeNodes = arrayToTree(this.organizations, {
+                parentProperty: 'pid',
+                customID: 'id'
+            });
+            this.nodes = treeNodes;
+            setTimeout(() => {
+                this.tree.expandAll();
+            })
+        })
+    }
+
+    /**
+     * 保存并初始化
+     */
+    saveOrganizationAndInitSystemUser() {
+        this.isSubmit = true;
+        this.valid = '';
+        this.organization.pid = this.selectedOrganization.id;
+        this.organization.rootid = this.selectedOrganization.rootid === null ? this.selectedOrganization.id
+            : this.selectedOrganization.rootid;
+        this.organization.type = this.selectedOrganization.type;
+        this.organization.contactEmail = this.organization.contactEmail.trim();
+        if (!this.commonUtil.isEmpty(this.organization.name)) {
+            this.valid = systemconst.validEmptyMessage;
+        } else if (!this.commonUtil.isEmpty(this.organization.contactUserName)) {
+            this.valid = systemconst.validEmptyMessage;
+        } else if (!this.commonUtil.isEmpty(this.organization.contactTelNum)) {
+            this.valid = systemconst.validEmptyMessage;
+        } else if (!this.commonUtil.isEmpty(this.organization.contactEmail)) {
+            this.valid = systemconst.validEmptyMessage;
+        } else if (this.organization.contactEmail.indexOf('@') < 0) {
+            this.valid = '邮箱不符合规范';
+        } else {
+            this.systemService.saveOrganizationAndInitSystemUser(this.organization).subscribe((org) => {
+                this.saveNewOrgFlag = false;
+                this.selectedOrganization = new Organization();
+                this.organization = new Organization();
+                this.initOrganizationsAndTree();
+            }, err => {
+                this.showErrorMsg(err.message);
+            })
+        }
+    }
+
+    newOrg() {
+        this.saveNewOrgFlag = true;
+        this.organization = new Organization();
+        this.parentOrganization = this.selectedOrganization;
+    }
+
+    showDelOrg(content) {
+        this.systemService.findOrganizationListByPId(this.selectedOrganization.id).subscribe((result) => {
+            this.messages=[];
+            if(result.length>0){
+                this.deleteOrgs=result;
+                let str="";
+                for(let i = 0; i < result.length; i++){
+                    str+="该子机构存在下级机构【"+result[i].name+"】；";
+                }
+                if(str!==""){
+                    str+="确认全部删除吗？"
+                    let msgs=str.split('；');
+                    for(let i=0;i<msgs.length;i++){
+                        this.messages.push({
+                            type: 'danger',
+                            msg: msgs[i] ? msgs[i] : ''
+                        });
+                    }
+                    this.model = this.modalService.open(content, {size: 'lg'});
+                }
+            }else{
+                let str="确认删除机构【"+this.selectedOrganization.name+"】吗？";
+                this.messages.push({
+                    type: 'danger',
+                    msg: str
+                });
+                this.model = this.modalService.open(content, {size: 'lg'});
+            }
+        }, err => {
+            this.showErrorMsg(err.message);
+        })
+    }
+
+    delOrg(){
+        this.deleteOrgs.push(this.selectedOrganization);
+        this.systemService.deleteOrganization(this.deleteOrgs).subscribe((org) => {
+            this.saveNewOrgFlag = false;
+            this.selectedOrganization = new Organization();
+            this.organization = new Organization();
+            this.showSuccessMsg("删除成功！");
+            this.closeModal();
+            this.initOrganizationsAndTree();
+        }, err => {
+            this.showErrorMsg(err.message);
+        })
+    }
+
+    closeModal() {
+        this.model.close();
+    }
+
+    setSelectedOrganization(node) {
+        this.selectedOrganization = this.organizations.filter(org => org.id === node.data.id)[0];
+        const parentorgs = this.organizations.filter(org => org.id === node.parent.data.id);
+        if (parentorgs.length > 0) {
+            this.parentOrganization = this.organizations.filter(org => org.id === node.parent.data.id)[0];
+        } else {
+            this.parentOrganization = new Organization();
+            this.parentOrganization.name = '顶级机构';
+        }
+        this.organization = this.selectedOrganization;
+        // 判断是否有权限
+        const currentUserNode = this.tree.getNodeBy(n => n.data.id === this.user.organization.id);
+        currentUserNode.doForAll(node1 => this.currentUserChildrenNodes.push(node1));
+        if (this.currentUserChildrenNodes.filter(a => a.data.id === node.data.id).length > 0) {
+            this.permisionFlag = true;
+        } else {
+            this.permisionFlag = false;
+        }
+    }
+}

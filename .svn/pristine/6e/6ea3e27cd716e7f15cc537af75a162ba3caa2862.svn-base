@@ -1,0 +1,130 @@
+<script src="../list/list.module.ts"></script>
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-edit"></i>
+                    {{title}}
+                </li>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg}}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    请填写相关升级任务信息（红框为必填项）
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired ">终端应用名称</label>
+                            </div>
+                            <div class="col-sm-4">
+                                <input type="text" maxlength="20"
+                                       [class]="plan.name==null||plan.name===''?'form-control is-invalid':'form-control'"
+                                       [(ngModel)]="plan.name">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label  ">终端应用测试</label>
+                            </div>
+                            <div class="col-auto">
+                                <label class="col-form-label"><input type="checkbox" [(ngModel)]="plan.test"
+                                                                     (click)="changeTest()"> 是</label>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">应用任务</label>
+                            </div>
+                            <div class="col-sm-4">
+                                <select [class]="plan.upgradeTask==null||plan.upgradeTask?.id===''?'form-control is-invalid':'form-control'"
+                                        [(ngModel)]="plan.upgradeTask.id">
+                                    <option value="">请选择应用任务</option>
+                                    <option *ngFor="let task of tasks" [value]="task.id">{{task.name}}</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+
+                        </div>
+
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">待升级终端组</label>
+                            </div>
+
+                            <div class="col-auto" *ngFor="let group of groups">
+                                <input type="checkbox" [value]="group.id" [(ngModel)]="group.checked">
+                                {{group.groupName}}
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">应用类型</label>
+                            </div>
+                            <div class="col-auto">
+                                <label class="col-form-label">
+
+                                    <input type="radio" name="a" [value]="'1'" [(ngModel)]="plan.internalType">内置
+
+                                    <input type="radio" name="a" [value]="'2'" [(ngModel)]="plan.internalType">预置
+
+                                </label>
+
+                            </div>
+                        </div>
+
+                        <div class="form-group row" *ngIf="plan.audit!=='3'">
+                            <div class="mx-auto">
+                                <button *appPermision="'shenjijihua_guanli'" type="submit" (click)="submitForm()"
+                                        class="btn btn-primary">
+                                    <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                                    <span style="font-size: 1.7rem;">保 存</span>
+                                </button>
+                                <span *appPermision="'shenjijihua_guanli'">
+                                    <button type="submit" (click)="deletePlan()" class="btn btn-danger"
+                                            *ngIf="plan.id!=null&&plan.id!==''">
+                                        <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                                        <span style="font-size: 1.7rem;">删 除</span>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="form-group row" *ngIf="plan.audit==='1'">
+                            <div class="mx-auto">
+                                <span *appPermision="'shenjijihua_shenhe'">
+                                   <button type="submit" (click)="audit('3')" class="btn btn-primary"
+                                           *ngIf="plan.id!=null&&plan.id!==''">
+                                    <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                                    <span style="font-size: 1.7rem;">审核通过</span>
+                                </button>
+                                </span>
+                                <span *appPermision="'shenjijihua_shenhe'">
+                                    <button type="submit" (click)="audit('2')" class="btn btn-danger"
+                                            *ngIf="plan.id!=null&&plan.id!==''">
+                                        <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                                        <span style="font-size: 1.7rem;">退回</span>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

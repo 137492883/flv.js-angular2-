@@ -1,0 +1,38 @@
+import {BaseEntity} from './BaseEntity';
+/**
+ * 操作日志实体
+ */
+export class Log extends BaseEntity {
+    /**
+     * 日志类型
+     */
+    type: string;
+    /**
+     * 模块名称
+     */
+    moduleName: string;
+    /**
+     * 操作方法
+     */
+    moduleMethod: string;
+    /**
+     * 所属机构
+     */
+    orgID: string;
+    /**
+     * 描述
+     */
+    description: object;
+    /**
+     * op用户名
+     */
+    opUserName: string;
+    /**
+     * 开始时间
+     */
+    startTime: string;
+    /**
+     * 结束时间
+     */
+    endTime: string;
+}

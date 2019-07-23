@@ -1,0 +1,71 @@
+import {Injectable} from '@angular/core';
+import {ApiService} from './api.service';
+import {Observable} from 'rxjs/Observable';
+import {Paging} from '../model/Paging';
+import {JwtHelper} from 'angular2-jwt';
+import {User} from '../model/user';
+import {URLSearchParams} from "@angular/http";
+
+@Injectable()
+export class BaseService {
+    jwtHelper: JwtHelper = new JwtHelper();
+
+    constructor(public apiService: ApiService) {
+    }
+
+    list(path: string): Observable<any> {
+        return this.apiService.get(path)
+            .map(data => data.json());
+    }
+
+    list1(path: string, obj: any): Observable<any> {
+        return this.apiService.post(path)
+            .map(data => data.json());
+    }
+
+    save(path: string, obj: any): Observable<any> {
+        return this.apiService.post(path, obj)
+            .map(data => data.json());
+    }
+
+    find(path: string, queryParam: any): Observable<Paging> {
+        return this.apiService.post(path, queryParam)
+            .map(data => data.json());
+    }
+
+    getObject1(path: string, queryParam: any): Observable<any> {
+        return this.apiService.post(path, queryParam)
+            .map(data => data.json());
+    }
+
+    findNoPage(path: string, queryParam: any): Observable<any> {
+        return this.apiService.post(path, queryParam)
+            .map(data => data.json());
+    }
+
+    getObject(path: string, queryParam: any): Observable<any> {
+        return this.apiService.get(path, queryParam)
+            .map(data => data.json());
+    }
+
+    getCurrentUser(): User {
+        if (localStorage.getItem('id_token')) {
+            return this.jwtHelper.decodeToken(localStorage.getItem('id_token')).currentUser
+        } else {
+            return new User();
+        }
+    }
+
+    /**
+     * 根据md5从数据库获取文件记录
+     * @param md5
+     * @returns {Observable<R>}
+     */
+    getFileByMd5(md5): Observable<any> {
+        let p=new URLSearchParams();
+        p.set("md5",md5);
+        return this.apiService.get('getFileByMd5', p)
+            .map(data => data.json());
+    }
+
+}

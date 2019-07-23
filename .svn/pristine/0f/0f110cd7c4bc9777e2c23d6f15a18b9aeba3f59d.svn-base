@@ -1,0 +1,238 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-table"></i> 播放计划</li>
+                <div class="float-right" *appPermision="'bofangrenwu_guanli'">
+                    <button type="button" class="btn btn-primary btn-sm" (click)="openCreateModal(create)">创建播放计划</button>
+                </div>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <form>
+                        <div class="form-row align-items-center pl-2">
+                            <div class="col-auto">
+                                <input type="text" [(ngModel)]="broadcastTaskQuery.name" name="name" class="form-control mb-2 mb-sm-0" id="inlineFormInputName"
+                                       placeholder="请输入播放计划名称">
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-primary" (click)="queryBroadcastTasks()">查询</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th>序号</th>
+                            <th>播放计划名称</th>
+                            <th>屏幕分隔</th>
+                            <th>广告位个数</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let task of objects ,let i = index;" placement="bottom">
+                            <th>{{i+1}}</th>
+                            <td>{{task.name}}</td>
+                            <td>{{task.screenWidth}} X {{task.screenHeight}}</td>
+                            <td><span *ngIf="task.broadCastScreens">{{getAdLCount(task.broadCastScreens)}}</span></td>
+                            <td>
+                                <button type="button" class="btn btn-info btn-sm" (click)="goSeeTask(task.id)">查看</button>
+                                <button type="button" class="btn btn-primary btn-sm" (click)="goEditTask(task.id);">编辑</button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="queryResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'" [nextText]="'后一页'"
+                                [boundaryLinks]="true" [rotate]="false"  (pageChanged)="pageChanged($event)"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #content let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">播放任务描述</h5>
+    </div>
+    <div class="modal-body">
+        <div class="container">
+            <form>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label ">播放计划名称</label>
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" readonly value="{{task.planName}}">
+                    </div>
+
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label ">播放任务名称</label>
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" readonly value="{{task.name}}">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label">屏幕（长、宽）</label>
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" readonly value="{{task.screenWidth}} * {{task.screenHeight}}">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label">广告位个数</label>
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" readonly value="{{getAdLCount(task.broadCastScreens)}}">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label">播放任务描述</label>
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" readonly value="{{task.description}}">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="closeContentModal()">关闭</button>
+    </div>
+</ng-template>
+
+<ng-template #create let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">创建播放任务 <span style="color: red;font-size: 15px" *ngIf="isSubmit&&valid!==''">{{valid}}</span></h5>
+    </div>
+    <div class="modal-body">
+        <div class="container">
+            <form>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label customrequired">播放计划名称</label>
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" [class]="(editTask.planName==null||editTask.planName==='')?'form-control is-invalid':'form-control'" [(ngModel)]="editTask.planName" name="planName">
+                    </div>
+                    <div class="col">
+                        <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                    </div>
+                </div>
+                <!--<div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label customrequired">播放任务名称</label>
+                    </div>
+                    <div class="col">
+                        <input type="text" [class]="(editTask.name==null||editTask.name==='')?'form-control is-invalid':'form-control'" [(ngModel)]="editTask.name" name="name">
+                    </div>
+                    <div class="col">
+                        <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                    </div>
+                </div>-->
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label">播放开始时间</label>
+                    </div>
+                    <div class="col">
+                        <select style="width: 43px;height: 38px;" [(ngModel)]="startHour" name="startHour">
+                            <option *ngFor="let h of hourss" value="{{h}}">{{h}}</option>
+                        </select>
+                        时
+                        <select style="width: 43px;height: 38px;" [(ngModel)]="startMinite" name="startMinite">
+                            <option *ngFor="let m of minites" value="{{m}}">{{m}}</option>
+                        </select>
+                        分
+                        <select style="width: 43px;height: 38px;" [(ngModel)]="startSecond" name="startSecond">
+                            <option *ngFor="let m of minites" value="{{m}}">{{m}}</option>
+                        </select>
+                        秒
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label">播放结束时间</label>
+                    </div>
+                    <div class="col">
+                        <select style="width: 43px;height: 38px;" [(ngModel)]="endHour" name="endHour">
+                            <option *ngFor="let h of hourss" value="{{h}}">{{h}}</option>
+                        </select>
+                        时
+                        <select style="width: 43px;height: 38px;" [(ngModel)]="endMinite" name="endMinite">
+                            <option *ngFor="let m of minites" value="{{m}}">{{m}}</option>
+                        </select>
+                        分
+                        <select style="width: 43px;height: 38px;" [(ngModel)]="endSecond" name="endSecond">
+                            <option *ngFor="let m of minites" value="{{m}}">{{m}}</option>
+                        </select>
+                        秒
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label">屏幕分割设定</label>
+                    </div>
+                    <div class="col">
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <input (keydown)="validAdvertisementIndexKeydown($event)" (keyup)="validScreenWidth($event)" type="number" max="32" min="2" class="form-control" maxlength="2" [(ngModel)]="editTask.screenWidth" name="width">
+                            </div>
+                            <div>
+                                X
+                            </div>
+                            <div class="col-sm-3">
+                                <input (keydown)="validAdvertisementIndexKeydown($event)" (keyup)="validScreenWidth($event)" type="number" max="32" min="2" class="form-control" maxlength="2" [(ngModel)]="editTask.screenHeight" name="height">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label">播放任务描述</label>
+                    </div>
+                    <div class="col">
+                        <textarea rows="5" class="form-control" [(ngModel)]="editTask.description" name="description"></textarea>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label"></label>
+                    </div>
+                    <div class="col">
+                        <div class="text-danger">最大屏幕分割设定32X32</div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" (click)="goSaveBroadcastTask()" class="btn btn-primary">
+            <i class="fa fa-fw fa-floppy-o fa-2x" ></i>
+            <span style="font-size: 1.7rem;" >创 建</span>
+        </button>
+        <button type="submit" (click)="closeCreateModal()" class="btn btn-default">
+            <i class="fa fa-fw fa-window-close fa-2x" ></i>
+            <span style="font-size: 1.7rem;">取 消</span>
+        </button>
+    </div>
+</ng-template>
+

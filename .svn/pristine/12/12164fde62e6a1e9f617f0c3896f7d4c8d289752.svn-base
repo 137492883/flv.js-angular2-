@@ -1,0 +1,84 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-edit"></i>
+                    {{titleName}}
+                </li>
+                <div *ngIf="role.id&&!role.buildinadmin">
+                    <div class="float-right">
+                        <button type="button" class="btn btn-danger btn-sm" (click)="deleteRole()">删除</button>
+                    </div>
+                </div>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    请按要求填写相关角色信息（红框为必填项）<span style="color: red" *ngIf="isSubmit&&valid!==''">{{valid}}</span>
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">角色名称</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <input type="text"
+                                       [class]="role.name==null||role.name===''?'form-control is-invalid':'form-control'"
+                                       [(ngModel)]="role.name" [readonly]="role.id">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">角色描述</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <textarea class="form-control" [(ngModel)]="role.description"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-6">
+                                <label class="col-form-label">待分配权限</label>
+                                <select multiple class="form-control" style="min-height: 250px;">
+                                    <option *ngFor="let permision of distributablePermisions"
+                                            (dblclick)="addPermision(permision)">
+                                        {{permision.name}}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="col-form-label">已分配权限</label>
+                                <select multiple class="form-control" style="min-height: 250px;">
+                                    <option *ngFor="let permision of role?.permisions"
+                                            (dblclick)="removePermision(permision)">
+                                        {{permision.name}}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="mx-auto">
+
+                                <button type="submit" (click)="submitForm()" class="btn btn-primary">
+                                    <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                                    <span style="font-size: 1.7rem;">保 存</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

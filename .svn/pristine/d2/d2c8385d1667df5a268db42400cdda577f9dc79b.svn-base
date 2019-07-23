@@ -1,0 +1,75 @@
+import {Component, OnInit} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {User} from '../../../../../shared/model/user';
+import {SystemService} from '../../../../../shared/services/sysmanage/system.service';
+import {Paging} from '../../../../../shared/model/Paging';
+import {routerTransition} from '../../../../../router.animations';
+import {BaseComponent} from '../../../../../shared/components/BaseComponent';
+/**
+ * 描述:用户列表操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/09 15:21:48
+ */
+@Component({
+    selector: 'app-device-group-list',
+    templateUrl: './list.component.html',
+    styleUrls: ['./list.component.scss'],
+    animations: [routerTransition()],
+})
+export class ListComponent extends BaseComponent implements OnInit {
+
+    users: Array<User> = new Array<User>();
+    queryResult: Paging = new Paging();
+    userQuery: User = new User();
+
+    constructor(public route: ActivatedRoute, public router: Router, public systemService: SystemService) {
+        super();
+    }
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        document.getElementById('lmask').style.display = 'block';
+        this.systemService.findUsersByCurrentOrg(this.userQuery).subscribe((result) => {
+            this.queryResult = result;
+            this.users = result.content;
+            document.getElementById('lmask').style.display = 'none';
+        })
+    }
+
+    /**
+     * 分页
+     * @param event
+     */
+    onPageChange(event: any) {
+        document.getElementById('lmask').style.display = 'block';
+        this.userQuery.currentPage = event.page - 1;
+        this.systemService.findUsersByCurrentOrg(this.userQuery).subscribe((result) => {
+            this.queryResult = result;
+            this.users = result.content;
+            document.getElementById('lmask').style.display = 'none';
+        })
+    }
+
+    /**
+     * 跳转到编辑页面
+     */
+    addUser() {
+        this.router.navigate(['/system/platform/user/save']);
+    }
+
+    /**
+     * 查询用户
+     */
+    selectUsers() {
+        document.getElementById('lmask').style.display = 'block';
+        this.userQuery.currentPage = 0;
+        this.systemService.findUsersByCurrentOrg(this.userQuery).subscribe((result) => {
+            this.queryResult = result;
+            this.users = result.content;
+            this.showSuccessMsg('查询成功，共计查询' + result.totalElements + '条记录');
+            document.getElementById('lmask').style.display = 'none';
+        })
+    }
+
+}

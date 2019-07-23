@@ -1,0 +1,326 @@
+import {Component, NgZone, OnInit, TemplateRef, ViewChild} from '@angular/core';
+import {routerTransition} from '../../../router.animations';
+import {DeviceService} from '../../../shared/services/device/device.service';
+import {Device} from '../../../shared/model/Device';
+import {BaseComponent} from '../../../shared/components/BaseComponent';
+import {Router} from '@angular/router';
+import {CommonUtil} from '../../../shared/providers/CommonUtil';
+import {BsModalService, CarouselConfig, PopoverConfig} from 'ngx-bootstrap';
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {UUID} from 'angular2-uuid';
+import {TelecontrolScreen} from '../../../shared/model/TelecontrolScreen';
+import {TeleControlCommand} from '../../../shared/model/TeleControlCommand';
+import {systemconst} from '../../../systemconst';
+import {SystemConfig} from "../../../shared/model/SystemConfig";
+import {SystemService} from "../../../shared/services/sysmanage/system.service";
+import * as moment from 'moment';
+/**
+ * 描述:终端监控列表操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/08 16:30:23
+ */
+@Component({
+    selector: 'app-monitoring',
+    templateUrl: './monitoring.component.html',
+    styleUrls: ['./monitoring.component.scss'],
+    providers: [{provide: CarouselConfig, useValue: {interval: 500, noPause: true}}],
+    animations: [routerTransition()]
+})
+export class MonitoringComponent extends BaseComponent implements OnInit {
+    @ViewChild('waitForSearch')
+    waitForSearch: TemplateRef<any>;
+    map: any;
+    numPages: any;
+    model: any;
+    deviceState: any;
+    imageIndex = 0;
+    deviceQuery: Device = new Device();
+    imgPath = '';
+    queryOrgId = '';
+    telecontrolScreens: Array<TelecontrolScreen> = new Array<TelecontrolScreen>();
+    message = '正在加载图片...';
+    device: Device;
+    inter: any;
+    teleC = new TeleControlCommand();
+    sysConfig: SystemConfig = new SystemConfig();
+    serverCurrentTime = '';
+
+    constructor(public config: PopoverConfig, public deviceService: DeviceService, public commonUtil: CommonUtil,
+                public systemService: SystemService, public router: Router, public modalService: NgbModal,
+                public ngzone: NgZone, private bsmodalService: BsModalService) {
+        super();
+        config.triggers = 'hover';
+        config.placement = 'bottom';
+        this.queryObj = this.deviceQuery;
+        this.baseService = this.deviceService;
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        this.systemService.findSystemConfig(new SystemConfig()).subscribe(sysConfig => {
+            this.sysConfig = sysConfig;
+        })
+        this.systemService.serverCurrentTime().subscribe(serverCurrentTime => {
+            this.serverCurrentTime = serverCurrentTime._body;
+        })
+        //如果当前用户是租户用户
+        if (systemconst.currentUser.userType !== '1') {
+            this.baseService.find('/system/getCurrentUserFirstLevelOrgs', {}).subscribe((result) => {
+                this.organizations = result;
+                // 如果当前用户这两个id相等，就证明其是顶级用户
+                if (systemconst.currentUser.organization.id === systemconst.currentUser.topOrganization.id) {
+                    this.deviceQuery.orgId = systemconst.currentUser.organization.id;
+                } else {
+                    for (let i = 0; i < this.organizations.length; i++) {
+                        this.deviceQuery.tenantOrgIds.push(this.organizations[i].id);
+                    }
+                    this.deviceQuery.tenantOrgIds.push(systemconst.currentUser.organization.id);
+                }
+                this.findObjects('/device/findDevices');
+                this.deviceService.find('/device/getDeviceNumber', this.deviceQuery).subscribe((result1) => {
+                    this.deviceState = result1;
+                });
+            })
+        } else {
+            this.findObjects('/device/findDevices');
+            this.findHireOrganizations();
+            this.deviceService.find('/device/getDeviceNumber', this.queryObj).subscribe((result) => {
+                this.deviceState = result;
+            });
+        }
+    }
+
+    /**
+     * 查找终端
+     */
+    search() {
+        this.findObjects('/device/findDevices');
+    }
+
+    /**
+     * 跳转到地图界面
+     */
+    toMap() {
+        this.router.navigate(['/device/monitoring/map']);
+    }
+
+    deviceStats() {
+        const currentDevice = this.objects.filter(de => {
+            return de.sn === this.device.sn;
+        })[0];
+        if (currentDevice.state !== '1') {
+            return '设备离线';
+        } else {
+            return '设备正常'
+        }
+    }
+
+    /**
+     * 判断离线状态
+     * @param latestHeartbeatTime
+     * @returns {any}
+     */
+    getState(latestHeartbeatTime) {
+        /**
+         * 系统在线状态判断逻辑更改为3次没有心跳及为离线
+         */
+        if (latestHeartbeatTime === null) {
+            return '离线';
+        } else {
+            const yuji = moment(moment(latestHeartbeatTime, 'YYYY-MM-DD HH:mm:ss').valueOf()).add(3*this.sysConfig.sysheartbeatInterval, 'minutes');
+            const servertime = moment(moment(this.serverCurrentTime, 'YYYY-MM-DD HH:mm:ss').valueOf());
+            if (yuji.isBefore(servertime)) {
+                return '离线';
+            } else {
+                return '在线';
+            }
+        }
+
+    }
+
+    /**
+     * 选择组织机构触发的事件
+     * @param e
+     */
+    onChangeOrg(e) {
+        this.deviceQuery.tenantOrgIds = [];
+        this.deviceQuery.orgId = '';
+        if (this.queryOrgId === '') {
+            //如果当前用户是租户用户
+            if (systemconst.currentUser.userType !== '1') {
+                // 如果当前用户这两个id相等，就证明其是顶级用户
+                if (systemconst.currentUser.organization.id === systemconst.currentUser.topOrganization.id) {
+                    this.deviceQuery.orgId = systemconst.currentUser.organization.id;
+                } else {
+                    for (let i = 0; i < this.organizations.length; i++) {
+                        this.deviceQuery.tenantOrgIds.push(this.organizations[i].id);
+                    }
+                    this.deviceQuery.tenantOrgIds.push(systemconst.currentUser.organization.id);
+                }
+            }
+        } else {
+            //如果当前用户是租户用户
+            if (systemconst.currentUser.userType !== '1') {
+                this.deviceQuery.tenantOrgIds.push(this.queryOrgId);
+            } else {
+                this.deviceQuery.orgId = this.queryOrgId;
+            }
+        }
+    }
+
+    /**
+     * 向终端发送指令
+     * @param content
+     * @param device 被操作的终端
+     */
+    send(content, device: Device) {
+        if (!this.commonUtil.isEmpty(device.command)) {
+            this.showErrorMsg('请选择要执行的操作');
+            return;
+        }
+        this.device = device;
+        this.teleC.command = device.command;
+        this.teleC.imsi = device.wulianwangimei;
+        this.teleC.sn = device.wulianwnagmac;
+        this.teleC.uuid = UUID.UUID().substring(0, 8);
+        this.deviceService.find('/system/deviceControl', this.teleC).subscribe((result) => {
+            this.device.uuid = this.teleC.uuid;
+            this.imgPath = '';
+            this.message = '正在加载图片...';
+            //如果发送的指令为连续画面获取或单一画面获取
+            if (device.command === '101' || device.command === '102') {
+                // 发送画面的时候，清空上次画面
+                this.telecontrolScreens = new Array<TelecontrolScreen>();
+                this.model = this.modalService.open(content, {size: 'lg', backdrop: 'static', keyboard: false});
+                const telecontrolScreen = new TelecontrolScreen();
+                telecontrolScreen.deviceid = device.id;
+                telecontrolScreen.randomcode = device.uuid;
+                this.inter = setInterval(() => {
+                    this.loadImg(telecontrolScreen);
+                }, 6000);
+            } else {
+                this.bsmodalService.show(this.waitForSearch);
+                setTimeout(() => {
+                    this.search();
+                }, 6000);
+            }
+        });
+    }
+
+    seeScreen() {
+        const telecontrolScreen = new TelecontrolScreen();
+        telecontrolScreen.deviceid = this.device.id;
+        telecontrolScreen.randomcode = this.device.uuid;
+        this.imgPath = '';
+        this.message = '正在加载图片...';
+        this.loadImg(telecontrolScreen);
+    }
+
+    loadImg(telecontrolScreen) {
+        // 单一获取画面
+        if (this.device.command === '102' && this.telecontrolScreens.length > 0) {
+            if (this.inter != null) {
+                clearInterval(this.inter);
+            }
+        } else {
+            this.deviceService.findNoPage('/device/findScreen', telecontrolScreen).subscribe((result1) => {
+                this.ngzone.run(() => {
+                    this.telecontrolScreens = result1;
+                })
+            });
+        }
+    }
+
+    auth(device) {
+        this.deviceService.save('/api/auth', {
+            boxSn: '000000014',
+            moduleSn: '000000014',
+            imsi: '000000014'
+        }).subscribe((d) => {
+            this.showSuccessMsg(d);
+        });
+    }
+
+    superior() {
+        if (this.imageIndex === 0) {
+            return;
+        }
+        this.imgPath = this.telecontrolScreens[--this.imageIndex].url;
+    }
+
+    /**
+     * 下一张图片
+     */
+    next() {
+        if (this.imageIndex === this.telecontrolScreens.length - 1) {
+            return;
+        }
+        this.imgPath = this.telecontrolScreens[++this.imageIndex].url;
+    }
+
+    closeModel() {
+        // 连续获取画面，关闭的时候发送连续画面获取终止命令（110）
+        if (this.device.command === '101') {
+            this.teleC.command = '110';
+            this.teleC.imsi = this.device.wulianwangimei;
+            this.teleC.sn = this.device.sn;
+            this.deviceService.find('/system/deviceControl', this.teleC).subscribe((result) => {
+                this.device.uuid = this.teleC.uuid;
+            });
+        }
+        if (this.inter != null) {
+            clearInterval(this.inter);
+        }
+        this.model.close();
+    }
+
+    probeStatus(device: Device) {
+        this.deviceService.mddevicestatus(this.device).subscribe(response => {
+            console.log('aaaaaa' + response);
+            return response.errcode;
+        })
+    }
+
+    mddeviceon(device) {
+        this.deviceService.mddeviceon(device).subscribe(response => {
+            return response.errcode;
+        })
+    }
+
+    /**
+     * 重置查询条件
+     */
+    resetSearch() {
+        this.deviceQuery.tenantOrgIds = [];
+        this.deviceQuery.orgId = '';
+        //如果当前用户是租户用户
+        if (systemconst.currentUser.userType !== '1') {
+            // 如果当前用户这两个id相等，就证明其是顶级用户
+            if (systemconst.currentUser.organization.id === systemconst.currentUser.topOrganization.id) {
+                this.deviceQuery.orgId = systemconst.currentUser.organization.id;
+            } else {
+                for (let i = 0; i < this.organizations.length; i++) {
+                    this.deviceQuery.tenantOrgIds.push(this.organizations[i].id);
+                }
+                this.deviceQuery.tenantOrgIds.push(systemconst.currentUser.organization.id);
+            }
+        }
+        this.queryOrgId = '';
+        this.deviceQuery.productionModel = '';
+        this.deviceQuery.androidVersion = '';
+        this.deviceQuery.sn = '';
+        this.deviceQuery.startSn = '';
+        this.deviceQuery.endSn = '';
+        this.deviceQuery.deviceimei = '';
+        this.deviceQuery.cardNum = '';
+        this.deviceQuery.startWulianwangsn = '';
+        this.deviceQuery.endWulianwangsn = '';
+        this.deviceQuery.softVersion = '';
+        this.deviceQuery.wulianwnagmac = '';
+        this.deviceQuery.startDeviceimei = '';
+        this.deviceQuery.endDeviceimei = '';
+        this.deviceQuery.platformType = '';
+    }
+}

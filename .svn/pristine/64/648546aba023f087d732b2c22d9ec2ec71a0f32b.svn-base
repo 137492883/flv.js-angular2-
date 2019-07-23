@@ -1,0 +1,739 @@
+import {Component, OnInit} from '@angular/core';
+import {NgbPopoverConfig} from '@ng-bootstrap/ng-bootstrap';
+import {BsDatepickerConfig} from 'ngx-bootstrap/datepicker';
+import {zhCn} from 'ngx-bootstrap/locale';
+import {defineLocale} from 'ngx-bootstrap/bs-moment';
+import {routerTransition} from '../../../../router.animations';
+import {SystemService} from '../../../../shared/services/sysmanage/system.service';
+import {Log} from '../../../../shared/model/log';
+import {Paging} from '../../../../shared/model/Paging';
+import {BaseComponent} from '../../../../shared/components/BaseComponent';
+import {isUndefined, isObject, isArray} from 'ngx-bootstrap/bs-moment/utils/type-checks';
+
+
+defineLocale('zh-cn', zhCn);
+/**
+ * 描述:日志列表操作页面
+ * 作者:刘斌
+ * 创建时间:2018/05/09 14:56:58
+ */
+@Component({
+    selector: 'app-list',
+    templateUrl: './list.component.html',
+    styleUrls: ['./list.component.scss'],
+    animations: [routerTransition()]
+})
+export class ListComponent extends BaseComponent implements OnInit {
+    locale = 'zh-cn';
+    bsConfig: Partial<BsDatepickerConfig>;
+    log: Log = new Log();
+    logs: Array<Log> = new Array<Log>();
+    queryResult: Paging = new Paging();
+    numPages = 0;
+
+    constructor(public config: NgbPopoverConfig, public systemService: SystemService) {
+        super();
+        this.bsConfig = Object.assign({}, {locale: this.locale});
+        this.bsConfig.dateInputFormat = 'YYYY/MM/DD';
+        this.config.triggers = 'hover';
+        this.config.container = 'body';
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit(): void {
+        this.log.type = '';
+        /*获得日志列表*/
+        document.getElementById('lmask').style.display = 'block';
+        this.systemService.getLogs(this.log).subscribe((result) => {
+            this.queryResult = result;
+            this.logs = result.content;
+            this.changeModuleName();
+            this.changeModuleMethod();
+            document.getElementById('lmask').style.display = 'none';
+        })
+    }
+
+    /**
+     * 改变moduleName显示格式
+     */
+    changeModuleName() {
+        for (let i = 0; i < this.logs.length; i++) {
+            switch (this.logs[i].moduleName) {
+                case 'com.sanyi.tg.controller.AdvertisementController': {
+                    this.logs[i].moduleName = '广告管理模块';
+                    break;
+                }
+                case 'com.sanyi.tg.controller.ApplicationUpgradeController': {
+                    this.logs[i].moduleName = '应用管理模块';
+                    break;
+                }
+                case 'com.sanyi.tg.controller.AuthenticationRestController': {
+                    this.logs[i].moduleName = '身份验证管理模块';
+                    break;
+                }
+                case 'com.sanyi.tg.controller.BroadcastController': {
+                    this.logs[i].moduleName = '播放管理模块';
+                    break;
+                }
+                case 'com.sanyi.tg.controller.BroadcastPlanMonitorController': {
+                    this.logs[i].moduleName = '播放计划监控管理模块';
+                    break;
+                }
+                case 'com.sanyi.tg.controller.DeviceAlarmController': {
+                    this.logs[i].moduleName = '终端异常模块';
+                    break;
+                }
+                case 'com.sanyi.tg.controller.DeviceController': {
+                    this.logs[i].moduleName = '终端管理模块';
+                    break;
+                }
+                case 'com.sanyi.tg.controller.OrganizationController': {
+                    this.logs[i].moduleName = '组织机构管理模块';
+                    break;
+                }
+                case 'com.sanyi.tg.controller.ProbeController': {
+                    this.logs[i].moduleName = '探针模块';
+                    break;
+                }
+                case 'com.sanyi.tg.controller.StatsController': {
+                    this.logs[i].moduleName = '统计管理模块';
+                    break;
+                }
+                case 'com.sanyi.tg.controller.SystemManagementController': {
+                    this.logs[i].moduleName = '系统管理模块';
+                    break;
+                }
+                case 'com.sanyi.tg.controller.TelecontrolController': {
+                    this.logs[i].moduleName = '远程控制模块';
+                    break;
+                }
+                case 'com.sanyi.tg.controller.UpgradeMonitorController': {
+                    this.logs[i].moduleName = '升级监控模块';
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+    }
+
+    /**
+     * 改变ModuleMethod显示格式
+     */
+    changeModuleMethod() {
+        for (let i = 0; i < this.logs.length; i++) {
+            if (this.logs[i].moduleName === '广告管理模块') {
+                switch (this.logs[i].moduleMethod) {
+                    case 'saveAdvertisement': {
+                        this.logs[i].moduleMethod = '保存广告内容';
+                        break;
+                    }
+                    case 'findAllAdvertisements': {
+                        this.logs[i].moduleMethod = '获取广告列表';
+                        break;
+                    }
+                    case 'findAdvertisementsForCurrentUserOrg': {
+                        this.logs[i].moduleMethod = '获取广告列表';
+                        break;
+                    }
+                    case 'findDistributeAdvertisementsForCurrentUserOrg': {
+                        this.logs[i].moduleMethod = '获取已分发的广告列表';
+                        break;
+                    }
+                    case 'findById': {
+                        this.logs[i].moduleMethod = '编辑广告';
+                        break;
+                    }
+                    case 'disposeTxtFile': {
+                        this.logs[i].moduleMethod = '处理txt文件';
+                        break;
+                    }
+                    case 'deleteAdvertisement': {
+                        this.logs[i].moduleMethod = '单条删除广告';
+                        break;
+                    }
+                    case 'deleteAdvertisements': {
+                        this.logs[i].moduleMethod = '批量删除广告';
+                        break;
+                    }
+                    case 'auditPass': {
+                        this.logs[i].moduleMethod = '广告审核通过';
+                        break;
+                    }
+                    case 'auditReject': {
+                        this.logs[i].moduleMethod = '广告拒绝审核通过';
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            if (this.logs[i].moduleName === '应用管理模块') {
+                switch (this.logs[i].moduleMethod) {
+                    case 'saveApplicationUpgradeTask': {
+                        this.logs[i].moduleMethod = '保存应用升级';
+                        break;
+                    }
+                    case 'findUpgradeTasks': {
+                        this.logs[i].moduleMethod = '获取应用列表';
+                        break;
+                    }
+                    case 'findUpgradeTasks1': {
+                        this.logs[i].moduleMethod = '获取应用列表';
+                        break;
+                    }
+                    case 'findAppUpgradePlanByTaskId': {
+                        this.logs[i].moduleMethod = '获取终端应用测试通过状态下的应用列表';
+                        break;
+                    }
+                    case 'findAppUpgradePlanByTaskId1': {
+                        this.logs[i].moduleMethod = '获取终端应用不是测试通过状态下的应用列表';
+                        break;
+                    }
+                    case 'findById': {
+                        this.logs[i].moduleMethod = '编辑应用';
+                        break;
+                    }
+                    case 'auditPass': {
+                        this.logs[i].moduleMethod = '应用审核通过';
+                        break;
+                    }
+                    case 'auditReject': {
+                        this.logs[i].moduleMethod = '应用拒绝审核通过';
+                        break;
+                    }
+                    case 'saveApplicationUpgradePlan': {
+                        this.logs[i].moduleMethod = '保存终端应用';
+                        break;
+                    }
+                    case 'findUpgradePlans': {
+                        this.logs[i].moduleMethod = '获取终端应用列表';
+                        break;
+                    }
+                    case 'findUpgradePlanById': {
+                        this.logs[i].moduleMethod = '编辑终端应用';
+                        break;
+                    }
+                    case 'findAllGroups': {
+                        this.logs[i].moduleMethod = '获取终端分组列表';
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            if (this.logs[i].moduleName === '身份验证管理模块') {
+                switch (this.logs[i].moduleMethod) {
+                    case 'createAuthenticationToken': {
+                        this.logs[i].moduleMethod = '创建身份验证token';
+                        break;
+                    }
+                    case 'ResponseEntity': {
+                        this.logs[i].moduleMethod = '相应实体';
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            if (this.logs[i].moduleName === '播放管理模块') {
+                switch (this.logs[i].moduleMethod) {
+                    case 'saveBroadcastPlan': {
+                        this.logs[i].moduleMethod = '保存播放计划';
+                        break;
+                    }
+                    case 'saveAllBroadcastPlans': {
+                        this.logs[i].moduleMethod = '批量保存播放计划';
+                        break;
+                    }
+                    case 'findAllBroadcastPlans': {
+                        this.logs[i].moduleMethod = '获取播放计划列表';
+                        break;
+                    }
+                    case 'findById': {
+                        this.logs[i].moduleMethod = '编辑播放计划';
+                        break;
+                    }
+                    case 'findBroadCastPlansByIsTopAndOrgId': {
+                        this.logs[i].moduleMethod = '获取播放计划列表';
+                        break;
+                    }
+                    case 'saveBroadcastTask': {
+                        this.logs[i].moduleMethod = '保存播放任务';
+                        break;
+                    }
+                    case 'saveAllBroadcastTasks': {
+                        this.logs[i].moduleMethod = '批量保存播放任务';
+                        break;
+                    }
+                    case 'updateAdvertisementsOfBroadCastTasks': {
+                        this.logs[i].moduleMethod = '根据播放任务更新广告';
+                        break;
+                    }
+                    case 'checkAdvertisementConflict': {
+                        this.logs[i].moduleMethod = '检测广告冲突';
+                        break;
+                    }
+                    case 'findAllBroadcastTasks': {
+                        this.logs[i].moduleMethod = '获取播放任务列表';
+                        break;
+                    }
+                    case 'findById': {
+                        this.logs[i].moduleMethod = '编辑播放任务';
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            if (this.logs[i].moduleName === '播放计划监控管理模块') {
+                switch (this.logs[i].moduleMethod) {
+                    case 'getUpgradeMonitors': {
+                        this.logs[i].moduleMethod = '获得升级监控列表';
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            if (this.logs[i].moduleName === '终端异常模块') {
+                switch (this.logs[i].moduleMethod) {
+                    case 'getDeviceAlarms': {
+                        this.logs[i].moduleMethod = '获取终端异常列表';
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            if (this.logs[i].moduleName === '终端管理模块') {
+                switch (this.logs[i].moduleMethod) {
+                    case 'saveDevice': {
+                        this.logs[i].moduleMethod = '保存终端';
+                        break;
+                    }
+                    case 'saveAllDevice': {
+                        this.logs[i].moduleMethod = '保存所有终端';
+                        break;
+                    }
+                    case 'getDevice': {
+                        this.logs[i].moduleMethod = '编辑终端';
+                        break;
+                    }
+                    case 'saveGroup': {
+                        this.logs[i].moduleMethod = '保存终端分组';
+                        break;
+                    }
+                    case 'saveAllGroup': {
+                        this.logs[i].moduleMethod = '批量保存终端分组';
+                        break;
+                    }
+                    case 'savePlan': {
+                        this.logs[i].moduleMethod = '保存升级计划';
+                        break;
+                    }
+                    case 'saveAllPlan': {
+                        this.logs[i].moduleMethod = '批量保存升级计划';
+                        break;
+                    }
+                    case 'saveTask': {
+                        this.logs[i].moduleMethod = '保存升级任务';
+                        break;
+                    }
+                    case 'saveAllTask': {
+                        this.logs[i].moduleMethod = '批量保存升级任务';
+                        break;
+                    }
+                    case 'findDevices': {
+                        this.logs[i].moduleMethod = '获取终端列表';
+                        break;
+                    }
+                    case 'getDeviceNumber': {
+                        this.logs[i].moduleMethod = '获取终端数据列表';
+                        break;
+                    }
+                    case 'findDevicesNonPageByGroup': {
+                        this.logs[i].moduleMethod = '获取终端列表';
+                        break;
+                    }
+                    case 'findAllGroups': {
+                        this.logs[i].moduleMethod = '获取终端分组列表';
+                        break;
+                    }
+                    case 'findAllTasks': {
+                        this.logs[i].moduleMethod = '获取升级任务列表';
+                        break;
+                    }
+                    case 'findGroups': {
+                        this.logs[i].moduleMethod = '获取终端分组列表';
+                        break;
+                    }
+                    case 'getGroup': {
+                        this.logs[i].moduleMethod = '编辑终端分组';
+                        break;
+                    }
+                    case 'findPlans': {
+                        this.logs[i].moduleMethod = '获取升级计划列表';
+                        break;
+                    }
+                    case 'findUpgradePlanByTaskId': {
+                        this.logs[i].moduleMethod = '获取升级计划列表';
+                        break;
+                    }
+                    case 'findUpgradePlanByTask': {
+                        this.logs[i].moduleMethod = '获取升级计划列表';
+                        break;
+                    }
+                    case 'getPlan': {
+                        this.logs[i].moduleMethod = '编辑升级计划';
+                        break;
+                    }
+                    case 'findTasks': {
+                        this.logs[i].moduleMethod = '获取升级任务列表';
+                        break;
+                    }
+                    case 'getTask': {
+                        this.logs[i].moduleMethod = '编辑升级任务';
+                        break;
+                    }
+                    case 'findScreen': {
+                        this.logs[i].moduleMethod = '获取远程屏幕列表';
+                        break;
+                    }
+                    case 'selectCoordinate': {
+                        this.logs[i].moduleMethod = '根据坐标获取终端列表';
+                        break;
+                    }
+                    case 'bindDeviceCard': {
+                        this.logs[i].moduleMethod = '绑卡';
+                        break;
+                    }
+                    case 'checkDeviceSnExist': {
+                        this.logs[i].moduleMethod = '监测终端SN是否存在';
+                        break;
+                    }
+                    case 'checkDeviceWlwSnExist': {
+                        this.logs[i].moduleMethod = '监测物联网SN是否存在';
+                        break;
+                    }
+                    case 'excelUploadAndImport': {
+                        this.logs[i].moduleMethod = 'Excel文件上传';
+                        break;
+                    }
+                    case 'batchBindCard': {
+                        this.logs[i].moduleMethod = '批量绑卡';
+                        break;
+                    }
+                    case 'UploadFileComm': {
+                        this.logs[i].moduleMethod = '上传文件';
+                        break;
+                    }
+                    case 'templateDownload': {
+                        this.logs[i].moduleMethod = '终端导入模板下载';
+                        break;
+                    }
+                    case 'bindCardTemplateDownload': {
+                        this.logs[i].moduleMethod = '批量绑卡模板下载';
+                        break;
+                    }
+                    case 'setAp': {
+                        this.logs[i].moduleMethod = '设置热点';
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            if (this.logs[i].moduleName === '组织机构管理模块') {
+                switch (this.logs[i].moduleMethod) {
+                    case 'saveDevice': {
+                        this.logs[i].moduleMethod = '获得平台下组织机构列表';
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            if (this.logs[i].moduleName === '探针模块') {
+                switch (this.logs[i].moduleMethod) {
+                    case 'factoryinit': {
+                        this.logs[i].moduleMethod = '出厂登记';
+                        break;
+                    }
+                    case 'factoryinitBatch': {
+                        this.logs[i].moduleMethod = '出厂登记';
+                        break;
+                    }
+                    case 'mddeviceon': {
+                        this.logs[i].moduleMethod = '探针激活';
+                        break;
+                    }
+                    case 'mddeviceoff': {
+                        this.logs[i].moduleMethod = '探针注销';
+                        break;
+                    }
+                    case 'mddevicestatus': {
+                        this.logs[i].moduleMethod = '探针状态查询';
+                        break;
+                    }
+                    case 'mddeviceflow': {
+                        this.logs[i].moduleMethod = '探针客流';
+                        break;
+                    }
+                    case 'last30flow': {
+                        this.logs[i].moduleMethod = '最近30天客流';
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            if (this.logs[i].moduleName === '统计管理模块') {
+                switch (this.logs[i].moduleMethod) {
+                    case 'sechduleStat': {
+                        this.logs[i].moduleMethod = '获取升级统计列表';
+                        break;
+                    }
+                    case 'upgradeStat': {
+                        this.logs[i].moduleMethod = '升级监控列表';
+                        break;
+                    }
+                    case 'alarmStat': {
+                        this.logs[i].moduleMethod = '获取终端异常统计列表';
+                        break;
+                    }
+                    case 'advertisementStat': {
+                        this.logs[i].moduleMethod = '获取广告统计列表';
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            if (this.logs[i].moduleName === '系统管理模块') {
+                switch (this.logs[i].moduleMethod) {
+                    case 'getDistributablePermisions': {
+                        this.logs[i].moduleMethod = '获取登陆用户可分配角色列表';
+                        break;
+                    }
+                    case 'saveRole': {
+                        this.logs[i].moduleMethod = '保存角色';
+                        break;
+                    }
+                    case 'getCurrentUserOrgRoles': {
+                        this.logs[i].moduleMethod = '获取当前用户所在组织机构下角色列表';
+                        break;
+                    }
+                    case 'getCurrentUserOrgRolesNonPage': {
+                        this.logs[i].moduleMethod = '获取当前用户所在组织机构下角色列表';
+                        break;
+                    }
+                    case 'getCurrentUserFirstLevelOrgs': {
+                        this.logs[i].moduleMethod = '获取组织机构列表';
+                        break;
+                    }
+                    case 'getCurrentUserOrgRoleById': {
+                        this.logs[i].moduleMethod = '编辑角色';
+                        break;
+                    }
+                    case 'deleteRole': {
+                        this.logs[i].moduleMethod = '删除角色';
+                        break;
+                    }
+                    case 'saveUserForCurrentOrg': {
+                        this.logs[i].moduleMethod = '保存用户';
+                        break;
+                    }
+                    case 'findUsersByCurrentOrg': {
+                        this.logs[i].moduleMethod = '获取用户列表';
+                        break;
+                    }
+                    case 'findUsersByID': {
+                        this.logs[i].moduleMethod = '编辑用户';
+                        break;
+                    }
+                    case 'findHireOrganizations': {
+                        this.logs[i].moduleMethod = '获取租户开户列表';
+                        break;
+                    }
+                    case 'findHiredOrganizationsNonPage': {
+                        this.logs[i].moduleMethod = '获取租户开户列表';
+                        break;
+                    }
+                    case 'saveHireOrganization': {
+                        this.logs[i].moduleMethod = '租户开户';
+                        break;
+                    }
+                    case 'findOrganizationById': {
+                        this.logs[i].moduleMethod = '编辑组织机构';
+                        break;
+                    }
+                    case 'updateOrganization': {
+                        this.logs[i].moduleMethod = '更新组织机构';
+                        break;
+                    }
+                    case 'resetOrgPassword': {
+                        this.logs[i].moduleMethod = '重置组织机构密码';
+                        break;
+                    }
+                    case 'saveOrganizationAndInitSystemUser': {
+                        this.logs[i].moduleMethod = '新建组织机构';
+                        break;
+                    }
+                    case 'findCurrentOrganizationList': {
+                        this.logs[i].moduleMethod = '获取当前用户所在顶层机构包含的列表';
+                        break;
+                    }
+                    case 'resetPasswordsUser': {
+                        this.logs[i].moduleMethod = '重置密码并更新平台用户';
+                        break;
+                    }
+                    case 'deleteUser': {
+                        this.logs[i].moduleMethod = '删除用户';
+                        break;
+                    }
+                    case 'disableUser': {
+                        this.logs[i].moduleMethod = '停用用户';
+                        break;
+                    }
+                    case 'startUser': {
+                        this.logs[i].moduleMethod = '启用用户';
+                        break;
+                    }
+                    case 'updateUser': {
+                        this.logs[i].moduleMethod = '修改用户';
+                        break;
+                    }
+                    case 'getLogsByOrgID': {
+                        this.logs[i].moduleMethod = '获取日志列表';
+                        break;
+                    }
+                    case 'findLogsByTypeAndTime': {
+                        this.logs[i].moduleMethod = '查询日志';
+                        break;
+                    }
+                    case 'updatePassword': {
+                        this.logs[i].moduleMethod = '修改当前登陆用户密码';
+                        break;
+                    }
+                    case 'findSystemConfig': {
+                        this.logs[i].moduleMethod = '保存系统配置信息';
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            if (this.logs[i].moduleName === '远程控制模块') {
+                switch (this.logs[i].moduleMethod) {
+                    case 'telcontrol': {
+                        this.logs[i].moduleMethod = '远程控制';
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            if (this.logs[i].moduleName === '升级监控模块') {
+                switch (this.logs[i].moduleMethod) {
+                    case 'getUpgradeMonitors': {
+                        this.logs[i].moduleMethod = '获取升级监控列表';
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
+    // 参数显示
+    getDes1(des) {
+        const para: string[] = [];
+        const para2: string[] = [];
+        const para3: string[] = [];
+        if (des !== null) {
+            Object.keys(des).forEach(key => {
+                if (des[key] !== null && des[key] !== '' && des[key].length !== 0) {
+                    if (key !== 'deleted' && key !== 'currentPage' && key !== 'sizePerPage') {
+                        // 是一个对象时
+                        if (isObject(des[key]) && des[key] !== null) {
+                            Object.keys(des[key]).forEach(key1 => {
+                                if (!isArray(des[key][key1])) {
+                                    if (des[key][key1] !== null && des[key][key1] !== ''  &&
+                                        key1 !== 'deleted' && key1 !== 'currentPage' && key1 !== 'sizePerPage') {
+                                        para2.push(key1 + ':' + des[key][key1]);
+                                        /*if (isArray(des[key][key1])) { // 是数组
+                                            Object.keys(des[key][key1]).forEach(name1 => {
+                                                const value1 = des[key][key1][name1];
+                                                Object.keys(value1).forEach(name2 => {
+                                                    if (value1[name2]) {
+                                                        if (name2 === 'name') {
+                                                            para2.push(name2 + ':' + value1[name2]);
+                                                        }
+                                                    }
+                                                });
+                                            });
+                                        }*/
+                                    }
+                                }
+                            });
+                            para.push(key + ':[' + para2 + ']');
+                        } else if (isArray(des[key]) && des[key] !== null) { // 是一个数组
+                            Object.keys(des[key]).forEach(name => {
+                                const value2 = des[key][name];
+                                Object.keys(value2).forEach(key2 => {
+                                    if (value2[key2] !== null && value2[key2] !== '') {
+                                        if (key2 === 'name') {
+                                            para3.push(key2 + ':' + value2[key2]);
+                                          }
+                                    }
+                                });
+                            });
+                            para.push(key + ':[' + para3 + ']');
+                        } else {
+                            para.push(key + ':' + des[key]);
+                        }
+                    }
+                }
+            });
+            return para.toString();
+        }
+    }
+
+    /**
+     * 查询日志
+     */
+    onQuery() {
+        document.getElementById('lmask').style.display = 'block';
+        this.log.currentPage = 0;
+        console.log('开始时间' + this.log.startTime + '结束时间：' + this.log.endTime + '类型是：' + this.log.type);
+        this.systemService.findLogsByTypeAndTime(this.log).subscribe((result) => {
+            this.queryResult = result;
+            this.logs = result.content;
+            this.changeModuleName();
+            this.changeModuleMethod();
+            this.showSuccessMsg('查询成功，共计查询' + result.totalElements + '条记录');
+            document.getElementById('lmask').style.display = 'none';
+        })
+    }
+
+    /**
+     * 分页
+     * @param event
+     */
+    onPageChange(event: any) {
+        this.log.currentPage = event.page - 1;
+        document.getElementById('lmask').style.display = 'block';
+        this.systemService.findLogsByTypeAndTime(this.log).subscribe((result) => {
+            this.queryResult = result;
+            this.logs = result.content;
+            this.changeModuleName();
+            this.changeModuleMethod();
+            document.getElementById('lmask').style.display = 'none';
+        })
+    }
+
+}

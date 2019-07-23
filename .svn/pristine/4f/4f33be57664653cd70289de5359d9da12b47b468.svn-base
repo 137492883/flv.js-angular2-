@@ -1,0 +1,136 @@
+import {Component, OnInit} from '@angular/core';
+import {routerTransition} from '../../../../router.animations';
+import {Device} from '../../../../shared/model/Device';
+import {ActivatedRoute, Router} from '@angular/router';
+import {DeviceService} from '../../../../shared/services/device/device.service';
+import {systemconst} from '../../../../systemconst';
+import {CommonUtil} from '../../../../shared/providers/CommonUtil';
+import {BaseComponent} from '../../../../shared/components/BaseComponent';
+/**
+ * 描述:终端编辑页面操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/08 16:21:11
+ */
+@Component({
+    selector: 'app-save',
+    templateUrl: './save.component.html',
+    styleUrls: ['./save.component.scss'],
+    animations: [routerTransition()]
+})
+export class SaveComponent extends BaseComponent implements OnInit {
+
+    device: Device = new Device();
+    valid = '';
+    deviceId = '';
+    isSubmit = false;
+    sn = null;
+    wlwsn = null;
+    apOpen_ = false;
+    title = '新增终端';
+    oldOrgId = '';
+
+    constructor(public route: ActivatedRoute,
+                public router: Router,
+                public commonUtil: CommonUtil,
+                public deviceService: DeviceService) {
+        super();
+        this.baseService = this.deviceService;
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        this.deviceId = this.route.snapshot.paramMap.get('id');
+        // 如果是编辑终端
+        if (this.deviceId !== 'null') {
+            this.title = '编辑终端';
+            this.deviceService.getObject('/device/getDevice', {id: this.deviceId}).subscribe((device) => {
+                this.device = device;
+                if (this.device.apOpen === '1') {
+                    this.apOpen_ = true;
+                }
+                this.oldOrgId = this.device.orgId;
+                this.sn = this.device.sn;
+                this.wlwsn = this.device.wulianwangsn;
+            });
+        }
+        this.findHireOrganizations();
+    }
+
+    /**
+     * 改变热点状态
+     */
+    changeApOpen() {
+        if (this.apOpen_) {
+            this.device.apOpen = '1'
+        } else {
+            this.device.apOpen = '0'
+        }
+    }
+
+    /**
+     * 提交表单
+     */
+    submitForm() {
+        this.valid = '';
+        this.isSubmit = true;
+        if (!this.commonUtil.isEmpty(this.device.orgId)) {
+            this.valid = systemconst.validEmptyMessage;
+        }
+        if (!this.commonUtil.isEmpty(this.device.sn)) {
+            this.valid = systemconst.validEmptyMessage;
+        }
+        if (!this.commonUtil.isEmpty(this.device.wulianwnagmac)) {
+            this.valid = systemconst.validEmptyMessage;
+        } else {
+            if (this.device.wulianwnagmac.indexOf(':') > 0 || this.device.wulianwnagmac.indexOf('：') > 0) {
+                this.valid = '终端MAC地址无需输入\':\'';
+            }else if (!(/^[A-Z\d]+$/.test(this.device.wulianwnagmac))) {
+                this.valid = '终端MAC地址格式为大写的英文字母或数字的组合';
+            }
+        }
+        if (this.valid === '') {
+            // 终端sn 不能重复存在
+            this.deviceService.find('/device/checkDeviceSnExist', this.device).subscribe((result1) => {
+                if (!this.commonUtil.isEmpty(result1['id'])) {
+                    // 终端MAC地址不能存在
+                    this.deviceService.find('/device/checkWulianwnagmacExist', this.device).subscribe((result3) => {
+                        if (!this.commonUtil.isEmpty(result3['id'])) {
+                            // 如果物联网模块 存在 也不能重复存在
+                            if (this.commonUtil.isEmpty(this.device.wulianwangsn)) {
+                                this.deviceService.find('/device/checkDeviceWlwSnExist', this.device).subscribe((result2) => {
+                                    if (!this.commonUtil.isEmpty(result2['id'])) {
+                                        this.doSave();
+                                    } else {
+                                        this.valid = '物联网模块sn已存在';
+                                    }
+                                })
+                            }else {
+                                this.doSave();
+                            }
+                        }else {
+                            this.valid = '终端MAC地址已存在';
+                        }
+                    });
+                } else {
+                    this.valid = '终端sn已存在';
+                }
+            })
+        }
+    }
+
+    doSave() {
+        if (this.oldOrgId !== this.device.orgId) {
+            this.device.tenantOrgId = '';
+        }
+        this.commonUtil.trimObject(this.device);
+        this.deviceService.save('/device/saveDevice', this.device).subscribe((device) => {
+            systemconst.alertMessage = '保存成功！';
+            this.router.navigate(['/device/entering/list']);
+        });
+    }
+
+    onBlur() {
+    }
+}

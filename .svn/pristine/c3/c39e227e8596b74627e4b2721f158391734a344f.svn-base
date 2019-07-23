@@ -1,0 +1,16 @@
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {MapComponent} from './map.component';
+import {MapRoutingModule} from './map-routing.module';
+import {DeviceService} from '../../../../shared/services/device/device.service';
+
+@NgModule({
+    imports: [
+        CommonModule,
+        MapRoutingModule
+    ],
+    declarations: [MapComponent],
+    providers: [DeviceService]
+})
+export class MapModule {
+}

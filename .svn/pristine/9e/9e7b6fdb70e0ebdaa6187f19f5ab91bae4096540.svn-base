@@ -1,0 +1,79 @@
+<div [@routerTransition]>
+    <div>
+        <div class="row">
+            <div class="col-xl-12">
+                <ol class="breadcrumb">
+                    <li class="jb-warp breadcrumb-item"></li>
+                    <li class="breadcrumb-item "><i class="fa fa-table"></i> 接口日志管理</li>
+                </ol>
+            </div>
+        </div>
+        <div *ngFor="let alert of alerts">
+            <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <form class="form-inline">
+                            <div class="form-group align-items-center pl-2">
+                                <div class="form-group col-auto">
+                                    <div class="form-group col-auto"><label>日志时间:</label></div>
+                                    <input type="text" class="form-control" placeholder="请输入开始日期" bsDatepicker
+                                           [(ngModel)]="systemLog.startTime" [bsConfig]="bsConfig"
+                                           name="Datepicker1"/>&nbsp;至&nbsp;
+                                    <input type="text" class="form-control" placeholder="请输入结束日期" bsDatepicker
+                                           [(ngModel)]="systemLog.endTime" [bsConfig]="bsConfig" name="Datepicker2"/>
+                                </div>
+                                <div class="form-group col-auto">
+                                    <input type="text" class="form-control" placeholder="请输入设备SN"
+                                           [(ngModel)]="systemLog.deviceSn"  name="deviceSn"/>
+                                </div>
+                                <div class="form-group col-auto">
+                                    <ss-multiselect-dropdown [options]="myOptions" [(ngModel)]="systemLog.actionDesList"
+                                                             [texts]="myTexts" [settings]="mySettings" (ngModelChange)="onChange($event)"
+                                    name="actionDesList"></ss-multiselect-dropdown>
+                                </div>
+                            </div>
+                            <button type="submit" (click)="onQuery()" class="btn btn-primary">查询</button>
+                        </form>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="bg-secondary text-white">
+                            <tr>
+                                <th>序号</th>
+                                <th>设备sn</th>
+                                <th>日志时间</th>
+                                <th>描述</th>
+                                <th>操作结果</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr placement="bottom" *ngFor="let systemLog of systemLogs,let i = index;"
+                                [routerLink]="['/system/log_new/save/',systemLog.id]">
+                                <th>{{i+1}}</th>
+                                <td><a href="Javascript:void(0)" >{{systemLog?.deviceSn}}</a></td>
+                                <td>{{systemLog?.createtime}}</td>
+                                <td>{{systemLog?.actionDes}}</td>
+                                <td>
+                                    <span *ngIf="systemLog?.status === '操作失败'" style="color: red">{{systemLog?.status}}</span>
+                                    <span *ngIf="systemLog?.status !== '操作失败'">{{systemLog?.status}}</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer d-flex justify-content-end">
+                        <pagination [totalItems]="queryResult.totalElements"
+                                    class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [maxSize]="5" [previousText]="'前一页'"
+                                    [nextText]="'后一页'"
+                                    [boundaryLinks]="true" [rotate]="false"
+                                    (pageChanged)="onPageChange($event)">
+                        </pagination>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

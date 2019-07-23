@@ -1,0 +1,73 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-table"></i>平台角色管理</li>
+                <div class="float-right">
+                    <button type="button" class="btn btn-danger btn-sm" (click)=" addRole()">新增角色</button>
+                </div>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <form>
+                        <div class="form-row align-items-center pl-2">
+                            <div class="col-auto">
+                                <input type="text" [(ngModel)]="roleQuery.name" name="name"
+                                       class="form-control mb-2 mb-sm-0" id="inlineFormInputName"
+                                       placeholder="请输入角色名">
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-primary" (click)="queryRole()">查询</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class=" table-responsive">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                            <tr>
+                                <th width="100px">序号</th>
+                                <th width="150px">角色名称</th>
+                                <th width="150px">角色描述</th>
+                                <th>分配权限</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let role of roles ,let i = index;">
+                            <th scope="row">{{i+1}}</th>
+                            <td>
+                                <a href="Javascript:void(0)" [routerLink]="['/system/platform/role/save',role.id ]">
+                                {{role.name}}
+                                </a>
+                            </td>
+                            <td title="{{role.description}}" placement="bottom">
+                                {{disposeStr(role.description,6)}}
+                            </td>
+                            <td>
+                                <span  *ngFor=" let permision of role.permisions; let i = index">
+                                    {{permision.name}}<i *ngIf="i != (role.permisions.length-1)">,</i>
+                                </span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="queryResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'"
+                                [nextText]="'后一页'"
+                                [boundaryLinks]="true" [rotate]="false"
+                                (pageChanged)="onPageChange($event)"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

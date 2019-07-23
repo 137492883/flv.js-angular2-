@@ -1,0 +1,41 @@
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+
+import {AdsaveComponent} from './adsave.component';
+import {AdsaveRoutingModule} from './adsave-routing.module';
+import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
+import {FormsModule} from '@angular/forms';
+import {AdvertisementService} from '../../../shared/services/advertisement/advertisement.service';
+import {FileUploadModule} from 'ng2-file-upload';
+import {DirectiveModule} from '../../../shared/directives/directive/directive.module';
+import {SharedPipesModule} from '../../../shared/pipes/shared-pipes.module';
+import {AlertModule} from 'ngx-bootstrap';
+import {VgStreamingModule} from 'videogular2/streaming';
+import {VgBufferingModule} from 'videogular2/buffering';
+import {VgControlsModule} from 'videogular2/controls';
+import {VgCoreModule} from 'videogular2/core';
+import {VgOverlayPlayModule} from 'videogular2/overlay-play';
+import {PdfViewerModule} from "ng2-pdf-viewer";
+
+@NgModule({
+    imports: [
+        CommonModule,
+        FormsModule,
+        NgbModule.forRoot(),
+        AlertModule.forRoot(),
+        FileUploadModule,
+        PdfViewerModule,
+        AdsaveRoutingModule,
+        DirectiveModule,
+        SharedPipesModule,
+        VgCoreModule,
+        VgControlsModule,
+        VgOverlayPlayModule,
+        VgBufferingModule,
+        VgStreamingModule
+    ],
+    declarations: [AdsaveComponent],
+    providers: [AdvertisementService]
+})
+export class AdsaveModule {
+}

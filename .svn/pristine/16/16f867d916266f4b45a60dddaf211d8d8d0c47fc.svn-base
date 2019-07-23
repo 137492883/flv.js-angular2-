@@ -1,0 +1,54 @@
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { HttpModule, Http } from '@angular/http';
+import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+import { AuthGuard } from './shared';
+import {ApiService} from './shared/services/api.service';
+import {AuthService} from './shared/services/auth.service';
+import {AuthConfig, AuthHttp} from 'angular2-jwt';
+import {UserData} from './shared/providers/user-data';
+import {CommonUtil} from "./shared/providers/CommonUtil";
+import {ModalModule} from "ngx-bootstrap";
+import {PermisionalertComponent} from "./shared/components/permisionalert/permisionalert.component";
+import {DirectiveModule} from "./shared/directives/directive/directive.module";
+import {HashLocationStrategy, LocationStrategy} from "@angular/common";
+import {SharedPipesModule} from './shared/pipes/shared-pipes.module';
+
+// AoT requires an exported function for factories
+export  function  getAuthHttp(http: Http, userData: UserData) {
+    return new AuthHttp(new AuthConfig({
+        noJwtError: true,
+        globalHeaders: [{'Accept': 'application/json'}],
+        tokenGetter: (() => userData.getIdToken())
+    }), http);
+}
+@NgModule({
+    declarations: [
+        AppComponent,
+        PermisionalertComponent,
+    ],
+    entryComponents: [
+        PermisionalertComponent,
+    ],
+    imports: [
+        BrowserModule,
+        BrowserAnimationsModule,
+        FormsModule,
+        HttpModule,
+        AppRoutingModule,
+        ModalModule.forRoot(),
+        DirectiveModule,
+        SharedPipesModule,
+    ],
+    providers: [AuthGuard, ApiService, AuthService, UserData, CommonUtil, {
+        provide: AuthHttp,
+        useFactory: getAuthHttp,
+        deps: [Http, UserData]
+    }, {provide: LocationStrategy, useClass: HashLocationStrategy}],
+    bootstrap: [AppComponent]
+})
+export class AppModule {
+}

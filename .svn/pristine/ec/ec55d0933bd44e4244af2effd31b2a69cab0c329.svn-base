@@ -1,0 +1,178 @@
+import {Component, OnInit} from '@angular/core';
+import {DeviceService} from '../../../../shared/services/device/device.service';
+import {BaseComponent} from '../../../../shared/components/BaseComponent';
+import {Device} from '../../../../shared/model/Device';
+import {Router} from '@angular/router';
+
+declare var AMap: any;
+declare var AMapUI: any;
+@Component({
+    selector: 'app-map',
+    templateUrl: './map.component.html',
+    styleUrls: ['./map.component.scss']
+})
+export class MapComponent extends BaseComponent implements OnInit {
+
+    map: any;
+    /**
+     * 终端列表
+     * @type {Device[]}
+     */
+    objList: Array<Device> = new Array<Device>();
+
+    constructor(public deviceService: DeviceService, public router: Router) {
+        super();
+    }
+
+    ngOnInit() {
+        this.map = new AMap.Map('mapcontainer', {
+            zoom: 4
+        });
+        const this_ = this;
+        AMapUI.load(['ui/geo/DistrictCluster', 'ui/misc/PointSimplifier', 'lib/$'], function (DistrictCluster, PointSimplifier, $) {
+            this_.initPage(DistrictCluster, PointSimplifier, $);
+        });
+    }
+
+    initPage(DistrictCluster, PointSimplifier, $) {
+
+        const this_ = this;
+        const pointSimplifierIns = new PointSimplifier({
+            map: this_.map, // 所属的地图实例
+            autoSetFitView: false, // 禁止自动更新地图视野
+            zIndex: 110,
+            getPosition: function (item) {
+
+                if (!item) {
+                    return null;
+                }
+
+                const parts = item.split(',');
+
+                // 返回经纬度
+                return [parseFloat(parts[0]), parseFloat(parts[1])];
+            },
+            getHoverTitle: function (dataItem, idx) {
+                let result = dataItem;
+                const selectedDevices = this_.objList.filter(device => {
+                    return device.coordinate === dataItem.valueOf().replace(',', '#');
+                });
+                if (selectedDevices && selectedDevices.length > 0) {
+                    result = '设备SN：' + selectedDevices[0].sn + ' 坐标：' + dataItem;
+                }
+                return result;
+            },
+            renderOptions: {
+                // 点的样式
+                pointStyle: {
+                    width: 6,
+                    height: 6,
+                    fillStyle: 'rgba(255, 0, 0, 1)'
+                },
+                // 鼠标hover时的title信息
+                hoverTitleStyle: {
+                    position: 'top'
+                }
+            }
+        });
+
+        const distCluster = new DistrictCluster({
+            zIndex: 100,
+            map: this_.map, // 所属的地图实例
+            autoSetFitView: false,
+            // 使用自定义的引擎类
+            // renderConstructor: MyRender,
+            renderOptions: {
+                featureClickToShowSub: true,
+                clusterMarkerEventNames: ['click'],
+                // 显示在所辖数据点的平均位置
+                getClusterMarkerPosition: DistrictCluster.ClusterMarkerPositionStrategy.AVERAGE_POINTS_POSITION,
+                getClusterMarker: function (feature, dataItems, recycledMarker) {
+
+                    // label内容
+                    const content = feature.properties.name + ' (' + dataItems.length + ')';
+
+                    const label = {
+                        // offset: new AMap.Pixel(16, 18), // 修改label相对于marker的位置
+                        content: content
+                    };
+                    if (dataItems.length === 0) {
+                        return;
+                    }
+                    // 存在可回收利用的marker
+                    if (recycledMarker) {
+                        // 直接更新内容返回
+                        recycledMarker.setLabel(label);
+                        return recycledMarker;
+                    }
+
+                    // 返回一个新的Marker
+                    return new AMap.Marker({
+                        label: label
+                    });
+                },
+            },
+            getPosition: function (item) {
+
+                if (!item) {
+                    return null;
+                }
+
+                const parts = item.split(',');
+
+                // 返回经纬度
+                return [parseFloat(parts[0]), parseFloat(parts[1])];
+            }
+        });
+        distCluster.on('clusterMarkerClick', function (e, record) {
+            const dataItem = record.dataItems[0].dataItem
+            const selectedDevices = this_.objList.filter(device => {
+                return device.coordinate === dataItem.valueOf().replace(',', '#');
+            });
+            if (selectedDevices && selectedDevices.length > 0) {
+                this_.router.navigate(['/device/monitoring/terminalLog', selectedDevices[0].id])
+            }
+
+        });
+
+        function refresh() {
+
+            const zoom = this_.map.getZoom();
+
+            // 获取 pointStyle
+            const pointStyle = pointSimplifierIns.getRenderOptions().pointStyle;
+
+            // 根据当前zoom调整点的尺寸
+            pointStyle.width = pointStyle.height = 2 * Math.pow(1.2, this_.map.getZoom() - 3);
+        }
+
+        this_.map.on('zoomend', function () {
+            refresh();
+        });
+
+        refresh();
+
+        $('<div id="loadingTip">加载数据，请稍候...</div>').appendTo(document.body);
+        this.deviceService.findNoPage('/device/selectCoordinate', {}).subscribe((result) => {
+            $('#loadingTip').remove();
+            this.objList = result;
+            let coordinate = [];
+            console.log(result);
+            // coordinate= result.map(re => {
+            //     if( re.coordinate != null && re.coordinate.indexOf('#')>0){
+            //         return re.coordinate.split('#');
+            //     }
+            //
+            //
+            // })
+            for (let i = 0; i < result.length; i++) {
+                const coordinate_ = result[i].coordinate.split('#')
+                if (result[i].coordinate.indexOf('#') > 0 && coordinate_[0].length > 0 && coordinate_[1].length > 0) {
+                    coordinate.push(coordinate_[0] + ',' + coordinate_[1]);
+                }
+            }
+            distCluster.setData(coordinate);
+            pointSimplifierIns.setData(coordinate);
+        })
+    }
+}

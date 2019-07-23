@@ -1,0 +1,84 @@
+import {Component, OnInit} from "@angular/core";
+import {routerTransition} from "../../../../router.animations";
+import {ActivatedRoute, Router} from "@angular/router";
+import {UpgradeTask} from "../../../../shared/model/UpgradeTask";
+import {DeviceService} from "../../../../shared/services/device/device.service";
+import {BaseComponent} from "../../../../shared/components/BaseComponent";
+import {systemconst} from "../../../../systemconst";
+/**
+ * 描述:升级任务列表操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/09 14:53:33
+ */
+@Component({
+    selector: 'app-device-group-list',
+    templateUrl: './list.component.html',
+    styleUrls: ['./list.component.scss'],
+    animations: [routerTransition()],
+})
+export class ListComponent extends BaseComponent implements OnInit {
+
+    /**
+     * 查询条件
+     * @type {UpgradeTask}
+     */
+    taskQuery: UpgradeTask = new UpgradeTask();
+    numPages: any;
+
+    constructor(public route: ActivatedRoute, public deviceService: DeviceService,
+                public router: Router) {
+        super();
+        this.queryObj = this.taskQuery;
+        this.baseService = this.deviceService;
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        if (systemconst.alertMessage !== '') {
+            this.showSuccessMsg(systemconst.alertMessage);
+            systemconst.alertMessage = '';
+        }
+        this.findObjects('/device/findTasks');
+    }
+
+    /**
+     * 跳转到编辑页面
+     */
+    addTask() {
+        this.router.navigate(['/device/task/save', 'null']);
+    }
+
+    /**
+     * 解锁
+     * @param task
+     */
+    unlocked(task: UpgradeTask) {
+        this.deviceService.getObject('/device/findUpgradePlanByTask', {taskId: task.id}).subscribe((result) => {
+            if (result.length > 0) {
+                let planName = '';
+                for (let i = 0; i < result.length; i++) {
+                    planName += result[i].name + ',';
+                }
+                planName = planName.substring(0, planName.length - 1);
+                this.showErrorMsg('本任务已被计划【' + planName + '】使用，如需解锁，请先删除上述升级计划或修改上述升级计划中的升级任务为其他任务。')
+            } else {
+                task.locked = false;
+                this.deviceService.save('/device/saveTask', task).subscribe((task1) => {
+                });
+            }
+        });
+    }
+
+    /**
+     * 锁定
+     * @param task
+     */
+    locked(task: UpgradeTask) {
+        task.locked = true;
+        this.deviceService.save('/device/saveTask', task).subscribe((task1) => {
+        });
+    }
+
+}

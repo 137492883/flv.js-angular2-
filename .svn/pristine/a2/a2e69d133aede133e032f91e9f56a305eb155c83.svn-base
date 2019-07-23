@@ -1,0 +1,75 @@
+import { Component, OnInit } from '@angular/core';
+import { routerTransition } from '../../router.animations';
+
+@Component({
+    selector: 'app-user',
+    templateUrl: './user.component.html',
+    styleUrls: ['./user.component.scss'],
+    animations: [routerTransition()]
+})
+export class UserComponent implements OnInit {
+    nodes: any = [
+        {
+            id: -1,
+            name: '平台组织架构',
+            children: [
+                {
+                    id: 1,
+                    name: '平台组织架构',
+                    children: [
+                        { id: 2, name: 'child1' },
+                        { id: 3, name: 'child2' }
+                    ]
+                },
+                {
+                    id: 4,
+                    name: '租户组织架构',
+                    children: [
+                        { id: 5, name: 'child2.1' },
+                        {
+                            id: 6,
+                            name: 'child2.2',
+                            children: [
+                                { id: 7, name: 'subsub' }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            id: -2,
+            name: '租户组织架构',
+            children: [
+                {
+                    id: 1,
+                    name: '平台组织架构',
+                    children: [
+                        { id: 2, name: 'child1' },
+                        { id: 3, name: 'child2' }
+                    ]
+                },
+                {
+                    id: 4,
+                    name: '租户组织架构',
+                    children: [
+                        { id: 5, name: 'child2.1' },
+                        {
+                            id: 6,
+                            name: 'child2.2',
+                            children: [
+                                { id: 7, name: 'subsub' }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+
+    ];
+    constructor() { }
+    ngOnInit() {
+
+    }
+
+}

@@ -1,0 +1,67 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-table"></i> 应用白名单管理</li>
+                <div class="float-right"  *appPermision="'shenjirenwu_guanli'">
+                    <button type="button" class="btn btn-primary btn-sm" (click)="addTask()">新建应用</button>
+                </div>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <div class="form-row align-items-center pl-2">
+                        <div class="col-auto">
+                            <input type="text" class="form-control mb-2 mb-sm-0" id="inlineFormInputName"
+                                   placeholder="请输入应用名称" [(ngModel)]="queryObj.name">
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary" (click)="findObjects('/applicationupgrade/findUpgradeTasks')">查询</button>
+                        </div>
+                    </div>
+                </div>
+                <div class=" table-responsive">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th>序号</th>
+                            <th>应用名称</th>
+                            <th>版本号</th>
+                            <th>上传时间</th>
+                            <th>操作者</th>
+                            <th>应用描述</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let task of objects ,let i = index;">
+                            <th>{{i+1}}</th>
+                            <td><a href="Javascript:void(0)" [routerLink]="['/device/apk-white/save',task.id]">
+                                {{task.name}}
+                            </a></td>
+                            <td>{{task.version}}</td>
+                            <td>{{task.createtime}}</td>
+                            <td>{{task.creatorName}}</td>
+                            <td  *ngIf="task.description!==null&&task.description!==''" placement="bottom"
+                                 title="{{task.description.toString()}}">{{disposeStr(task
+                                .description,10)}}</td>
+                            <td *ngIf="task.description==null||task.description===''"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="queryResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'" [nextText]="'后一页'"
+                                [boundaryLinks]="true" [rotate]="false" (numPages)="numPages = $event" (pageChanged)="onPageChange($event,'/applicationupgrade/findUpgradeTasks')"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

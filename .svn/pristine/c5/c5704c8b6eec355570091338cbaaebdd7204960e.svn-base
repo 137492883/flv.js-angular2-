@@ -1,0 +1,40 @@
+import {Component, OnInit} from "@angular/core";
+import {routerTransition} from "../../../../router.animations";
+import {ActivatedRoute, Router} from "@angular/router";
+import {BaseComponent} from "../../../../shared/components/BaseComponent";
+import {AccountOrder} from "../../../../shared/model/AccountOrder";
+import {OrderService} from "../../../../shared/services/order/order.service";
+/**
+ * 描述:分发计划列表页面操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/06 20:53:13
+ */
+@Component({
+    selector: 'app-order-list',
+    templateUrl: './list.component.html',
+    styleUrls: ['./list.component.scss'],
+    animations: [routerTransition()],
+})
+export class ListComponent extends  BaseComponent implements OnInit {
+
+    /**
+     * 查询条件
+     * @type {AccountOrder}
+     */
+    orderQuery: AccountOrder = new AccountOrder();
+
+    constructor(public route: ActivatedRoute,
+                public orderService: OrderService,
+                public router: Router) {
+        super();
+        this.baseService=orderService;
+        this.queryObj = this.orderQuery;
+    }
+
+    /**
+     * 页面初始化方法
+     */
+    ngOnInit() {
+        this.findObjects('/account/findOrders');
+    }
+}

@@ -1,0 +1,1251 @@
+import {Component, OnInit} from "@angular/core";
+import {routerTransition} from "../../../../router.animations";
+import {ActivatedRoute, Router} from "@angular/router";
+import {BroadcastTask} from "../../../../shared/model/BroadcastTask";
+import {BroadcastService} from "../../../../shared/services/broadcast/broadcast.service";
+import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
+import {Coordinate} from "../../../../shared/model/Coordinate";
+import {BroadCastScreen} from "../../../../shared/model/BroadCastScreen";
+import {BroadCastAdvertisementLocation} from "../../../../shared/model/BroadCastAdvertisementLocation";
+import {CoordinateLocation} from "../../../../shared/model/CoordinateLocation";
+import {AdvertisementService} from "app/shared/services/advertisement/advertisement.service";
+import {Advertisement} from "../../../../shared/model/advertisement";
+import {BroadCastScreenConfig} from "../../../../shared/model/BroadCastScreenConfig";
+import {systemconst} from "../../../../systemconst";
+import {CommonUtil} from "../../../../shared/providers/CommonUtil";
+import * as moment from "moment";
+import {TimeSlot} from "../../../../shared/model/TimeSlot";
+import {List} from "linqts";
+import {AdvertisementGroup} from "../../../../shared/model/AdvertisementGroup";
+import {BaseComponent} from "../../../../shared/components/BaseComponent";
+import {AdvertisementGroupTransient} from "../../../../shared/model/AdvertisementGroupTransient";
+import {Paging} from "../../../../shared/model/Paging";
+import {FileUploader} from "ng2-file-upload";
+
+declare var browserMD5File: any;
+/**
+ * 描述:播放计划编辑页操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/06 22:00:21
+ */
+@Component({
+    selector: 'app-save',
+    templateUrl: './save.component.html',
+    styleUrls: ['./save.component.scss'],
+    animations: [routerTransition()]
+})
+export class SaveComponent extends BaseComponent implements OnInit {
+
+    /**
+     * 屏幕颜色
+     * @type {[string,string,string,string,string,string,string,string,string,string,string,string,string,string,string,string,string,string]}
+     */
+    locationColors: Array<string> = [
+        '141,180,227', '90,90,90', '194,214,154', '74,24,54', '14,124,124', '134,24,24',
+        '141,180,227', '90,90,90', '194,214,154', '74,24,54', '14,124,124', '134,24,24',
+        '141,180,227', '90,90,90', '194,214,154', '74,24,54', '14,124,124', '134,24,24'
+    ];
+    margins: Array<string> = [
+        '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+        '11', '12', '13', '14', '15', '16', '17', '18', '19', '20',
+        '21', '22', '23', '24', '25', '26', '27', '28', '29', '30',
+        '31', '32', '33', '34', '35', '36', '37', '38', '39', '40',
+        '41', '42', '43', '44', '45', '46', '47', '48', '49', '50'
+    ];
+    /**
+     * 设置广告位背景色
+     * @type {string}
+     */
+    selectedLocationBackgroundColor=null;
+    /**
+     * 设置屏幕背景色
+     * @type {string}
+     */
+    selectedScreenBackgroundColor=null;
+    /**
+     * 当前播放任务
+     */
+    task: BroadcastTask = new BroadcastTask();
+    /**
+     * 播放内容查询条件
+     * @type {Advertisement}
+     */
+    advQuery: Advertisement = new Advertisement();
+    /**
+     * 播放任务查询条件
+     */
+    taskQuery: BroadcastTask;
+    locationModal: any;
+    advertisementModal: any;
+    modifyModal: any;
+    /**
+     * 是否开启屏幕预览
+     */
+    isScreenPreview="none";
+    /**
+     * 是否隐藏广告位上的按钮
+     */
+    isLocationButtonHide="";
+    /**
+     * 当前广告位背景图片md5值
+     * @type {string}
+     */
+    currentBackgroundMd5 = '';
+    /**
+     * 当前屏幕背景图片md5值
+     * @type {string}
+     */
+    currentScreenBackgroundMd5 = '';
+    /**
+     * 广告位
+     * @type {BroadCastAdvertisementLocation}
+     */
+    selectedLocation: BroadCastAdvertisementLocation = new BroadCastAdvertisementLocation();
+    /**
+     * 广告
+     * @type {Advertisement[]}
+     */
+    advs: Array<Advertisement> = new Array<Advertisement>();
+    /**
+     * 选中的广告
+     * @type {Advertisement[]}
+     */
+    advertisements: Array<Advertisement> = new Array<Advertisement>();
+    /**
+     * 所有广告
+     * @type {Advertisement[]}
+     */
+    allAdvertisements: Array<Advertisement> = new Array<Advertisement>();
+    /**
+     * 验证信息
+     * @type {string}
+     */
+    valid = '';
+    validName = '';
+    validLocation = '';
+    /**
+     * 开始时间：时
+     * @type {string}
+     */
+    startHour = '00';
+    /**
+     * 开始时间：分
+     * @type {string}
+     */
+    startMinite = '00';
+    /**
+     * 开始时间：秒
+     * @type {string}
+     */
+    startSecond = '00';
+    /**
+     * 结束时间：时
+     * @type {string}
+     */
+    endHour = '00';
+    /**
+     * 结束时间：分
+     * @type {string}
+     */
+    endMinite = '00';
+    /**
+     * 结束时间：秒
+     * @type {string}
+     */
+    endSecond = '00';
+    /**
+     * 是否提交
+     * @type {boolean}
+     */
+    isSubmit = false;
+    /**
+     * 是否只读
+     * @type {boolean}
+     */
+    seeonly = false;
+    /**
+     * 标题
+     * @type {string}
+     */
+    title = '添加播放计划';
+    advertisement: Advertisement = new Advertisement();
+    queryResult: Paging = new Paging();
+    hss: Array<any> = [
+        {n:0,v:'00'}, {n:1,v:'01'}, {n:2,v:'02'}, {n:3,v:'03'}, {n:4,v:'04'}, {n:5,v:'05'}, {n:6,v:'06'}, {n:7,v:'07'},{n:8,v:'08'}, {n:9,v:'09'}, {n:10,v:'10'}, {n:11,v:'11'}, {n:12,v:'12'}, {n:13,v:'13'}, {n:14,v:'14'}, {n:15,v:'15'}, {n:16,v:'16'}, {n:17,v:'17'},
+        {n:18,v:'18'}, {n:19,v:'19'}, {n:20,v:'20'}, {n:21,v:'21'}, {n:22,v:'22'}, {n:23,v:'23'}
+    ];
+    mss: Array<any> = [
+        {n:0,v:'00'}, {n:1,v:'01'}, {n:2,v:'02'}, {n:3,v:'03'}, {n:4,v:'04'}, {n:5,v:'05'}, {n:6,v:'06'}, {n:7,v:'07'},{n:8,v:'08'}, {n:9,v:'09'}, {n:10,v:'10'}, {n:11,v:'11'}, {n:12,v:'12'}, {n:13,v:'13'}, {n:14,v:'14'}, {n:15,v:'15'}, {n:16,v:'16'}, {n:17,v:'17'},
+        {n:18,v:'18'}, {n:19,v:'19'}, {n:20,v:'20'}, {n:21,v:'21'}, {n:22,v:'22'}, {n:23,v:'23'},{n:24,v:'24'}, {n:25,v:'25'}, {n:26,v:'26'}, {n:27,v:'27'}, {n:28,v:'28'}, {n:29,v:'29'}, {n:30,v:'30'}, {n:31,v:'31'},{n:32,v:'32'}, {n:33,v:'33'}, {n:34,v:'34'}, {n:35,v:'35'}, {n:36,v:'36'}, {n:37,v:'37'}, {n:38,v:'38'}, {n:39,v:'39'}, {n:40,v:'40'}, {n:41,v:'41'},
+        {n:42,v:'42'}, {n:43,v:'43'}, {n:44,v:'44'}, {n:45,v:'45'}, {n:46,v:'46'}, {n:47,v:'47'},{n:48,v:'48'}, {n:49,v:'49'}, {n:50,v:'50'}, {n:51,v:'51'}, {n:52,v:'52'}, {n:53,v:'53'},{n:54,v:'54'}, {n:55,v:'55'}, {n:56,v:'56'}, {n:57,v:'57'}, {n:58,v:'58'}, {n:59,v:'59'}
+    ];
+    /**
+     * 上传广告位背景图片
+     * @type {FileUploader}
+     */
+    public locationBackgroundImageUploader: FileUploader = new FileUploader({
+        authToken: 'Bearer ' + localStorage.getItem('id_token'),
+        url: systemconst.api_url + 'device/UploadFile',
+    });
+    /**
+     * 上传屏幕背景图片
+     * @type {FileUploader}
+     */
+    public screenBackgroundImageUploader: FileUploader = new FileUploader({
+        authToken: 'Bearer ' + localStorage.getItem('id_token'),
+        url: systemconst.api_url + 'device/UploadFile',
+    });
+    constructor(public route: ActivatedRoute,
+                private modalService: NgbModal,
+                public router: Router,
+                public commonUtil: CommonUtil,
+                public broadcastService: BroadcastService,
+                public advertisementService: AdvertisementService) {
+        super();
+        this.queryObj = this.advQuery;
+        this.baseService = this.advertisementService;
+        //上传广告位背景图片后的回调方法
+        this.locationBackgroundImageUploader.onAfterAddingFile = (fileItem) => {
+            const file = this.locationBackgroundImageUploader.queue[this.locationBackgroundImageUploader.queue.length - 1];
+            file.onSuccess = (response, status, headers) => {
+                document.getElementById('lmask').style.display = 'none';
+                if (status === 200) {
+                    this.locationBackgroundImageUploader.clearQueue();
+                    this.selectedLocation.backgroundImageUrl = systemconst.fastdfs_nginxUrl + JSON.parse(response).url;
+                }
+            };
+            file.onProgress = (progress) => {
+                console.log(progress)
+            }
+        };
+        //上传屏幕背景图片后的回调方法
+        this.screenBackgroundImageUploader.onAfterAddingFile = (fileItem) => {
+            const file = this.screenBackgroundImageUploader.queue[this.screenBackgroundImageUploader.queue.length - 1];
+            file.onSuccess = (response, status, headers) => {
+                document.getElementById('lmask').style.display = 'none';
+                if (status === 200) {
+                    this.screenBackgroundImageUploader.clearQueue();
+                    this.task.activeScreen.backgroundImageUrl = systemconst.fastdfs_nginxUrl + JSON.parse(response).url;
+                }
+            };
+            file.onProgress = (progress) => {
+                console.log(progress)
+            }
+        };
+    }
+
+    /**
+     * 页面初始化方法
+     */
+    ngOnInit() {
+        this.advQuery.distribute = '1';
+        if (systemconst.currentUser.organization.id === systemconst.currentUser.topOrganization.id) {
+            this.advQuery.topOrgId = systemconst.currentUser.organization.id;
+        } else {
+            this.advQuery.orgId = systemconst.currentUser.organization.id;
+        }
+        const id = this.route.snapshot.paramMap.get('id');
+        //如果是编辑播放计划
+        if (id !== 'null') {
+            document.getElementById('lmask').style.display = 'block';
+            this.taskQuery = new BroadcastTask();
+            this.taskQuery.id = id;
+            this.advertisementService.findNoPage('findAllAdvertisements', this.advQuery).subscribe((result) => {
+                this.allAdvertisements = result;
+                this.broadcastService.findBroadcastTaskById(this.taskQuery).subscribe((task) => {
+                    this.task.id = id;
+                    this.task.orgId = task.orgId;
+                    this.task.name = task.name;
+                    this.task.planName = task.planName;
+                    this.task.screenHeight = task.screenHeight;
+                    this.task.screenWidth = task.screenWidth;
+                    this.task.description = task.description;
+                    this.task.auditingStatus = task.auditingStatus;
+                    this.task.broadCastScreens = task.broadCastScreens;
+                    this.task.startTime=task.startTime;
+                    this.task.endTime=task.endTime;
+                    //如果播放开始时间不为空
+                    if(this.commonUtil.isEmpty(this.task.startTime)){
+                        const startTimes=this.task.startTime.split(':');
+                        this.startHour=startTimes[0];
+                        this.startMinite=startTimes[1];
+                        this.startSecond=startTimes[2];
+                    }
+                    //如果播放结束时间不为空
+                    if(this.commonUtil.isEmpty(this.task.endTime)){
+                        const endTimes=this.task.endTime.split(':');
+                        this.endHour=endTimes[0];
+                        this.endMinite=endTimes[1];
+                        this.endSecond=endTimes[2];
+                    }
+                    for(let i=0;i<this.task.broadCastScreens.length;i++){
+                        let bl=this.task.broadCastScreens[i].broadCastAdvertisementLocation;
+                        //如果广告位个数大于0并且当前没有活动的广告位
+                        if(bl.length>0&&this.selectedLocation.name==null){
+                            this.selectedLocation=bl[0];    //默认选中第一个广告位
+                            if(this.selectedLocation.backgroundColor!=null){
+                                this.selectedLocationBackgroundColor=this.selectedLocation.backgroundColor;
+                            }
+                            this.selectedLocation.alias='层'+(this.task.broadCastScreens[i].zindex+1)+'位置1';
+                            this.selectedLocation.screenIndex=this.task.broadCastScreens[i].zindex;
+                            this.task.activeScreen = task.broadCastScreens[i];
+                            if(task.broadCastScreens[i].backgroundColor!=null){
+                                this.selectedScreenBackgroundColor=task.broadCastScreens[i].backgroundColor;
+                            }
+                            //如果当前活动广告位没有内容组
+                            if(this.selectedLocation.advertisementGroup.length==0){
+                                let advg=new AdvertisementGroup();
+                                advg.orgId = systemconst.currentUser.organization.id;
+                                advg.topOrgId = systemconst.currentUser.topOrganization.id;
+                                advg.name=this.task.name+"-"+(this.task.broadCastScreens[i].zindex+1)+"层-"+this.selectedLocation.name;
+                                this.selectedLocation.advertisementGroup.push(advg);
+                            }
+                        }
+                        for(let j=0;j<bl.length;j++){
+                            if(!this.commonUtil.isEmpty(bl[j].backgroundColor)||bl[j].backgroundColor.indexOf("#")<0){
+                                bl[j].backgroundColor='rgba(' + this.locationColors[j] + ', 0.6)';
+                            }
+                            bl[j].screenIndex=this.task.broadCastScreens[i].zindex;
+                            const advs=bl[j].advertisementGroup[0].advertisements;
+                            for(let k=0;k<advs.length;k++){
+                                const adv=advs[k];
+                                //如果内容类型不是“视频”
+                                if(this.getAdvertisementFileType(adv.advertisementId)!=='视频'){
+                                    adv.hour = Math.floor(adv.duration / 3600);
+                                    const m = adv.duration % 3600;
+                                    if (m > 0) {
+                                        adv.minute = Math.floor(m / 60);
+                                        adv.seconds = m % 60;
+                                    } else {
+                                        adv.minute = 0;
+                                        adv.seconds = 0;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    //如果当前活动广告位名字为空
+                    if(this.selectedLocation.name==null){
+                        this.task.activeScreen = task.broadCastScreens[0];
+                    }
+                    this.task.broadCastScreens.map(screen => (
+                        screen.config = new BroadCastScreenConfig()
+                    ))
+                    this.task.broadCastScreens.map(screen => (
+                        this.fillScreenCell(screen)
+                    ))
+                    this.task.broadCastScreens[0].config.active = true;
+                    document.getElementById('lmask').style.display = 'none';
+                });
+            });
+            this.route.queryParams.subscribe(params => {
+                this.seeonly = params.seeonly;
+                //如果是查看播放计划
+                if(this.seeonly){
+                    this.title = '查看播放计划';
+                }else{
+                    this.title = '编辑播放计划';
+                }
+            });
+            //如果是新增播放计划
+        } else if (id === 'null') {
+            this.task = new BroadcastTask();
+            this.route.queryParams.subscribe(params => {
+                // 获取屏幕尺寸、任务名称
+                this.task.auditingStatus = '1';
+                this.task.planName = params.planName;
+                this.task.name = params.name;
+                this.task.description = params.description;
+                this.task.screenWidth = params.screenWidth;
+                this.task.screenHeight = params.screenHeight;
+                this.task.startTime=params.startTime;
+                this.task.endTime=params.endTime;
+                const startTimes=this.task.startTime.split(':');
+                const endTimes=this.task.endTime.split(':');
+                this.startHour=startTimes[0];
+                this.startMinite=startTimes[1];
+                this.startSecond=startTimes[2];
+                this.endHour=endTimes[0];
+                this.endMinite=endTimes[1];
+                this.endSecond=endTimes[2];
+                // 生成屏幕单元格数组
+                const screen = new BroadCastScreen();
+                this.task.broadCastScreens.push(screen);
+                this.task.activeScreen = screen;
+                this.fillScreenCell(screen);
+                screen.config.active = true;
+            });
+            this.advertisementService.findNoPage('findAllAdvertisements', this.advQuery).subscribe((result) => {
+                this.allAdvertisements = result;
+            });
+        }
+        this.advertisementService.findDistributeAdvertisementsForCurrentUserOrg().subscribe((result) => {
+            this.advs = result;
+        });
+        this.findAdvertisements();
+    }
+
+    /**
+     * 分页
+     * @param event
+     */
+    onPageChange(event: any) {
+        this.queryObj.currentPage = event.page - 1;
+        this.findAdvertisements();
+    }
+
+    /**
+     * 选择广告位背景图片触发的事件
+     * @param event
+     */
+    onLocationBackGroundImgChanged(event: any) {
+        const files = event.target.files;
+        browserMD5File(files[0], (err, md5) => {
+            this.currentBackgroundMd5 = md5;
+        });
+        this.locationBackgroundImageUploader.clearQueue();
+        if (files[0].name.lastIndexOf('.jpg') < 0 && files[0].name.lastIndexOf('.JPG') < 0) {
+            this.selectedLocation.isJPG = false;
+            return;
+        }else{
+            this.selectedLocation.isJPG = true;
+        }
+        this.locationBackgroundImageUploader.addToQueue(files);
+    }
+
+    /**
+     * 选择屏幕背景图片触发的事件
+     * @param event
+     */
+    onScreenBackGroundImgChanged(event: any) {
+        const files = event.target.files;
+        browserMD5File(files[0], (err, md5) => {
+            this.currentScreenBackgroundMd5 = md5;
+        });
+        this.screenBackgroundImageUploader.clearQueue();
+        if (files[0].name.lastIndexOf('.jpg') < 0 && files[0].name.lastIndexOf('.JPG') < 0) {
+            this.task.activeScreen.isJPG = false;
+            return;
+        }else{
+            this.task.activeScreen.isJPG = true;
+        }
+        this.screenBackgroundImageUploader.addToQueue(files);
+    }
+
+    onScreenSelect(screen){
+        if(!this.commonUtil.isEmpty(screen.backgroundColor)){
+            this.selectedScreenBackgroundColor=null;
+        }else{
+            this.selectedScreenBackgroundColor=screen.backgroundColor;
+        }
+    }
+
+    /**
+     * 上传广告位背景图片
+     */
+    uploadLocationBackground() {
+        this.advertisementService.getFileByMd5(this.currentBackgroundMd5).subscribe((fileInfo) => {
+            if (!this.commonUtil.isEmpty(fileInfo.id)) {
+                this.locationBackgroundImageUploader.queue[this.locationBackgroundImageUploader.queue.length - 1].upload();
+                document.getElementById('lmask').style.display = 'block';
+            } else {
+                this.selectedLocation.backgroundImageUrl = systemconst.fastdfs_nginxUrl + fileInfo.filePath;
+            }
+        });
+    }
+
+    /**
+     * 上传屏幕背景图片
+     */
+    uploadScreenBackground() {
+        this.advertisementService.getFileByMd5(this.currentScreenBackgroundMd5).subscribe((fileInfo) => {
+            if (!this.commonUtil.isEmpty(fileInfo.id)) {
+                this.screenBackgroundImageUploader.queue[this.screenBackgroundImageUploader.queue.length - 1].upload();
+                document.getElementById('lmask').style.display = 'block';
+            } else {
+                this.task.activeScreen.backgroundImageUrl = systemconst.fastdfs_nginxUrl + fileInfo.filePath;
+            }
+        });
+    }
+
+    /**
+     * 清除广告位背景图片
+     */
+    clearLocationBackgroundImage(){
+        this.selectedLocation.backgroundImageUrl='';
+    }
+
+    /**
+     * 清除屏幕背景图片
+     */
+    clearScreenBackgroundImage(){
+        this.task.activeScreen.backgroundImageUrl='';
+    }
+
+    /**
+     * 触发上传背景图片按钮的点击事件
+     */
+    onBackGroundImgClick(id) {
+        console.log(id)
+        const locationImage = document.getElementById(id);
+        console.log(locationImage)
+        locationImage.click();
+    }
+
+    /**
+     * 获取素材列表
+     */
+    findAdvertisements(){
+        this.advQuery.errorMsg='1';
+        this.advertisementService.find('findAdvertisements', this.advQuery).subscribe((result) => {
+            this.queryResult = result;
+            this.advertisements = result.content;
+        });
+    }
+
+    /**
+     * 给屏幕填充单元格
+     */
+    fillScreenCell(screen) {
+        const count = this.task.screenWidth * this.task.screenHeight;
+        screen.config.cells = new Array(count);
+        for (let j = 0; j < count; j++) {
+            screen.config.cells[j] = {
+                x: (j % this.task.screenWidth + 1),
+                y: (Math.floor(j / this.task.screenWidth) + 1),
+            };
+        }
+    }
+
+    /**
+     * 添加一块屏幕
+     */
+    addScreen($event) {
+        const screen = new BroadCastScreen();
+        this.task.broadCastScreens.push(screen);
+        this.fillScreenCell(screen);
+        this.task.broadCastScreens.map(s => (
+            s.config.active = false
+        ));
+        screen.config.active = true;
+        this.task.activeScreen = screen;
+    }
+
+    /**
+     * 移除一块屏幕
+     */
+    removeScreen(screen) {
+        const index = this.task.broadCastScreens.indexOf(screen);
+        this.task.broadCastScreens.splice(index, 1);
+        const size = this.task.broadCastScreens.length;
+        //如果移除的是当前活动屏幕
+        if (screen.config.active === true) {
+            let compIndex = 0;
+            if (index + 1 > size) {
+                compIndex = index - 1;
+                if (compIndex <= 0) {
+                    compIndex = 0;
+                }
+            } else {
+                compIndex = index;
+            }
+            this.task.broadCastScreens[compIndex].config.active = true;
+            this.task.activeScreen = this.task.broadCastScreens[compIndex];
+        } else {
+            this.task.broadCastScreens[this.task.broadCastScreens.length - 1].config.active = true;
+            this.task.activeScreen = this.task.broadCastScreens[this.task.broadCastScreens.length - 1];
+        }
+        //如果移除的屏幕包含当前活动广告位
+        if(screen.zindex==this.selectedLocation.screenIndex){
+            this.selectedLocation=new BroadCastAdvertisementLocation();
+        }
+        const bls=screen.broadCastAdvertisementLocation;
+        for(let i=0;i<bls.length;i++){
+            this.task.deletedAdvertisementGroups.push(bls[i].advertisementGroup[0]);
+        }
+    }
+
+    /**
+     * 计算屏幕框选范围大小
+     */
+    getSelectedScreenSize(screen) {
+        const x = Math.abs(screen.config.selectingEndCell.x - screen.config.selectingStartCell.x) + 1;
+        const y = Math.abs(screen.config.selectingEndCell.y - screen.config.selectingStartCell.y) + 1;
+        return x + ' X ' + y;
+    }
+
+    /**
+     * 计算广告位区域大小
+     */
+    getLoationSize(location) {
+        //如果广告位坐标为空
+        if(location.coordinateLocation==null){
+            return;
+        }
+        const l = location.coordinateLocation;
+        const x = Math.abs(l.topLeft.x - l.topRight.x) + 1;
+        const y = Math.abs(l.topLeft.y - l.bottomLeft.y) + 1;
+        return x + ' X ' + y;
+    }
+
+    /**
+     * 移除屏幕的一块广告位
+     */
+    removeLocation(screen, location) {
+        const index = screen.broadCastAdvertisementLocation.indexOf(location);
+        screen.broadCastAdvertisementLocation.splice(index, 1);
+        //如果移除的是当前广告位，则重新初始化当前广告位
+        if(screen.zindex==this.selectedLocation.screenIndex
+            &&this.selectedLocation.coordinateLocation.bottomLeft.x==location.coordinateLocation.bottomLeft.x
+            &&this.selectedLocation.coordinateLocation.bottomLeft.y==location.coordinateLocation.bottomLeft.y){
+            this.selectedLocation=new BroadCastAdvertisementLocation();
+        }
+        if(screen.broadCastAdvertisementLocation.length==0){
+            this.selectedLocation=new BroadCastAdvertisementLocation();
+        }
+        this.task.deletedAdvertisementGroups.push(location.advertisementGroup[0]);
+    }
+
+    /**
+     * 广告位是否播放声音
+     */
+    changeVoice(location:BroadCastAdvertisementLocation){
+        location.voice=!location.voice;
+    }
+
+    /**
+     * 计算屏幕单元格样式
+     */
+    getScreenCellStyle(screen, cell) {
+        return {
+            width: screen.config.cellWidth + 'px',
+            height: screen.config.cellHeight + 'px'
+        };
+    }
+
+    /**
+     * 计算屏幕广告位样式
+     */
+    getScreenLocationStyle(screen, location) {
+        const p = location.coordinateLocation;
+        const index = screen.broadCastAdvertisementLocation.indexOf(location);
+        return {
+            backgroundColor: location.backgroundColor,
+            'background-image':'url('+location.backgroundImageUrl+')',
+            'background-size':'100% 100%',
+            top: (p.topLeft.y - 1) * screen.config.cellHeight + 'px',
+            left: (p.topLeft.x - 1) * screen.config.cellWidth + 'px',
+            width: (p.topRight.x - p.topLeft.x + 1) * screen.config.cellWidth + 'px',
+            height: (p.bottomRight.y - p.topRight.y + 1) * screen.config.cellHeight + 'px',
+            // lineHeight: this.isLocationButtonHide==''?(p.bottomRight.y - p.topRight.y + 1) * screen.config.cellHeight + 'px':'',
+            lineHeight: (p.bottomRight.y - p.topRight.y + 1) * screen.config.cellHeight + 'px',
+            zIndex: 2 + index
+        };
+    }
+
+    /**
+     * 计算屏幕广告位内容样式
+     */
+    getScreenLocationAdvertismentStyle(screen, location) {
+        const p = location.coordinateLocation;
+        const index = screen.broadCastAdvertisementLocation.indexOf(location);
+        return {
+            top: (p.topLeft.y - 1) * screen.config.cellHeight + 'px',
+            left: (p.topLeft.x - 1) * screen.config.cellWidth + 'px',
+            width: (p.topRight.x - p.topLeft.x + 1) * screen.config.cellWidth + 'px',
+            height: (p.bottomRight.y - p.topRight.y + 1) * screen.config.cellHeight + 'px',
+            paddingLeft: location.paddingLeft + 'px',
+            paddingTop: location.paddingTop + 'px',
+            paddingRight: location.paddingRight + 'px',
+            paddingBottom: location.paddingBottom + 'px',
+            display:this.isScreenPreview,
+            zIndex: 3 + index
+        };
+    }
+
+    /**
+     * 改变广告位背景颜色触发的事件
+     * @param event
+     */
+    onLocationColorChange(event: any) {
+        this.selectedLocation.backgroundColor = event.target.value;
+    }
+
+    /**
+     * 改变屏幕背景颜色触发的事件
+     * @param event
+     */
+    onScreenColorChange(event: any) {
+        this.task.activeScreen.backgroundColor = event.target.value;
+    }
+
+    /**
+     * 清除屏幕背景颜色
+     * @param event
+     */
+    clearScreenBackgroundColor() {
+        this.selectedScreenBackgroundColor=null;
+        this.task.activeScreen.backgroundColor=null;
+    }
+
+    /**
+     * 清除广告位背景颜色
+     * @param event
+     */
+    clearLocationBackgroundColor() {
+        const index=this.task.broadCastScreens[this.selectedLocation.screenIndex].broadCastAdvertisementLocation.indexOf(this.selectedLocation);
+        this.selectedLocation.backgroundColor='rgba(' + this.locationColors[index] + ', 0.6)';
+        this.selectedLocationBackgroundColor=null;
+    }
+
+    /**
+     * 计算屏幕样式
+     */
+    getScreenStyle(screen) {
+        return {
+            width: screen.config.cellWidth * this.task.screenWidth + 'px',
+            height: screen.config.cellHeight * this.task.screenHeight + 'px',
+        };
+    }
+
+    /**
+     * 屏幕单元格鼠标滑过
+     */
+    onScreenCellMouseeEnter($event, screen, cell) {
+        $event.stopPropagation();
+        $event.preventDefault();
+        screen.config.cursorCell = cell;
+        if (screen.config.isSelecting === true) {
+            screen.config.selectingEndCell = cell;
+        }
+        return false;
+    }
+
+    /**
+     * 屏幕鼠标离开
+     */
+    onXscreenContainerMouseLeave(screen) {
+        screen.config.resetSelecting();
+    }
+
+    /**
+     * 屏幕单元格鼠标离开
+     */
+    onScreenCellMouseLeave($event, screen, cell) {
+        screen.config.cursorCell = new Coordinate();
+    }
+
+    /**
+     * 屏幕单元格鼠标按下启动框选
+     */
+    onScreenCellMouseeDown($event, screen, cell) {
+        screen.config.isSelecting = true;
+        screen.config.selectingStartCell = cell;
+    }
+
+    /**
+     * 按下预览按钮
+     */
+    onPreviewMouseeDown($event) {
+        this.isScreenPreview="";
+    }
+
+    /**
+     * 松开预览按钮
+     */
+    onPreviewMouseeUp($event) {
+        this.isScreenPreview="none";
+    }
+
+    /**
+     * 屏幕单元格鼠标抬起结束框选
+     */
+    onScreenCellMouseeUp($event, screen, cell) {
+        if(this.seeonly){
+           return;
+        }
+        screen.config.selectingEndCell = cell;
+        if (screen.config.isSelecting && !(screen.config.selectingStartCell === screen.config.selectingEndCell)) {
+            const location = new BroadCastAdvertisementLocation();
+            screen.broadCastAdvertisementLocation.push(location);
+            location.coordinateLocation = new CoordinateLocation();
+            const topLeft = new Coordinate();
+            topLeft.x = Math.min(screen.config.selectingStartCell.x, screen.config.selectingEndCell.x);
+            topLeft.y = Math.min(screen.config.selectingStartCell.y, screen.config.selectingEndCell.y);
+            const topright = new Coordinate();
+            topright.x = Math.max(screen.config.selectingStartCell.x, screen.config.selectingEndCell.x);
+            topright.y = Math.min(screen.config.selectingStartCell.y, screen.config.selectingEndCell.y);
+            const bottomLeft = new Coordinate();
+            bottomLeft.x = Math.min(screen.config.selectingStartCell.x, screen.config.selectingEndCell.x);
+            bottomLeft.y = Math.max(screen.config.selectingStartCell.y, screen.config.selectingEndCell.y);
+            const bottomRight = new Coordinate();
+            bottomRight.x = Math.max(screen.config.selectingStartCell.x, screen.config.selectingEndCell.x);
+            bottomRight.y = Math.max(screen.config.selectingStartCell.y, screen.config.selectingEndCell.y);
+            location.coordinateLocation.topLeft = topLeft;
+            location.coordinateLocation.topRight = topright;
+            location.coordinateLocation.bottomLeft = bottomLeft;
+            location.coordinateLocation.bottomRight = bottomRight;
+            location.name=(screen.numb==null?1:screen.numb)+'Screen'+screen.broadCastAdvertisementLocation.length+'Location';
+            location.alias='层'+(screen.numb==null?1:screen.numb)+'位置'+screen.broadCastAdvertisementLocation.length;
+            let ag = location.advertisementGroup[0];
+            ag.orgId = systemconst.currentUser.organization.id;
+            ag.topOrgId = systemconst.currentUser.topOrganization.id;
+            ag.name=this.task.name+"-"+(screen.numb==null?1:screen.numb)+"层-"+location.name;
+            ag.id = '';
+            this.selectedLocation=location;
+            const index = screen.broadCastAdvertisementLocation.indexOf(location);
+            location.backgroundColor='rgba(' + this.locationColors[index] + ', 0.6)';
+            this.selectedLocation.screenIndex=(screen.numb==null?0:screen.numb);
+        }
+        screen.config.resetSelecting();
+    }
+
+    /**
+     * 阻止火狐浏览器拖拽dom
+     */
+    onScreenCellMouseDragstart($event) {
+        return false;
+    }
+
+    /**
+     * 选中某个广告位
+     * @param location 被选中的广告位
+     * @param screen 当前屏幕
+     * @param locationIndex 广告位索引
+     */
+    openLocationModal(locationModal, location,screen,locationIndex) {
+        this.selectedLocation = location;
+        if(this.selectedLocation.backgroundColor.indexOf('rgba')<0){
+            this.selectedLocationBackgroundColor=this.selectedLocation.backgroundColor;
+        }else{
+            this.selectedLocationBackgroundColor=null;
+        }
+        //如果当前活动广告位别名为空
+        if(!this.commonUtil.isEmpty(this.selectedLocation.alias)){
+            this.selectedLocation.alias='层'+(screen.numb==null?1:screen.numb)+'位置'+(locationIndex+1);
+        }
+        if(this.selectedLocation.advertisementGroup.length==0){
+            let advg=new AdvertisementGroup();
+            advg.orgId = systemconst.currentUser.organization.id;
+            advg.topOrgId = systemconst.currentUser.topOrganization.id;
+            advg.name=this.task.name+"-"+screen.numb+"-"+location.name;
+            this.selectedLocation.advertisementGroup.push(advg);
+        }
+        // this.locationModal = this.modalService.open(locationModal, {size: 'lg', backdrop: 'static'});
+    }
+
+    openModifyModal(modify) {
+        this.modifyModal = this.modalService.open(modify, {size: 'lg', backdrop: 'static'});
+    }
+
+    closeModifyModal() {
+        this.modifyModal.close();
+    }
+
+    /**
+     * 保存播放任务
+     * @param modify 播放任务基本信息框
+     */
+    broadcastTaskSave(modify, locationModal) {
+        //如果基本信息验证失败
+        if (!this.validForm(modify, locationModal)) {
+            return;
+        }
+        const screens = this.task.broadCastScreens;
+        let index = 0;
+        //如果屏幕个数不为0
+        if (screens.length > 0) {
+            screens.map(screen => (
+                screen.zindex = index++
+            ))
+        };
+        for(let i=0;i<screens.length;i++){
+            let bls=screens[i].broadCastAdvertisementLocation;
+            for(let j=0;j<bls.length;j++){
+                if(bls[j].backgroundColor.indexOf('#')<0){
+                    bls[j].backgroundColor=null;
+                }
+            }
+        }
+        this.task.name=this.task.planName;
+        this.commonUtil.trimObject(this.task);
+        this.broadcastService.saveBroadcastTask(this.task).subscribe((task) => {
+            //如果保存成功
+            if (task.errorMsg === null) {
+                systemconst.alertMessage = '操作成功！';
+                this.router.navigate(['/broadcast/task/list']);
+            } else {
+                this.valid = task.errorMsg;
+                window.scrollTo(0, 0);
+            }
+        });
+    }
+
+    /**
+     * 删除播放任务
+     */
+    broadcastTaskDelete() {
+        //验证播放任务是否被使用
+        this.advertisementService.getObject('/broadcast/findBroadCastPlansByBroadCast', {
+            taskId: this.task.id
+        }).subscribe((result) => {
+            if (result.length > 0) {
+                let planName = '';
+                for (let i = 0; i < result.length; i++) {
+                    planName += result[i].name + ',';
+                }
+                planName = planName.substring(0, planName.length - 1);
+                const message = ('本任务已经被播放计划【' + planName + '】使用，如需删除，请先删除上述播放计划，或将播放计划中的播放任务改为其他播放任务。');
+                this.showErrorMsg(message);
+            } else {
+                const screens = this.task.broadCastScreens;
+                let index = 0;
+                if (screens.length > 0) {
+                    screens.map(screen => (
+                        screen.zindex = index++
+                    ))
+                }
+                this.task.deleted = true;
+                this.broadcastService.saveBroadcastTask(this.task).subscribe((task) => {
+                    //如果删除成功
+                    if (task.errorMsg === null) {
+                        systemconst.alertMessage = '操作成功！';
+                        this.router.navigate(['/broadcast/task/list']);
+                    } else {
+                        this.isSubmit = true;
+                        this.valid = task.errorMsg;
+                        window.scrollTo(0, 0);
+                    }
+                })
+            }
+        });
+    }
+
+    /**
+     * 判断屏幕单元格是否有选中样式
+     */
+    isClassSelected(screen, cell) {
+        if (cell === screen.config.cursorCell) {
+            return true;
+        } else {
+            return this.detectRange(cell, screen.config.selectingStartCell, screen.config.selectingEndCell);
+        }
+    }
+
+    /**
+     * 检测屏幕单元格是否在范围内
+     */
+    detectRange(cell, startCell, endCell) {
+        let detectX = false;
+        let detectY = false;
+        if (cell.x >= startCell.x && cell.x <= endCell.x || cell.x >= endCell.x && cell.x <= startCell.x) {
+            detectX = true;
+        }
+        if (cell.y >= startCell.y && cell.y <= endCell.y || cell.y >= endCell.y && cell.y <= startCell.y) {
+            detectY = true;
+        }
+        return detectX && detectY;
+    }
+
+    /**
+     * 验证表单
+     * @param modify
+     * @returns {boolean}
+     */
+    validForm(modify, locationModal) {
+        this.valid = '';
+        this.validName = '';
+        this.validLocation = '';
+        this.isSubmit = true;
+        this.task.startTime=this.startHour+":"+this.startMinite+":"+this.startSecond;
+        this.task.endTime=this.endHour+":"+this.endMinite+":"+this.endSecond;
+        const timeSlots: List<TimeSlot> = new List<TimeSlot>();
+        const momentstart = moment('2017-01-01 ' + this.task.startTime);
+        const momentend = moment('2017-01-01 ' + this.task.endTime);
+        timeSlots.Add(new TimeSlot(momentstart, momentend, this.task.name));
+        timeSlots.ForEach((timeslot, index) => {
+            if (timeslot.startTime.isAfter(timeslot.endTime)) {
+                this.validName =  '开始时间不能大于结束时间';
+            }
+        });
+        if(this.task.startTime===this.task.endTime){
+            this.validName =  '开始时间应该小于结束时间';
+        }
+        if (!this.commonUtil.isEmpty(this.task.planName)) {
+            this.validName = systemconst.validEmptyMessage;
+            this.openModifyModal(modify);
+        }else if(this.validName!==""){
+            this.openModifyModal(modify);
+        } else {
+            const screens = this.task.broadCastScreens;
+            for (let i = 0; i < screens.length; i++) {
+                const locations = screens[i].broadCastAdvertisementLocation;
+                for (let j = 0; j < locations.length; j++) {
+                    //如果广告位名字为空
+                    if (!this.commonUtil.isEmpty(locations[j].name)) {
+                        this.validLocation = systemconst.validEmptyMessage;
+                        this.selectedLocation = locations[j];
+                        break;
+                    } else {
+                        const nameRegExp = new RegExp('^[a-zA-Z0-9]+$');
+                        if (!nameRegExp.test(locations[j].name)) {
+                            this.validLocation = '广告位名称只能输入数字和字母，不能输入汉字。';
+                            this.selectedLocation = locations[j];
+                            break;
+                        }
+                        const advg=locations[j].advertisementGroup[0];
+                        if(this.validLocation!==''){
+                            this.selectedLocation = locations[j];
+                            break;
+                        }
+                        let indexs = [];
+                        const advertisementGroupTransients = locations[j].advertisementGroup[0].advertisements;
+                        if(advertisementGroupTransients.length==0){
+                            this.valid =  '请选择播放素材';
+                            this.selectedLocation = locations[j];
+                            break;
+                        }
+                        advg.totalDuration=0;
+                        for (let k = 0; k < advertisementGroupTransients.length; k++) {
+                            const adg=advertisementGroupTransients[k];
+                            const adname=this.getAdvertisementName(adg.advertisementId);
+                            //如果素材的播放顺序没填
+                            if (adg.index == null) {
+                                this.valid = systemconst.validEmptyMessage;
+                                break;
+                            } else {
+                                //如果素材的播放顺序不是整数
+                                if (adg.index <= 0 || adg.index * 10 % 10 > 0) {
+                                    this.valid ='素材【' + adname + '】的播放顺序必须为正整数';
+                                    break;
+                                } else {
+                                    //如果素材的播放顺序大于99
+                                    if (adg.index > 99) {
+                                        this.valid = '素材【' + adname + '】的播放顺序不能大于99';
+                                        break;
+                                    }
+                                }
+                            }
+                            if (indexs.indexOf(adg.index) < 0) {
+                                indexs.push(adg.index);
+                            }
+                            if(this.getAdvertisementFileType(adg.advertisementId)!=='视频'){
+                                if ((adg.hour == null || adg.hour <= 0)
+                                    && (adg.minute == null || adg.minute <= 0)
+                                    && (adg.seconds == null || adg.seconds <= 0)) {
+                                    this.valid = '素材【' + adname + '】的播放时长' + systemconst.validNumberMessage;
+                                    break;
+                                } else {
+                                    if ((adg.hour != null && adg.hour * 10 % 10 > 0)
+                                        || (adg.minute != null && adg.minute * 10 % 10 > 0)
+                                        || (adg.seconds != null && adg.seconds * 10 % 10 > 0)) {
+                                        this.valid = '素材【' + adname + '】的播放的时、分、秒必须为整数';
+                                        break;
+                                    } else {
+                                        if ((adg.hour != null && adg.hour > 99)
+                                            || (adg.minute != null && adg.minute > 99)
+                                            || (adg.seconds != null && adg.seconds > 99)) {
+                                            this.valid = '素材【' + adname + '】的播放的时、分、秒分别不能大于99';
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if (this.getAdvertisementFileType(adg.advertisementId) === '视频') {
+                                const ad = this.allAdvertisements.filter((item) => {
+                                    return item.id === adg.advertisementId;
+                                })[0];
+                                advg.totalDuration += ad.duration;
+                            } else {
+                                adg.duration=0;
+                                if (adg.hour != null && adg.hour > 0 && adg.hour * 10 % 10 === 0) {
+                                    advg.totalDuration += adg.hour * 3600;
+                                    adg.duration += adg.hour * 3600;
+                                }
+                                if (adg.minute != null && adg.minute > 0 && adg.minute * 10 % 10 === 0) {
+                                    advg.totalDuration += adg.minute * 60;
+                                    adg.duration += adg.minute * 60;
+                                }
+                                if (adg.seconds != null && adg.seconds > 0 && adg.seconds * 10 % 10 === 0) {
+                                    advg.totalDuration += adg.seconds*1;
+                                    adg.duration += adg.seconds*1;
+                                }
+                            }
+                        }
+                        if (this.valid === '' && indexs.length < advertisementGroupTransients.length) {
+                            this.valid = '播放顺序不能重复';
+                            this.selectedLocation = locations[j];
+                            break;
+                        }
+                    }
+                }
+                if (this.validLocation !== ''||this.valid !== '') {
+                    this.task.activeScreen = screens[i];
+                    screens[i].config.active = true;
+                    window.scrollTo(0, 0);
+                    break;
+                }
+            }
+        }
+        return this.valid === '' && this.validName === '' && this.validLocation === '';
+    }
+
+    /**
+     * 添加广告到广告位
+     */
+    addAdvertisementToLocation(adv:Advertisement) {
+        let advIndex=0;
+        const items=this.selectedLocation.advertisementGroup[0].advertisements.filter((item) => {
+            if(item.index>advIndex){
+                advIndex=item.index;
+            }
+            return item.advertisementId === adv.id;
+        });
+        if(items.length==0){
+            const advertisementGroupTransient = new AdvertisementGroupTransient();
+            advertisementGroupTransient.advertisementId = adv.id;
+            advertisementGroupTransient.advertisementName = adv.name;
+            advertisementGroupTransient.duration=adv.duration;
+            advertisementGroupTransient.index=++advIndex;
+            this.selectedLocation.advertisementGroup[0].advertisements.push(advertisementGroupTransient);
+        }
+    }
+
+    /**
+     * 移除广告到广告位
+     */
+    removeAdvertisementToLocation(adv:AdvertisementGroupTransient) {
+        this.selectedLocation.advertisementGroup[0].advertisements=this.selectedLocation.advertisementGroup[0].advertisements.filter((item) => {
+            return item.advertisementId !== adv.advertisementId;
+        });
+    }
+
+    /**
+     * 预览素材
+     * @param content
+     * @param id
+     */
+    showAdvertisement(content, id) {
+        this.advertisement.id = id;
+        this.advertisementService.findById(this.advertisement).subscribe((ad) => {
+            this.advertisement = ad;
+            //如果素材类型为文本
+            if (this.advertisement.fileType === '3') {
+                /*this.advertisementService.find('disposeTxtFile', this.advertisement).subscribe((result) => {
+                    this.advertisement.txt = result['txt'];
+                })*/
+            }else{
+                if (this.advertisement.fileUrl.indexOf(systemconst.fastdfs_nginxUrl) < 0) {
+                    this.advertisement.fileUrl = systemconst.fastdfs_nginxUrl + this.advertisement.fileUrl;
+                }
+            }
+            this.advertisementModal = this.modalService.open(content, {size: 'lg'});
+        })
+    }
+
+    /**
+     * 获取字体中文名
+     * @returns {string}
+     */
+    getFontFamily(){
+        let fa="";
+        switch (this.advertisement.advertisementtextsetting.fontFamily){
+            case "0":
+                fa="宋体";
+                break;
+            case "1":
+                fa="黑体";
+                break;
+            case "2":
+                fa="隶书";
+                break;
+            case "3":
+                fa="楷体";
+                break;
+        }
+        return fa;
+    }
+
+    closeAdvertisementModal() {
+        this.advertisementModal.close();
+    }
+
+    replaceAll(val: string, rep1: string, rep2: string) {
+        return this.commonUtil.replaceAll(val, rep1, rep2);
+    }
+
+    /**
+     * 只能输入字母和数字
+     * @param selectedLocation 当前活动广告位
+     * @param $event
+     */
+    validLocationName(selectedLocation, $event) {
+        const oldName = selectedLocation.name;
+        selectedLocation.name = selectedLocation.name.replace(/[^\a-\z\A-\Z0-9]/g, '');
+        const newName = selectedLocation.name;
+        if (oldName !== newName) {
+            this.isSubmit = true;
+            this.validLocation = '广告位名称只能输入数字和字母，不能输入汉字。';
+        } else {
+            this.isSubmit = true;
+            this.validLocation = '';
+        }
+    }
+
+    /**
+     * 格式化时间
+     * @param duration
+     * @returns {string|string|string}
+     */
+    getFormatTime(duration){
+        return this.commonUtil.getFormatTime(duration);
+    }
+
+    /**
+     * 取得素材名
+     * @param advertisementId 素材id
+     * @returns {any}
+     */
+    getAdvertisementName(advertisementId){
+        const ads=this.allAdvertisements.filter((item) => {
+            return item.id === advertisementId;
+        });
+        if(ads.length>0){
+            return ads[0].name;
+        }
+        return "";
+    }
+
+    /**
+     * 取得素材类型
+     * @param advertisementId 素材id
+     * @returns {any}
+     */
+    getAdvertisementFileType(advertisementId){
+        const adv = this.allAdvertisements.filter((item) => {
+            return item.id === advertisementId;
+        })[0];
+        if (adv == null) {
+            return '';
+        }
+        if (adv.fileType === '1') {
+            return '视频';
+        }
+        if (adv.fileType === '2') {
+            return '图片';
+        }
+        if (adv.fileType === '3') {
+            return '文本';
+        }
+        if (adv.fileType === '4') {
+            return '文档';
+        }
+        if (adv.fileType === '5') {
+            return '流媒体';
+        }
+        if (adv.fileType === '6') {
+            return '扩展组件';
+        }
+        return '';
+    }
+}

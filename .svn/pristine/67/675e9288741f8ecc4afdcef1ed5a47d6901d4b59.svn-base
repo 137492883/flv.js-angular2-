@@ -1,0 +1,541 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-table"></i> 终端日志</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <div class="col-sm-7">
+            <div class="card card-default">
+                <div class="card-header" [ngSwitch]="probeStatus">
+                    终端基本信息 &nbsp;
+                    <span *ngIf="probeStatus ===1" class="text-primary">探针已经激活
+                    </span>
+                    <span class="float-right">
+                        <span *ngSwitchCase="1">
+                            <button class="btn btn-primary float-right" (click)="mddeviceoff(device)">注销探针</button>
+                        </span>
+                        <span *ngSwitchCase="-999995">
+                            <span class="text-danger">探针数超出系统限制,请联系嗅图 </span>&nbsp;
+                            <button class="btn btn-primary float-right small" (click)="mddeviceon(device)">激活探针</button>
+                        </span>
+                        <span *ngSwitchDefault>
+                            <button class="btn btn-primary btn-sm small" (click)="mddeviceon(device)">激活探针</button>
+                        </span>
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <div class="form-group row">
+                            <div class="col-sm-6">
+                                <span class="col-form-label">终端SN：</span> {{device.sn}}
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="col-form-label">物联网模块SN：</span> {{device.wulianwangsn}}
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-6">
+                                <span class="col-form-label">开户名称：</span>{{device.orgName}}
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="col-form-label">划拨机构：</span>{{device.tenantOrgName}}
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-6">
+                                <span class="col-form-label">终端分组：</span>{{userGroup}}
+                            </div>
+                            <div class="col-sm-6" *ngIf="currentUser.userType === '1'">
+                                <span class="col-form-label">升级分组：</span>{{getPlatformGroup(device)}}
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-6">
+                                <span class="col-form-label">终端状态：</span>{{getState(device.latestHeartbeatTime)}}
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="col-form-label">存储空间：</span>{{device.storage}}
+                            </div>
+                        </div>
+                        <div class=" form-group row">
+                            <div class="col-sm-6">
+                                <span class="col-form-label">物联网MAC地址：</span>{{device.wulianwnagmac}}
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="col-form-label">终端IMEI：</span>{{device.deviceimei}}
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-6">
+                                <span class="col-form-label">物联网模块IMEI：</span>{{device.wulianwangimei}}
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="col-form-label">软件版本号：</span>{{device.softVersion}}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <div class="col-sm-6">
+                                <span class="col-form-label">安卓版本号：</span>{{device.androidVersion}}
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="col-form-label">平台类型：</span> {{device.platformType}}
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-6">
+                                <span class="col-form-label">产品型号：</span> {{device.productionModel}}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="col-sm-5">
+            <div class="card card-default">
+                <div class="card-header">
+                    终端位置
+                </div>
+                <div class="card-body nonpadding">
+                    <div id="deviceLoaction">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="margin: 15px -15px">
+        <div class="col-sm-12">
+            <div class="card card-default">
+                <div class="card-header">
+                    播放计划统计
+                </div>
+                <div class=" table-responsive">
+                    <table class="table table-hover">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th>序号</th>
+                            <th>播放计划名称</th>
+                            <th>播放状态</th>
+                            <th>播放总时长(分钟)</th>
+                            <th>播放总次数</th>
+                            <th>下载进度</th>
+                            <th>下载状态</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        <tr *ngFor="let aa of scheduleStatsList,let i = index">
+                            <th scope="row">
+                                {{scheduleStatsListQueryResult.number*scheduleStatsListQueryResult.size+i+1}}
+                            </th>
+                            <td><a href="javascript:void(0)" (click)="openModel(adStats,aa.playScheduleId)">{{aa.broadCastPlanName}}</a>
+                            </td>
+                            <td>
+                                <span [ngSwitch]="aa.playState">
+                                    <span *ngSwitchCase="'1'">播放中</span>
+                                    <span *ngSwitchDefault>未播放</span>
+                                </span>
+                            </td>
+                            <td>{{((aa.playDuration === 'null') ? 0:aa.playDuration)/ 60 |number:'1.1-1'}}</td>
+                            <td>{{(aa.playTime === 'null') ? 0:aa.playTime}}</td>
+                            <!--<td>{{getPlayDuration(aa.playScheduleId)/60|number:'1.1-1'}}</td>-->
+                            <!--<td>{{getPlayTimes(aa.playScheduleId)|number:'1.1-1'}}</td>-->
+                            <td>{{aa.downloadSchedule|number:'1.1-1'}}%</td>
+                            <td>
+                                <span [ngSwitch]="aa.downloadSchedule">
+                                    <span *ngSwitchCase=0>未开始</span>
+                                    <span *ngSwitchCase=100>下载完成</span>
+                                    <span *ngSwitchDefault>下载中</span>
+                                </span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="scheduleStatsListQueryResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'"
+                                [nextText]="'后一页'"
+                                [maxSize]="5"
+                                [boundaryLinks]="true" [rotate]="false"
+                                (pageChanged)="pageChangeScheduleStat($event)"></pagination>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card mb-3">
+                <div class="card-header">
+                    升级信息
+                </div>
+                <div class=" table-responsive">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th>序号</th>
+                            <th>升级计划名称</th>
+                            <th>下载百分比</th>
+                            <th>下载状态</th>
+                            <th>版本</th>
+                            <th>上报时间</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        <tr *ngFor="let aa of upgradeStatsqueryResult.content, let i = index">
+                            <th scope="row">{{i+1}}</th>
+                            <td>{{aa.upgradeName}}</td>
+                            <td>{{aa.downloadPercent}}%</td>
+                            <td>{{getDownloadState(aa)}}</td>
+                            <td>{{aa.version}}</td>
+                            <td>{{aa.createtime}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="upgradeStatsqueryResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'"
+                                [nextText]="'后一页'"
+                                [maxSize]="5"
+                                [boundaryLinks]="true" [rotate]="false"
+                                (pageChanged)="pageChangeUpgradeStat($event)"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card mb-3">
+                <div class="card-header">
+                    异常信息 <span style="color: #5cb85c">{{alarmSuccess}}</span>
+                </div>
+                <div class=" table-responsive">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th>序号</th>
+                            <th>错误类型</th>
+                            <th>错误名称</th>
+                            <th>上报时间</th>
+                            <th>修复状态</th>
+                            <th>修复时间</th>
+                            <th>状态设置</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        <tr *ngFor="let bb of deviceAlarmResult.content, let i = index">
+                            <th scope="row">{{i+1}}</th>
+                            <td>
+                                <span [ngSwitch]="bb.errorType">
+                                    <span *ngSwitchCase="'0'">下载异常</span>
+                                    <span *ngSwitchCase="'1'">播放异常</span>
+                                    <span *ngSwitchCase="'2'">升级异常</span>
+                                    <span *ngSwitchDefault>未知错误</span>
+                                </span>
+                            </td>
+                            <td>{{bb.advertiseName}}</td>
+                            <td>{{bb.createtime}}</td>
+                            <td>
+                                <span [ngSwitch]="bb.repairType">
+                                    <span *ngSwitchCase="'1'">手动修复</span>
+                                    <span *ngSwitchCase="'2'">手动屏蔽</span>
+                                    <span *ngSwitchCase="'3'">自动修复</span>
+                                    <span *ngSwitchDefault>未修复</span>
+                                </span>
+                            </td>
+                            <td>{{getRepairTime(bb)}}</td>
+                            <td>
+                                <select [(ngModel)]="repairType" *ngIf="bb.repairType!=='3'">
+                                    <option value="">选择操作</option>
+                                    <option value="2">手动屏蔽</option>
+                                    <option value="1">手动修复</option>
+                                </select>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-primary btn-sm" (click)="saveRepair(bb)"
+                                        *ngIf="bb.repairType!=='3'">保存
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="deviceAlarmResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'"
+                                [nextText]="'后一页'"
+                                [maxSize]="5"
+                                [boundaryLinks]="true" [rotate]="false"
+                                (pageChanged)="pageChangeAlarmStat($event)"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card mb-3">
+                <div class="card-header d-inline-flex">
+                    <div style="padding-right: 60px;">客流趋势分析</div>
+                    <div class="align-middle" style="margin: auto 10px;">开始时间：</div>
+                    <div class="column-half">
+                        <owl-date-time [(ngModel)]="flowStart" [locale]="cn" [placeHolder]="'年-月-日 时:分'"
+                                       dateFormat="YYYY-MM-DD HH:mm" [showHeader]="true"></owl-date-time>
+                    </div>
+                    <div style="margin: auto 10px;">
+                        结束时间：
+                    </div>
+                    <div class="column-half">
+                        <owl-date-time [(ngModel)]="flowEnd" [locale]="cn" [placeHolder]="'年-月-日 时:分'"
+                                       dateFormat="YYYY-MM-DD HH:mm" [showHeader]="true"></owl-date-time>
+                    </div>
+                    <div style="padding-left: 60px;">
+                        <button class="btn btn-primary" (click)="getWatchFlow()" [disabled]="!flowEnd || !flowStart">
+                            确定
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas height="90" baseChart [datasets]="barChartData" [labels]="barChartLabels"
+                            [options]="barChartOptions" [legend]="barChartLegend" [chartType]="barChartType"
+                            (chartHover)="chartHovered($event)" (chartClick)="openMinFlowModel(flowStatModel,$event)">
+                    </canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card mb-3">
+                <div class="card-header d-inline-flex">
+                    <div style="padding-right: 60px;">日累计客流量分析</div>
+                    <div class="align-middle" style="margin: auto 10px;">开始时间：</div>
+                    <div class="column-half">
+                        <owl-date-time [(ngModel)]="flowStartDay" [locale]="cn" [placeHolder]="'年-月-日 时:分'"
+                                       dateFormat="YYYY-MM-DD" [showHeader]="true"></owl-date-time>
+                    </div>
+                    <div style="margin: auto 10px;">
+                        结束时间：
+                    </div>
+                    <div class="column-half">
+                        <owl-date-time [(ngModel)]="flowEndDay" [locale]="cn" [placeHolder]="'年-月-日 时:分'"
+                                       dateFormat="YYYY-MM-DD" [showHeader]="true"></owl-date-time>
+                    </div>
+                    <div style="padding-left: 60px;">
+                        <button class="btn btn-primary" (click)="getDayWatchFlow()"
+                                [disabled]="!flowEndDay || !flowStartDay">确定
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas height="90" baseChart [datasets]="barChartDataDay" [labels]="barChartLabelsDay"
+                            [options]="barChartOptionsDay" [legend]="barChartLegend" [chartType]="barChartType"
+                            (chartHover)="chartHovered($event)" (chartClick)="openDayFlowModel(flowStatModel,$event)">
+                    </canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card mb-3">
+                <div class="card-header d-inline-flex">
+                    <div style="padding-right: 60px;">人脸客流趋势分析</div>
+                    <div class="align-middle" style="margin: auto 10px;">开始时间：</div>
+                    <div class="column-half">
+                        <owl-date-time [(ngModel)]="flowFaceStart" [locale]="cn" [placeHolder]="'年-月-日 时:分'"
+                                       dateFormat="YYYY-MM-DD HH:mm" [showHeader]="true"></owl-date-time>
+                    </div>
+                    <div style="margin: auto 10px;">
+                        结束时间：
+                    </div>
+                    <div class="column-half">
+                        <owl-date-time [(ngModel)]="flowFaceEnd" [locale]="cn" [placeHolder]="'年-月-日 时:分'"
+                                       dateFormat="YYYY-MM-DD HH:mm" [showHeader]="true"></owl-date-time>
+                    </div>
+                    <div style="padding-left: 60px;">
+                        <button class="btn btn-primary" (click)="getWatchFaceFlow()" [disabled]="!flowEnd || !flowStart">
+                            确定
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas height="90" baseChart [datasets]="barChartFaceData" [labels]="barChartFaceLabels"
+                            [options]="barChartFaceOptions" [legend]="barChartLegend" [chartType]="barChartType"
+                            (chartHover)="chartHovered($event)" (chartClick)="openMinFlowModel(flowStatModel,$event)">
+                    </canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card mb-3">
+                <div class="card-header d-inline-flex">
+                    <div style="padding-right: 60px;">日累计人脸客流量分析</div>
+                    <div class="align-middle" style="margin: auto 10px;">开始时间：</div>
+                    <div class="column-half">
+                        <owl-date-time [(ngModel)]="flowFaceStartDay" [locale]="cn" [placeHolder]="'年-月-日 时:分'"
+                                       dateFormat="YYYY-MM-DD" [showHeader]="true"></owl-date-time>
+                    </div>
+                    <div style="margin: auto 10px;">
+                        结束时间：
+                    </div>
+                    <div class="column-half">
+                        <owl-date-time [(ngModel)]="flowFaceEndDay" [locale]="cn" [placeHolder]="'年-月-日 时:分'"
+                                       dateFormat="YYYY-MM-DD" [showHeader]="true"></owl-date-time>
+                    </div>
+                    <div style="padding-left: 60px;">
+                        <button class="btn btn-primary" (click)="getDayWatchFaceFlow()"
+                                [disabled]="!flowFaceEndDay || !flowFaceStartDay">确定
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas height="90" baseChart [datasets]="barChartFaceDataDay" [labels]="barChartFaceLabelsDay"
+                            [options]="barChartFaceOptionsDay" [legend]="barChartLegend" [chartType]="barChartType"
+                            (chartHover)="chartHovered($event)" (chartClick)="openDayFaceFlowModel(flowStatModel,$event)">
+                    </canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card mb-3">
+                <div class="card-header d-inline-flex">
+                    <div style="padding-right: 10px;">人眼角度分析</div>
+                    <div class="align-middle" style="margin: auto 10px;">开始时间：</div>
+                    <div style="width: 130px;">
+                        <owl-date-time [(ngModel)]="statisticaleyeStart" [locale]="cn" [placeHolder]="'年-月-日 时:分'"
+                                       dateFormat="YYYY-MM-DD" [showHeader]="true"></owl-date-time>
+                    </div>
+                    <div style="margin: auto 10px;">
+                        结束时间：
+                    </div>
+                    <div style="width: 130px;">
+                        <owl-date-time [(ngModel)]="statisticaleyeEnd" [locale]="cn" [placeHolder]="'年-月-日 时:分'"
+                                       dateFormat="YYYY-MM-DD" [showHeader]="true"></owl-date-time>
+                    </div>
+                    <div style="margin: auto 10px;">
+                        统计间隔（分钟）：
+                    </div>
+                    <div class="column-half">
+                        <select class="form-control" [(ngModel)]="device.methodTime">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                        </select>
+                    </div>
+                    <div style="margin: auto 10px;">
+                        摄像头位置：
+                    </div>
+                    <div class="column-half">
+                        <select class="form-control" [(ngModel)]="device.location">
+                            <option value="north">北</option>
+                            <option value="south">南</option>
+                            <option value="east">东</option>
+                            <option value="west">西</option>
+                            <option value="northeast">东北</option>
+                            <option value="southeast">东南</option>
+                            <option value="northwest">西北</option>
+                            <option value="southwest">西南</option>
+                        </select>
+                    </div>
+                    <div style="padding-left: 60px;">
+                        <button class="btn btn-primary" (click)="statisticaleyeQuery()"
+                                [disabled]="!statisticaleyeEnd || !statisticaleyeStart">确定
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas height="90" baseChart [datasets]="barChartStatisticaleyeData" [labels]="barChartStatisticaleyeLabels"
+                            [options]="barChartStatisticaleyeOptions" [legend]="barChartLegend" [chartType]="barChartType"
+                            (chartHover)="chartHovered($event)" (chartClick)="openDayFaceFlowModel(flowStatModel,$event)">
+                    </canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <ng-template #adStats let-c="close" let-d="dismiss">
+        <div class="modal-header">
+            <h5 class="modal-title">广告播放统计</h5>
+        </div>
+        <div class="modal-body">
+            <div class="container">
+                <div class=" table-responsive">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th>序号</th>
+                            <th>广告名称</th>
+                            <th>播放时长(分钟)</th>
+                            <th>播放次数</th>
+                            <th>下载进度</th>
+                            <th>下载状态</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        <tr *ngFor="let ad of advertisementStatsList, let i = index">
+                            <th scope="row">{{i+1}}</th>
+                            <td>{{ad.playDetailName}}</td>
+                            <td>{{ ((ad.playDuration === 'null') ? 0:ad.playDuration)}}</td>
+                            <td>{{ad.playTime}}</td>
+                            <td>{{ad.downloadPercent==null?'0.0%':ad.downloadPercent+'%'}}</td>
+                            <td>
+                                <span [ngSwitch]="ad.downloadState">
+                                    <span *ngSwitchCase="'0'">未下载</span>
+                                    <span *ngSwitchCase="'1'">正在下载</span>
+                                    <span *ngSwitchCase="'2'">已下载</span>
+                                    <span *ngSwitchDefault>未下载</span>
+                                </span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template #flowStatModel let-c="close" let-d="dismiss">
+        <div class="modal-header">
+            <h5 class="modal-title">客流驻留时长分布（{{selectTime}}）</h5>
+        </div>
+        <div class="modal-body">
+            <div class="container">
+                <canvas baseChart height="90"
+                        [data]="pieChartData"
+                        [labels]="pieChartLabels"
+                        [chartType]="pieChartType"></canvas>
+            </div>
+        </div>
+    </ng-template>
+</div>

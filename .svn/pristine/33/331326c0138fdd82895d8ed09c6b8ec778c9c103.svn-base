@@ -1,0 +1,26 @@
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {SaveComponent} from './save.component';
+import {SaveRoutingModule} from './save-routing.module';
+import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
+import {FormsModule} from '@angular/forms';
+import {AlertModule, BsDatepickerModule, TimepickerModule} from 'ngx-bootstrap';
+import {DeviceService} from "../../../../shared/services/device/device.service";
+import {DirectiveModule} from '../../../../shared/directives/directive/directive.module';
+
+@NgModule({
+    imports: [
+        CommonModule,
+        FormsModule,
+        NgbModule.forRoot(),
+        BsDatepickerModule.forRoot(),
+        TimepickerModule.forRoot(),
+        SaveRoutingModule,
+        DirectiveModule,
+        AlertModule.forRoot()
+    ],
+    declarations: [SaveComponent],
+    providers: [DeviceService]
+})
+export class SaveModule {
+}

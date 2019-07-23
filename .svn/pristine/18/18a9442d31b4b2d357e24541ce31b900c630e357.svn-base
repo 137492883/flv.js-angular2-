@@ -1,0 +1,22 @@
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {SaveComponent} from './save.component';
+import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
+import {SaveRoutingModule} from './save-routing.module';
+import {FormsModule} from '@angular/forms';
+import {DeviceService} from "../../../../shared/services/device/device.service";
+import {DirectiveModule} from '../../../../shared/directives/directive/directive.module';
+
+@NgModule({
+    imports: [
+        CommonModule,
+        FormsModule,
+        NgbModule.forRoot(),
+        SaveRoutingModule,
+        DirectiveModule
+    ],
+    declarations: [SaveComponent],
+    providers: [DeviceService]
+})
+export class SaveModule {
+}

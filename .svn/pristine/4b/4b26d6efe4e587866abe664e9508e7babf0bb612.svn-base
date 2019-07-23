@@ -1,0 +1,29 @@
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {ListComponent} from './list.component';
+import {ListRoutingModule} from './list-routing.module';
+import {PageHeaderModule} from '../../../../shared/modules/page-header/page-header.module';
+import {FormsModule} from '@angular/forms';
+import { PaginationModule } from 'ngx-bootstrap/pagination';
+import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
+import {BroadcastService} from '../../../../shared/services/broadcast/broadcast.service';
+import {AlertModule} from 'ngx-bootstrap';
+import {DirectiveModule} from '../../../../shared/directives/directive/directive.module';
+import {OrderService} from "../../../../shared/services/order/order.service";
+
+@NgModule({
+    imports: [
+        CommonModule,
+        PageHeaderModule,
+        FormsModule,
+        PaginationModule.forRoot(),
+        NgbModule.forRoot(),
+        AlertModule.forRoot(),
+        ListRoutingModule,
+        DirectiveModule
+    ],
+    declarations: [ListComponent],
+    providers: [OrderService]
+})
+export class ListModule {
+}

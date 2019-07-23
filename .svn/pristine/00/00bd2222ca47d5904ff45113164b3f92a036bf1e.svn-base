@@ -1,0 +1,168 @@
+import {Paging} from '../model/Paging';
+import {Organization} from '../model/Organization';
+import {User} from '../model/user';
+import {systemconst} from '../../systemconst';
+/**
+ * Created by wuzhenxue on 2017/9/8.
+ */
+export class BaseComponent {
+    public alerts: any = [];
+    objects: Array<any> = new Array<any>();
+    delObjects: Array<any> = new Array<any>();
+    organizations: Array<Organization> = new Array<Organization>();
+    allSelect = false;
+    queryResult: Paging = new Paging();
+    queryObj: any;
+    baseService: any;
+    moreSearch: boolean;
+    currentUser: User = new User();
+    hourss: Array<string> = [
+        '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17',
+        '18', '19', '20', '21', '22', '23'
+    ];
+    minites: Array<string> = [
+        '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17',
+        '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35',
+        '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '50', '51', '52', '53',
+        '54', '55', '56', '57', '58', '59'
+    ];
+
+    constructor() {
+        this.currentUser = systemconst.currentUser;
+    }
+
+    public showSuccessMsg(msg?: string, showTime?: number): void {
+        this.alerts.pop();
+        this.alerts.push({
+            type: 'success',
+            msg: msg ? msg : '操作成功',
+            timeout: showTime ? showTime : 2000
+        });
+    }
+
+    public showInfoMsg(msg?: string, showTime?: number): void {
+        this.alerts.pop();
+        this.alerts.push({
+            type: 'info',
+            msg: msg ? msg : '操作成功',
+            timeout: showTime ? showTime : 5000
+        });
+    }
+
+    public showErrorMsg(msg?: string, showTime?: number): void {
+        this.alerts.pop();
+        this.alerts.push({
+            type: 'danger',
+            msg: msg ? msg : '操作失败',
+            timeout: showTime ? showTime : 5000
+        });
+    }
+
+    public disposeStr(str: string, num: number) {
+        if (str == null) {
+            return;
+        }
+        if (str.length > num) {
+            return str.substring(0, num) + '...';
+        }
+        return str;
+    }
+
+    public findObjects(url: string) {
+        this.queryObj.deleted = false;
+        document.getElementById('lmask').style.display = 'block';
+        this.baseService.find(url, this.queryObj).subscribe((result) => {
+            this.queryResult = result;
+            this.objects = result.content;
+            this.allSelect = false;
+            for (let i = 0; i < this.objects.length; i++) {
+                this.objects[i].checked = false;
+            }
+            document.getElementById('lmask').style.display = 'none';
+        })
+    }
+
+    onPageChange(event: any, url: string) {
+        this.queryObj.currentPage = event.page - 1;
+        this.findObjects(url);
+    }
+
+    selectAll() {
+        for (let i = 0; i < this.objects.length; i++) {
+            this.objects[i].checked = this.allSelect;
+        }
+    }
+
+    deleteObjects(saveUrl: string, listUrl: string) {
+        this.delObjects = this.objects.filter((item) => {
+            return item.checked;
+        });
+        if (this.delObjects.length === 0) {
+            this.showErrorMsg('请选择要删除的记录！');
+            return;
+        }
+        for (let i = 0; i < this.delObjects.length; i++) {
+            this.delObjects[i].deleted = true;
+        }
+        this.baseService.save(saveUrl, this.delObjects).subscribe((device) => {
+            this.findObjects(listUrl);
+            this.showSuccessMsg('操作成功！');
+        });
+    }
+
+    public permision(): boolean {
+        return true;
+    }
+
+    findHireOrganizations() {
+        this.baseService.find('/system/findHiredOrganizationsNonPage', {}).subscribe((result) => {
+            this.organizations = result;
+        })
+    }
+
+    getCurrentUserFirstLevelOrgs() {
+        this.baseService.find('/system/getCurrentUserFirstLevelOrgs', {}).subscribe((result) => {
+            this.organizations = result;
+        })
+    }
+
+    showMoreSearch() {
+        this.moreSearch = !this.moreSearch;
+    }
+
+    resetSearch() {
+        for (const key in this.queryObj) {
+            if (key === 'groupNames' || key === 'deviceGroups' || key === 'constructor' || key === 'createrId' || key === 'sizePerPage' || key === 'currentPage' || key === 'tenantOrgIds' || key === 'groupList') {
+                continue;
+            }
+            if((typeof this.queryObj[key])==='string'){
+                this.queryObj[key] = '';
+            }
+        }
+    }
+
+    // 只能输入字母和数字
+    validLocationNameKeydown($event) {
+        const keycode = $event.keyCode;
+        if ((keycode === 8) || (keycode === 46) || (keycode === 35) || (keycode === 36) || (keycode === 37) || (keycode === 39)) {
+            return true;
+        }
+        if (!(keycode >= 48 && keycode <= 57) && !(keycode >= 65 && keycode <= 90)) {
+            $event.preventDefault();
+            return false;
+        }
+    }
+
+    /**
+     * 只能输入数字
+     * @param $event
+     * @returns {boolean}
+     */
+    validAdvertisementIndexKeydown($event) {
+        const keycode = $event.keyCode;
+        if (keycode!=8&&keycode!=46&&keycode!=37&&keycode!=39&&!(keycode >= 48 && keycode <= 57) && !(keycode >= 96 && keycode <= 105)) {
+            $event.preventDefault();
+            return false;
+        }
+    }
+}

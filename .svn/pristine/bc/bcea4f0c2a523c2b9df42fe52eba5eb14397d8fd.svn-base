@@ -1,0 +1,8 @@
+export class SystemConfig {
+    id: string;
+    sysheartbeatInterval: number; /*心跳间隔，单位分钟*/
+    sysreportInterval: number; /*信息上报间隔，单位分钟*/
+    sysgetAdInterval: number; /*广告信息获取间隔，单位分钟*/
+    sysgetSysPkgInterval: number; /*系统升级包获取间隔，单位分钟*/
+    sysgetAppPkgInterval: number; /*应用升级包获取间隔，单位分钟*/
+}

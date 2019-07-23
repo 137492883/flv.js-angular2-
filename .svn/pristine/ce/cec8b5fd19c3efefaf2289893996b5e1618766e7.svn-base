@@ -1,0 +1,46 @@
+import {AfterViewInit, Component, OnInit} from '@angular/core';
+import {User} from '../../model/user';
+import {Router} from '@angular/router';
+import {AuthService} from '../../services/auth.service';
+declare var $: any;
+@Component({
+    selector: 'app-sidebar',
+    templateUrl: './sidebar.component.html',
+    styleUrls: ['./sidebar.component.scss']
+})
+export class SidebarComponent implements OnInit, AfterViewInit{
+    isActive = false;
+    showMenu = '';
+    layui: any;
+    currentUser: User = new User();
+
+    constructor(public router: Router, public authService: AuthService) {
+        this.currentUser = authService.getCurrentUser();
+    }
+
+    eventCalled() {
+        this.isActive = !this.isActive;
+    }
+    ngAfterViewInit() {
+        $('dt').hide();
+        $('.ns-nav-tree').click( function() {   //关闭展开
+            console.log('click');
+            $('dt').hide();
+            $(this).siblings('dt').toggle( 200 );
+        });
+        $('.ns-nav-list').click( function() {   //目标样式
+            $( '.ns-tree-warp .ns-nav-list').removeClass( 'ns-list-active' );
+            $( this ).addClass( 'ns-list-active' );
+        });
+    }
+    addExpandClass(element: any) {
+        if (element === this.showMenu) {
+            this.showMenu = '0';
+        } else {
+            this.showMenu = element;
+        }
+    }
+    ngOnInit() {
+
+    };
+}

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <title>中国移动农商行业4G媒体分发平台</title>
+        <!--<title>测试</title>-->
+        <base href="/">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+         <link rel="icon" type="image/x-icon" href="favicon11.ico">
+         <!--<link href="assets/bootstrap.min.css" rel="stylesheet">-->
+        <script type="text/javascript">
+        </script>
+    </head>
+    <body>
+    <!--<embed type="application/x-vlc-plugin" pluginspage="http://www.videolan.org"
+           width="640"
+           height="480"
+           src="http://hls.open.ys7.com/openlive/94b37ea3e6b34cc1af9da55c882733db.m3u8"
+           id="vlc">
+    </embed>-->
+    <script>
+        window.__theme = 'bs4';
+    </script>
+        <app-root></app-root>
+    <script src="assets/js/jquery-1.9.1.min.js"></script>
+    <!--<script src="assets/js/app.js"></script>-->
+    <script src="assets/js/layui.js"></script>
+    <script src="assets/js/GVerify.js"></script>
+    <script src="assets/browser-md5-file/dist/browser-md5-file.js"></script>
+        <script typ.3e="text/javascript" src="https://webapi.amap.com/maps?v=1.4.1&key=aea3ea669a70d8670e861bd3c58c6712"></script>
+        <!--引入UI组件库（1.0版本） -->
+        <script src="https://webapi.amap.com/ui/1.0/main.js?v=1.0.11"></script>
+    </body>
+</html>

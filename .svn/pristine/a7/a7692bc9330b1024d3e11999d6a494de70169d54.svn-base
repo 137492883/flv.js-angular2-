@@ -1,0 +1,254 @@
+import {Component, OnInit} from "@angular/core";
+import {routerTransition} from "../../../../router.animations";
+import {CommonUtil} from "../../../../shared/providers/CommonUtil";
+import {systemconst} from "../../../../systemconst";
+import {ActivatedRoute, Router} from "@angular/router";
+import {UpgradeTask} from "../../../../shared/model/UpgradeTask";
+import {FileUploader} from "ng2-file-upload";
+import {DeviceService} from "../../../../shared/services/device/device.service";
+import {BaseComponent} from "../../../../shared/components/BaseComponent";
+declare var browserMD5File: any;
+/**
+ * 描述:升级任务编辑页面操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/09 14:54:36
+ */
+@Component({
+    selector: 'app-save',
+    templateUrl: './save.component.html',
+    styleUrls: ['./save.component.scss'],
+    animations: [routerTransition()]
+})
+export class SaveComponent extends BaseComponent implements OnInit {
+
+    /**
+     * 当前升级计划
+     * @type {UpgradeTask}
+     */
+    task: UpgradeTask = new UpgradeTask();
+    /**
+     * 验证信息
+     * @type {string}
+     */
+    valid = '';
+    /**
+     * 文件名
+     * @type {string}
+     */
+    fileName = '';
+    /**
+     * 是否提交
+     * @type {boolean}
+     */
+    isSubmit = false;
+    isZip: boolean;
+    /**
+     * 强制升级
+     */
+    forced: boolean;
+    /**
+     * 标题
+     * @type {string}
+     */
+    title = '新建升级任务';
+    /**
+     * 当前文件md5值
+     * @type {string}
+     */
+    currentFileMd5 = '';
+    public uploader: FileUploader = new FileUploader({
+        authToken: 'Bearer ' + localStorage.getItem('id_token'),
+        url: systemconst.api_url + 'device/UploadFile'
+    });
+
+    constructor(public commonUtil: CommonUtil, public route: ActivatedRoute, public router: Router, public deviceService: DeviceService) {
+        super();
+        this.uploader.onAfterAddingFile = (fileItem) => {
+            this.fileName = fileItem.file.name;
+            const file = this.uploader.queue[this.uploader.queue.length - 1];
+            file.onSuccess = (response, status, headers) => {
+                document.getElementById('lmask').style.display = 'none';
+                if (status === 200) {
+                    this.task.fileUrl = JSON.parse(response).url;
+                    this.fileName = JSON.parse(response).url;
+                    this.task.md5 = JSON.parse(response).md5;
+                    this.task.size = JSON.parse(response).size;
+                    this.task.packageName = fileItem.file.name;
+                } else {
+                }
+            };
+            file.onProgress = (progress) => {
+            }
+        };
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        const id = this.route.snapshot.paramMap.get('id');
+        //如果是编辑
+        if (id !== 'null') {
+            this.title = '编辑升级任务';
+            this.deviceService.getObject('/device/getTask', {id: id}).subscribe((task) => {
+                this.task = task;
+                this.fileName = this.task.fileUrl;
+                if (this.task.forced === '1') {
+                    this.forced = true;
+                }
+            });
+        }
+    }
+
+    /**
+     * 删除任务
+     */
+    deleteTask() {
+        //如果是测试任务
+        if (this.task.test) {
+            this.deviceService.getObject('/device/findUpgradePlanByTask', {taskId: this.task.id}).subscribe((result) => {
+                if (result.length > 0) {
+                    let planName = '';
+                    for (let i = 0; i < result.length; i++) {
+                        planName += result[i].name + ',';
+                    }
+                    planName = planName.substring(0, planName.length - 1);
+                    this.showErrorMsg('本任务已被计划【' + planName + '】使用，如需删除，请先删除上述升级计划或修改上述升级计划中的升级任务为其他任务。')
+                } else {
+                    this.task.deleted = true;
+                    this.deviceService.save('/device/saveTask', this.task).subscribe((device) => {
+                        setTimeout(() => {
+                            systemconst.alertMessage = '操作成功！';
+                            this.router.navigate(['/device/task/list']);
+                        }, 2000);
+                    });
+                }
+            });
+        } else {
+            //如果任务被锁定
+            if (this.task.locked) {
+                this.showErrorMsg('本任务已被锁定，如需删除，请先解锁。')
+            } else {
+                this.task.deleted = true;
+                this.deviceService.save('/device/saveTask', this.task).subscribe((device) => {
+                    setTimeout(() => {
+                        systemconst.alertMessage = '操作成功！';
+                        this.router.navigate(['/device/task/list']);
+                    }, 2000);
+                });
+            }
+        }
+    }
+
+    /**
+     * 提交表单
+     */
+    submitForm() {
+        //如果是测试任务
+        if (this.task.test) {
+            this.deviceService.getObject('/device/findUpgradePlanByTask', {taskId: this.task.id}).subscribe((result) => {
+                if (result.length > 0) {
+                    let planName = '';
+                    for (let i = 0; i < result.length; i++) {
+                        planName += result[i].name + ',';
+                    }
+                    planName = planName.substring(0, planName.length - 1);
+                    this.showErrorMsg('本任务已被计划【' + planName + '】使用，如需保存，请先删除上述升级计划或修改上述升级计划中的升级任务为其他任务。')
+                } else {
+                    this.saveTask();
+                }
+            });
+        } else {
+            //如果任务被锁定
+            if (this.task.locked) {
+                this.showErrorMsg('本任务已被锁定，如需修改，请先解锁。')
+            } else {
+                this.deviceService.getObject('/device/findUpgradePlanByTask', {taskId: this.task.id}).subscribe((result) => {
+                    if (result.length > 0) {
+                        let planName = '';
+                        for (let i = 0; i < result.length; i++) {
+                            planName += result[i].name + ',';
+                        }
+                        planName = planName.substring(0, planName.length - 1);
+                        this.showErrorMsg('本任务已被计划【' + planName + '】使用，如需保存，请先删除上述升级计划或修改上述升级计划中的升级任务为其他任务。')
+                    } else {
+                        this.saveTask();
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * 保存升级任务
+     */
+    saveTask() {
+        this.valid = '';
+        this.isSubmit = true;
+        if (!this.commonUtil.isEmpty(this.task.name)) {
+            this.valid = systemconst.validEmptyMessage;
+        }
+        if (!this.commonUtil.isEmpty(this.task.version)) {
+            this.valid = systemconst.validEmptyMessage;
+        }
+        if (!this.commonUtil.isEmpty(this.task.size)) {
+            this.valid = '请先上传文件';
+        }
+        if (!this.commonUtil.isEmpty(this.task.fileUrl)) {
+            this.valid = '请先上传文件';
+        }
+        if (this.valid !== '') {
+            return;
+        }
+        this.task.creatorId = systemconst.currentUser.id;
+        this.commonUtil.trimObject(this.task);
+        this.deviceService.save('/device/saveTask', this.task).subscribe((device) => {
+            setTimeout(() => {
+                systemconst.alertMessage = '保存成功！';
+                this.router.navigate(['/device/task/list']);
+            }, 2000);
+        });
+    }
+
+    /**
+     * 选择文件触发的事件
+     * @param event
+     */
+    selectedFileOnChanged(event: any) {
+        const files = event.target.files;
+        browserMD5File(files[0], (err, md5) => {
+            this.currentFileMd5 = md5;
+        });
+        this.uploader.clearQueue();
+        this.uploader.addToQueue(files);
+    }
+
+    /**
+     * 上传升级包
+     */
+    uploadFile() {
+        this.deviceService.getFileByMd5(this.currentFileMd5).subscribe((fileInfo) => {
+            if (!this.commonUtil.isEmpty(fileInfo.id)) {
+                const fileName = this.uploader.queue[this.uploader.queue.length - 1].file.name;
+                if (fileName.lastIndexOf('.zip') < 0 && fileName.lastIndexOf('.rar') < 0) {
+                    this.isZip = false;
+                    return;
+                }
+                this.isZip = true;
+                document.getElementById('lmask').style.display = 'block';
+                this.uploader.queue[this.uploader.queue.length - 1].upload();
+            } else {
+                this.task.fileUrl = fileInfo.filePath;
+                this.fileName = fileInfo.filePath;
+                this.task.md5 = fileInfo.md5;
+                this.task.size = fileInfo.size+'';
+                this.task.packageName = fileInfo.packagename;
+                if(!this.commonUtil.isEmpty(this.task.packageName)){
+                    this.task.packageName=this.uploader.queue[this.uploader.queue.length - 1].file.name;
+                }
+                this.showSuccessMsg('上传成功');
+            }
+        });
+    }
+
+}

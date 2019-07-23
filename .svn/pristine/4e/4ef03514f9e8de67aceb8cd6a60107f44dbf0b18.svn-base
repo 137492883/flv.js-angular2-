@@ -1,0 +1,35 @@
+import {BaseEntity} from './BaseEntity';
+/**
+ * 升级监控实体
+ */
+export class UpgradeMonitor extends BaseEntity {
+    /*
+    升级id
+     */
+    deviceId: string;
+    /*
+     升级计划id
+    */
+    upgradeScheduleId: string;
+    /*
+    下载百分比
+     */
+    downloadPercent: string;
+    /*
+    下载状态
+     */
+    updatedFlag: string;
+    /*
+    下载状态 '0':未下载；'1': 正在下载；'2':已下载
+     */
+    downloadStats: string;
+    /*
+    版本号
+     */
+    version: string;
+    upgradeName: string;
+    constructor (deviceid?: string) {
+        super();
+        this.deviceId = deviceid;
+    }
+}

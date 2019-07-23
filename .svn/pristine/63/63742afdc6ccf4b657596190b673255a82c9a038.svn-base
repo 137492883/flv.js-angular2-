@@ -1,0 +1,364 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-edit"></i>
+                    {{title}}
+                </li>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <span>
+                        请按要求填写相关内容信息（红框为必填项）
+                        <a [href]="downLoadBindUrl">视频转换工具下载</a>（建议所有视频、图片均经过软转换后再进行上传）
+                        <a [href]="downLoadBindUrlSysm">视频转换工具使用说明下载</a>
+                        <span style="color: red" *ngIf="isSubmit&&valid!==''">{{valid}}</span>
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label customrequired" >内容名称</label>
+                        <div class="col-sm-4">
+                            <input type="text"
+                                   [class]="advertisement.name==null||advertisement.name===''?'form-control is-invalid':'form-control'"
+                                   [(ngModel)]="advertisement.name" maxlength="20" placeholder="内容名称">
+                        </div>
+                        <div class="col">
+                            <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-2">
+                            <label class="col-form-label ">内容测试</label>
+                        </div>
+                        <div class="col-auto">
+                            <label class="col-form-label"><input type="checkbox" [(ngModel)]="advertisement.test">
+                                是</label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label customrequired">文件类型</label>
+                        <div class="col-sm-4">
+                            <select [class]="advertisement.fileType==null||advertisement.fileType===''?'form-control is-invalid':'form-control'"
+                                    (change)="changeFileType($event)" [(ngModel)]="advertisement.fileType">
+                                <option selected value="">选择文件类型</option>
+                                <option value="1">视频</option>
+                                <option value="2">图片</option>
+                                <option value="3">文字</option>
+                                <option value="4">流媒体</option>
+                                <option value="5">文档</option>
+                                <option value="6">扩展组件</option>
+                            </select>
+                        </div>
+                        <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                    </div>
+                    <div class="form-group row" *ngIf="advertisement.fileType==='1'||advertisement.fileType==='2'||advertisement.fileType==='5'">
+                        <label class="col-sm-2 col-form-label">
+                            内容文件
+                        </label>
+                        <div class="col-sm-5">
+                            <input type="file" id="nrwj" style="display: none;"
+                                   [class]="(advertisement.fileUrl==null||advertisement.fileUrl==='')?'form-control is-invalid':'form-control'"
+                                   ng2FileSelect [uploader]="uploader" (change)="selectedFileOnChanged($event)">
+                            <button (click)="onFileClick()" class="btn btn-warning" *ngIf="advertisement.fileType==='1'">
+                                选择视频
+                            </button>
+                            <button (click)="onFileClick()" class="btn btn-warning" *ngIf="advertisement.fileType==='2'">
+                                选择图片支持jpg
+                            </button>
+                            <button (click)="onFileClick()" class="btn btn-warning" *ngIf="advertisement.fileType==='5'">
+                                选择PDF文件
+                            </button>
+                        </div>
+                        <div class="col-sm-2">
+                            <label class="col-form-label" *ngIf="uploader.progress>0&&uploader.progress<100">{{uploader.progress/2}}%</label>
+                            <label class="col-form-label" *ngIf="uploader.progress==100&&(advertisement.fileUrl==''||advertisement.fileUrl==null)">{{tishixinxi}}</label>
+                            <label class="col-form-label" *ngIf="currentFileMd5=='计算'">正在计算md5值请稍候...</label>
+                        </div>
+                        <div class="col-sm-3">
+                            <button *ngIf="uploader.queue.length>0 && uploader.progress <100&&currentFileMd5!='计算'" class="btn btn-primary"
+                                    (click)="uploadFile()">上传
+                            </button>
+                            <button class="btn btn-primary" *ngIf="safeUrl!=null&&pdfSrc==null" (click)="previewPdf()">预览</button>
+                        </div>
+                    </div>
+                    <div class="form-group row" *ngIf="advertisement.fileType==='3'">
+                        <label class="col-sm-2 col-form-label">
+                            背景图片
+                        </label>
+                        <div class="col-sm-3">
+                            <input type="file" id="bjtp" class="form-control" style="display: none;" ng2FileSelect [uploader]="backgrounduploader"
+                                   (change)="selectedBackGroundImgOnChanged($event)">
+                            <button (click)="onBackGroundImgClick()" class="btn btn-warning" *ngIf="advertisement.fileType==='3'">
+                                选择背景图片支持jpg
+                            </button>
+                        </div>
+                        <div class="col-sm-1">
+                            <label class="col-form-label" *ngIf="backgrounduploader.progress>0">{{backgrounduploader.progress}}%</label>
+                        </div>
+                        <div class="col-sm-6">
+                            <button *ngIf="backgrounduploader.queue.length>0 && backgrounduploader.progress <100"
+                                    class="btn btn-primary" (click)="uploadBackground()">上传
+                            </button>
+                            <button *ngIf="advertisement.advertisementtextsetting.backgroundImgUrl!==''&&advertisement.advertisementtextsetting.backgroundImgUrl!=null"
+                                    class="btn btn-danger" (click)="clearBackgroundImg()">清除
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group row" *ngIf="isBackgroundPhoto==false&&advertisement.fileType==='3'">
+                        <div class="col" style="color: red">
+                            请选择JPG文件
+                        </div>
+                    </div>
+                    <div class="form-group row" *ngIf="isPDF==false&&advertisement.fileType==='5'">
+                        <div class="col" style="color: red">
+                            请选择PDF文件
+                        </div>
+                    </div>
+                    <div class="form-group row" *ngIf="advertisement.fileType==='3'">
+                        <label class="col-sm-2 col-form-label">文档描述</label>
+                        <div class="col-sm-10">
+                            <div class="form-group row" *ngIf="advertisement.fileType==='3'">
+                                <div class="col-sm-2">
+                                    背景颜色
+                                    <input style="margin-top: 6px;" type="color" (change)="colorChange($event)"
+                                           [(ngModel)]="advertisement.advertisementtextsetting.backgroundColor"/>
+                                </div>
+                                <div class="col-sm-2">
+                                    文字颜色&nbsp;<input type="color" style="margin-top: 6px;" [(ngModel)]="advertisement.advertisementtextsetting.color"/>
+                                </div>
+                                <div class="col-sm-2">
+                                    滚动设置
+                                    <select style="margin-top: 6px;" (change)="onChangeTextScroll($event)"
+                                            [(ngModel)]="advertisement.advertisementtextsetting.textScroll">
+                                        <option selected value="0">静止</option>
+                                        <option value="1">向左</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-2">
+                                    滚动速度
+                                    <select style="margin-top: 6px;"
+                                            [(ngModel)]="advertisement.advertisementtextsetting.textScrollSpeed">
+                                        <option selected value="0">静止</option>
+                                        <option value="2">慢速</option>
+                                        <option value="5">中速</option>
+                                        <option value="8">快速</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-2">
+                                    字体
+                                    <select style="margin-top: 6px;"
+                                            [(ngModel)]="advertisement.advertisementtextsetting.fontFamily">
+                                        <option value="0">宋体</option>
+                                        <option value="1">黑体</option>
+                                        <option value="2">隶书</option>
+                                        <option value="3">楷体</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-2">
+                                    字号
+                                    <select style="margin-top: 6px;"
+                                            [(ngModel)]="advertisement.advertisementtextsetting.fontSize">
+                                        <option value="14">14</option>
+                                        <option value="20">20</option>
+                                        <option value="40">40</option>
+                                        <option value="60">60</option>
+                                        <option value="80">80</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row" *ngIf="advertisement.fileType==='3'">
+                                <div class="col-sm-2">
+                                    <input type="checkbox" [(ngModel)]="jiacu" (click)="changeJiacu()">加粗
+                                </div>
+                                <div class="col-sm-2">
+                                    <input type="checkbox" [(ngModel)]="qingxie" (click)="changeQingxie()">倾斜
+                                </div>
+                                <div class="col-sm-2">
+                                    <input type="checkbox" [(ngModel)]="xiahuaxian" (click)="changeXiahuaxian()">下划线
+                                </div>
+                                <div class="col-sm-2">
+                                    透明度
+                                    <select [(ngModel)]="advertisement.advertisementtextsetting.transparent">
+                                        <option value="FF">100%</option>
+                                        <option value="F2">95%</option>
+                                        <option value="E6">90%</option>
+                                        <option value="D9">85%</option>
+                                        <option value="CC">80%</option>
+                                        <option value="BF">75%</option>
+                                        <option value="B3">70%</option>
+                                        <option value="A6">65%</option>
+                                        <option value="99">60%</option>
+                                        <option value="8C">55%</option>
+                                        <option value="80">50%</option>
+                                        <option value="73">45%</option>
+                                        <option value="66">40%</option>
+                                        <option value="59">35%</option>
+                                        <option value="4D">30%</option>
+                                        <option value="40">25%</option>
+                                        <option value="33">20%</option>
+                                        <option value="26">15%</option>
+                                        <option value="1A">10%</option>
+                                        <option value="0D">5%</option>
+                                        <option value="00">0%</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <textarea class="form-control" style="min-height: 600px;"
+                                      [(ngModel)]="advertisement.doc"
+                                      [ngStyle]="{'color':advertisement.advertisementtextsetting.color,'font-size':advertisement.advertisementtextsetting.fontSize+'px','font-style':advertisement.advertisementtextsetting.fontStyle,'font-weight':advertisement.advertisementtextsetting.fontWeight,'text-decoration-line':advertisement.advertisementtextsetting.textLine,'font-family':getFontFamily(),'background-size':'100% 100%','background-image':'url('+advertisement.advertisementtextsetting.backgroundImgUrl+')','background-color':advertisement.advertisementtextsetting.backgroundColor}"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group row" *ngIf="isPhoto==false&&advertisement.fileType==='2'">
+                        <div class="col" style="color: red">
+                            请选择JPG文件
+                        </div>
+                    </div>
+                    <div class="form-group row" *ngIf="isPhoto&&fileSize>500&&advertisement.fileType === '2'">
+                        <div class="col" style="color: red">
+                            上传的图片文件不能大于500M
+                        </div>
+                    </div>
+                    <div class="form-group row" *ngIf="isMedia==false&&advertisement.fileType==='1'">
+                        <div class="col" style="color: red">
+                            请选择MP4文件
+                        </div>
+                    </div>
+                    <div class="form-group row" *ngIf="isMedia&&fileSize>2000&&advertisement.fileType === '1'">
+                        <div class="col" style="color: red">
+                            上传的视频文件不能大于2G{{fileSize}}
+                        </div>
+                    </div>
+                    <div *ngIf="advertisement.fileType==='4'">
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">链接地址</label>
+                            <div class="col-sm-6">
+                                <input type="text"
+                                       [class]="(advertisement.url==null||advertisement.url==='')?'form-control is-invalid':'form-control'"
+                                       placeholder="http://" [(ngModel)]="advertisement.url" (change)="changeUrl($event);">
+                            </div>
+                            <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">内容描述</label>
+                        <div class="col-sm-10">
+                                    <textarea type="text" class="form-control" style="min-height: 60px;"
+                                              [(ngModel)]="advertisement.description"
+                                              placeholder="请填写内容描述信息"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group row" *ngIf="advertisement.fileType==='6'">
+                        <label class="col-sm-2 col-form-label">链接地址</label>
+                        <div class="col-sm-6">
+                            <input type="text"
+                                   [class]="(advertisement.url==null||advertisement.url==='')?'form-control is-invalid':'form-control'"
+                                   placeholder="http://" [(ngModel)]="advertisement.url">
+                        </div>
+                        <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                    </div>
+                    <div class="form-group row" *ngIf="advertisement.fileType!=='3'&&advertisement.fileType!=='6'">
+                        <div class="col">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    预览
+                                </div>
+                                <div class="card-body">
+                                    <div class="card-body">
+                                        <div class="container" [ngSwitch]="advertisement.fileType">
+                                            <!--fileType 3：文本  2:图片  1：视频  4:流媒体 5:文档 6、扩展组件-->
+                                            <span *ngSwitchCase="'2'">
+                                                <img style="width: 100%;" [src]="advertisement.fileUrl | cdnurl"
+                                                     *ngIf="advertisement.fileUrl!=null">
+                                            </span>
+                                            <span *ngSwitchCase="'1'">
+                                                <vg-player>
+                                                    <video [vgMedia]="media" #media id="singleVideo" style="width: 100%;height: 100%"
+                                                           *ngIf="advertisement.fileUrl!=null" preload="auto" controls>
+                                                        <source [src]="advertisement.fileUrl| cdnurl">
+                                                    </video>
+                                                </vg-player>
+                                                 <vg-player>
+                                                    <video [vgMedia]="media" #media id="singleVideo1" style="width: 100%;height: 100%"
+                                                           *ngIf="advertisement.url!=null" preload="auto" controls>
+                                                        <source [src]="advertisement.url">
+                                                    </video>
+                                                </vg-player>
+                                            </span>
+                                            <span *ngSwitchCase="'5'">
+                                                <pdf-viewer *ngIf="pdfSrc!=null" [src]="pdfSrc"
+                                                            [render-text]="true"
+                                                            [show-all]="true"
+                                                            [autoresize]="true"
+                                                            style="display: block;height: 600px;overflow: auto;"
+                                                ></pdf-viewer>
+                                                <!--<iframe style="height: 600px;width: 100%" *ngIf="safeUrl!=null&&pdfSrc==null" [src]="safeUrl"></iframe>-->
+                                            </span>
+                                            <span *ngSwitchCase="'4'">
+                                                  <vg-player>
+                                                    <video #myMedia style="width: 100%;height: 100%"
+                                                           [vgHls]="advertisement.url"
+                                                           id="my-video"
+                                                           controls
+                                                           crossorigin>
+                                                    </video>
+                                                  </vg-player>
+                                            </span>
+                                            <span *ngSwitchDefault>请按要求选择正确的文件类型</span>
+                                            <div *ngIf="advertisement.fileUrl!=null">{{advertisement.fileUrl | cdnurl}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mx-auto" *ngIf="advertisement.status!=='3'">
+            <div class="mx-auto">
+                <button *appPermision="'neirong_guanli'" type="submit" (click)="audit('1')" class="btn btn-primary">
+                    <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                    <span style="font-size: 1.7rem;">保 存</span>
+                </button>
+                <span *appPermision="'neirong_shenhe'">
+                <button type="submit" (click)="audit('3')" class="btn btn-primary"
+                        *ngIf="advertisement.id!=null&&advertisement.id!==''&&advertisement.status==='1'">
+                    <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                    <span style="font-size: 1.7rem;">审核通过</span>
+                </button>
+            </span>
+                <span *appPermision="'neirong_shenhe'">
+                <button type="submit" (click)="audit('2')" class="btn btn-danger"
+                        *ngIf="advertisement.id!=null&&advertisement.id!==''&&advertisement.status==='1'">
+                    <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                    <span style="font-size: 1.7rem;">退回</span>
+                </button>
+            </span>
+                <span *appPermision="'neirong_guanli'">
+                <button type="submit" (click)="deleteAdv()" class="btn btn-danger"
+                        *ngIf="advertisement.id!=null&&advertisement.id!==''">
+                    <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                    <span style="font-size: 1.7rem;">删 除</span>
+                </button>
+            </span>
+                <!--<span *appPermision="'neirong_guanli'">
+                <button type="submit" (click)="testAd()" class="btn btn-danger">
+                    <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                    <span style="font-size: 1.7rem;">测试</span>
+                </button>
+            </span>-->
+            </div>
+        </div>
+    </div>
+</div>

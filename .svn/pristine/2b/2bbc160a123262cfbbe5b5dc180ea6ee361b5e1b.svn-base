@@ -1,0 +1,68 @@
+import {BaseEntity} from './BaseEntity';
+/**
+ * Created by wuzhenxue on 2017/9/2.
+ */
+export class UpgradeTask extends BaseEntity {
+    /**
+     * 组织机构id
+     **/
+    orgId: string;
+    /**
+     * 任务名称
+     */
+    name: string;
+    /*
+    * 测试任务1 是终端升级任务  2是应用升级任务
+    * */
+    taskType: string;
+    /**
+     * 升级包路径
+     */
+    fileUrl: string;
+    /**
+     * 版本号
+     */
+    version: string;
+    /**
+     * 应用版本名称
+     */
+    number: string;
+    /**
+     * 应用版本
+     */
+    versionCode: string;
+    /**
+     * 包名
+     */
+    packageName: string;
+    /**
+     * 任务描述
+     */
+    description: string;
+    /**
+     * 是否强制升级（'0':否；'1'：是）
+     */
+    forced = '1';
+    /**
+     * 操作者id
+     */
+    creatorId: string;
+    /**
+     * 操作者姓名
+     */
+    creatorName: string;
+    /**
+     * 是否测试
+     */
+    test = false;
+    /**
+     * 是否锁定
+     */
+    locked = false;
+    /**
+     * 是否白名单
+     */
+    white = false;
+    md5 = '';
+    size = '';
+}

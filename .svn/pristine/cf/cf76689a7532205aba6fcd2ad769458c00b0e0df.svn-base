@@ -1,0 +1,189 @@
+import {BaseEntity} from './BaseEntity';
+import {DeviceGroup} from './DeviceGroup';
+/**
+ * 终端实体
+ */
+export class Device extends BaseEntity {
+    /**
+     * 顶级组织机构id
+     * @type {string}
+     */
+    orgId = '';
+    /**
+     * 所属机构名称
+     */
+    orgName: string;
+    /**
+     * 出厂登记
+     */
+    factoryinit: boolean;
+    /**
+     * 二级组织机构id
+     * @type {string}
+     */
+    tenantOrgId = '';
+    /**
+     * 二级机构名称
+     */
+    tenantOrgName: string;
+    /**
+     * 终端sn
+     */
+    sn: string;
+    /**
+     * 起始sn
+     */
+    startSn: string;
+    /**
+     * 结束sn
+     */
+    endSn: string;
+    /**
+     * 起始物联网sn
+     */
+    startWulianwangsn: string;
+    /**
+     * 结束物联网sn
+     */
+    endWulianwangsn: string;
+    /**
+     * 其实终端imei
+     */
+    startDeviceimei: string;
+    /**
+     * 结束终端imei
+     */
+    endDeviceimei: string;
+    /**
+     * 终端组
+     */
+    deviceGroups: Array<DeviceGroup>= new Array<DeviceGroup>();
+    /**
+     * 终端组列表
+     */
+    groupList: Array<DeviceGroup>= new Array<DeviceGroup>();
+    /**
+     * 二级机构id
+     */
+    tenantOrgIds: Array<string> = new Array<string>();
+    /**
+     * 终端组名称
+     */
+    groupNames: Array<string> = new Array<string>();
+    /**
+     * 终端组所属机构名称
+     */
+    groupOrgNames: Array<string> = new Array<string>();
+    /**
+     * 终端组所属机构类型
+     */
+    groupTypes: Array<string> = new Array<string>();
+    /**
+     * 终端imei
+     */
+    deviceimei: string="";
+    /**
+     * 物联网imei
+     */
+    wulianwangimei: string="";
+    /**
+     * 物联网mac
+     */
+    wulianwnagmac: string="";
+    /**
+     * 物联网sn
+     */
+    wulianwangsn: string="";
+    /**
+     * 软件版本
+     */
+    softVersion: string="";
+    /**
+     * 安卓版本
+     */
+    androidVersion: string="";
+    /**
+     * 平台类型
+     */
+    platformType: string="";
+    /**
+     * 产品型号
+     */
+    productionModel: string="";
+    /**
+     * 卡号
+     */
+    cardNum: string="";
+    /**
+     * 流量
+     */
+    flowRate: number;
+    /**
+     * ap热点
+     */
+    apOpen: string;
+    /**
+     * ap用户名
+     */
+    apUserName: string;
+    /**
+     * ap密码
+     */
+    apPasswd: string;
+    /**
+     * ap提交地址
+     */
+    apSubmitUrl: string;
+    /**
+     * 状态
+     */
+    state: string;
+    /**
+     * 内存
+     */
+    storage: string;
+    /**
+     * 坐标
+     */
+    coordinate: string;
+    /**
+     * 命令
+     */
+    command = '';
+    /**
+     * id
+     */
+    uuid: string;
+    /**
+     * 状态
+     */
+    status: string;
+    /**
+     * 上锁
+     */
+    isLock = false;
+    /**
+     * 音量
+     */
+    volume: string;
+    /**
+     * 最近一次心跳时间 格式为 YYYY-MM-dd HH:mm:ss
+     */
+    latestHeartbeatTime: string;
+    /**
+     * 每几分钟统计一次人眼是否注视(“1”,”2”,”3”…)
+     */
+    methodTime: string='1';
+    /**
+     * 摄像头放置位置
+     */
+    location: string;
+    /**
+     * 查询开始时间
+     */
+    startTime: string;
+    /**
+     * 查询结束时间
+     */
+    endTime: string;
+}

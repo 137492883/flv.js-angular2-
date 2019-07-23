@@ -1,0 +1,70 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-table"></i> 终端分组</li>
+                <div class="float-right" *appPermision="'zhongduan_fenzu'">
+                    <button type="button" class="btn btn-primary btn-sm" (click)="addGroup()">新建分组</button>
+                </div>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <div class="form-row align-items-center pl-2">
+                        <div class="col-auto">
+                            <input type="text" class="form-control mb-2 mb-sm-0" id="inlineFormInputName"
+                                   placeholder="终端组名称" [(ngModel)]="groupQuery.groupName">
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary" (click)="findObjects('/device/findGroups')">查询</button>
+                        </div>
+                    </div>
+                </div>
+                <div class=" table-responsive">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th>序号</th>
+                            <th>终端组名称</th>
+                            <th>终端组类型</th>
+                            <th *ngIf="currentUser.userType==='2'">终端可用流量值</th>
+                            <th>终端组特征标签</th>
+                            <th>终端组描述信息</th>
+                            <th>测试终端组</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let group of objects ,let i = index;" placement="bottom">
+                            <th>{{i+1}}</th>
+                            <td title="{{group.groupName}}"><a href="Javascript:void(0)" [routerLink]="['/device/group/save',group.id]">
+                                {{disposeStr(group.groupName,20)}}
+                            </a></td>
+                            <td>{{group.groupType==='1'?'平台分组':'终端分组'}}</td>
+                            <td *ngIf="currentUser.userType==='2'">{{group.flowRate}}GB</td>
+                            <td *ngIf="group.tags!==null" title="{{group.tags.toString()}}">{{disposeStr(group.tags.toString(),10)}}</td>
+                            <td *ngIf="group.tags==null"></td>
+                            <td *ngIf="group.description!==null&&group.description!==''" title="{{group.description}}">{{disposeStr(group.description,10)}}</td>
+                            <td *ngIf="group.description==null||group.description===''"></td>
+                            <td>{{group.test?'是':'否'}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="queryResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'"
+                                [nextText]="'后一页'"
+                                [boundaryLinks]="true" [rotate]="false"
+                                (pageChanged)="onPageChange($event,'/device/findGroups')"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

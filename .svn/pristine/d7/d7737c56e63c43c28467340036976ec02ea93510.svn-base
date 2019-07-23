@@ -1,0 +1,26 @@
+import {NgModule} from "@angular/core";
+import {CommonModule} from "@angular/common";
+import {NgbDropdownModule} from "@ng-bootstrap/ng-bootstrap";
+import {LayoutRoutingModule} from "./layout-routing.module";
+import {LayoutComponent} from "./layout.component";
+import {HeaderComponent, SidebarComponent} from "../shared";
+import {SystemService} from "../shared/services/sysmanage/system.service";
+import {DirectiveModule} from "../shared/directives/directive/directive.module";
+import {SharedPipesModule} from "../shared/pipes/shared-pipes.module";
+
+@NgModule({
+    imports: [
+        CommonModule,
+        NgbDropdownModule.forRoot(),
+        LayoutRoutingModule,
+        DirectiveModule,
+        SharedPipesModule,
+    ],
+    declarations: [
+        LayoutComponent,
+        HeaderComponent,
+        SidebarComponent,
+    ],
+    providers: [SystemService]
+})
+export class LayoutModule { }

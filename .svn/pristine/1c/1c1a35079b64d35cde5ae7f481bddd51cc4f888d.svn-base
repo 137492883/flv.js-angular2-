@@ -1,0 +1,28 @@
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {ListComponent} from './list.component';
+import {ListRoutingModule} from './list-routing.module';
+import {PageHeaderModule} from '../../../../shared/modules/page-header/page-header.module';
+import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
+import {FormsModule} from '@angular/forms';
+import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
+import { PaginationModule } from 'ngx-bootstrap/pagination';
+import {AlertModule} from 'ngx-bootstrap';
+import {SystemService} from '../../../../shared/services/sysmanage/system.service';
+@NgModule({
+    imports: [
+        CommonModule,
+        FormsModule,
+        ListRoutingModule,
+        NgbModule.forRoot(),
+        PageHeaderModule,
+        BsDatepickerModule.forRoot(),
+        PaginationModule.forRoot(),
+        AlertModule.forRoot()
+
+    ],
+    declarations: [ListComponent],
+    providers: [SystemService]
+})
+export class ListModule {
+}

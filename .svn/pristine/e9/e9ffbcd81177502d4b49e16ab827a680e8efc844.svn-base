@@ -1,0 +1,97 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-edit"></i>
+                   {{title}}
+                </li>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg}}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    请填写相关升级任务信息（红框为必填项）
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">应用名称</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text" maxlength="20" [class]="task.name==null||task.name===''?'form-control is-invalid':'form-control'" [(ngModel)]="task.name">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">版本号</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text" maxlength="20" [class]="task.version==null||task.version===''?'form-control is-invalid':'form-control'" [(ngModel)]="task.version">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">应用描述</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <textarea type="text" class="form-control" style="min-height: 120px;" [(ngModel)]="task.description"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">升级包上传</label>
+                            </div>
+                            <div class="col">
+                                <input type="file" ng2FileSelect [uploader]="uploader" class="form-control">
+                            </div>
+                            <div class="col-sm-1">
+                                <label class="col-form-label" *ngIf="uploader.progress>0">{{uploader.progress}}%</label>
+                            </div>
+                            <div class="col-sm-1">
+                                <button *ngIf="uploader.queue.length>0 && uploader.progress <100" class="btn btn-primary" (click)="uploadFile()">上传</button>
+                            </div>
+                        </div>
+                        <div class="form-group row" *ngIf="isApk==false">
+                            <div class="col" style="color: red">
+                                请选择apk文件
+                            </div>
+                        </div>
+                        <div class="form-group row" *ngIf="task.fileUrl!=null&&task.fileUrl!==''">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">已上传文件</label>
+                            </div>
+                            <div class="col">
+                                <label class="col-form-label">{{task.fileUrl | cdnurl}}</label>
+                            </div>
+                        </div>
+                        <div class="form-group row" *appPermision="'shenjirenwu_guanli'">
+                            <div class="mx-auto">
+                                <button type="submit" (click)="submitForm()" class="btn btn-primary">
+                                    <i class="fa fa-fw fa-floppy-o fa-2x" ></i>
+                                    <span style="font-size: 1.7rem;">保 存</span>
+                                </button>
+                                <button type="submit" (click)="deleteTask()" class="btn btn-danger" *ngIf="task.id!=null&&task.id!==''">
+                                    <i class="fa fa-fw fa-floppy-o fa-2x" ></i>
+                                    <span style="font-size: 1.7rem;">删 除</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

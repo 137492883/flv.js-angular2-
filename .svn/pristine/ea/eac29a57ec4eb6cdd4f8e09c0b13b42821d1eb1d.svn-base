@@ -1,0 +1,36 @@
+import {BaseEntity} from './BaseEntity';
+
+export class DeviceAlarm extends BaseEntity {
+    /**
+     * 终端id
+     */
+    deviceid: string;
+    /**
+     * 错误类型
+     */
+    errorType: string;
+    relationType: string;
+    relationId: string;
+    relationName: string;
+    /**
+     * 修复类型
+     */
+    repairType: string;
+    /**
+     * 修复时间
+     */
+    repairTime: Date;
+    /**
+     * 上报时间
+     */
+    createtime: string;
+    /**
+     * 内容名称
+     */
+    advertiseName: string;
+
+    constructor (deviceid?: string) {
+        super();
+        this.deviceid = deviceid;
+    }
+}

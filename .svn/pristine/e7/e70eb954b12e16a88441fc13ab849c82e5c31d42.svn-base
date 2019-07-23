@@ -1,0 +1,119 @@
+import {Component, OnInit} from '@angular/core';
+import {NgbPopoverConfig} from '@ng-bootstrap/ng-bootstrap';
+import {BsDatepickerConfig} from 'ngx-bootstrap/datepicker';
+import {zhCn} from 'ngx-bootstrap/locale';
+import {defineLocale} from 'ngx-bootstrap/bs-moment';
+import {routerTransition} from '../../../../router.animations';
+import {SystemService} from '../../../../shared/services/sysmanage/system.service';
+import {Paging} from '../../../../shared/model/Paging';
+import {BaseComponent} from '../../../../shared/components/BaseComponent';
+import {SystemLog} from '../../../../shared/model/SystemLog';
+import {IMultiSelectOption, IMultiSelectSettings, IMultiSelectTexts} from 'angular-2-dropdown-multiselect';
+
+
+defineLocale('zh-cn', zhCn);
+/**
+ * 描述:接口日志列表操作页面
+ * 作者:高建辉
+ * 创建时间:2018/09/28 14:56:58
+ */
+@Component({
+    selector: 'app-list',
+    templateUrl: './list.component.html',
+    styleUrls: ['./list.component.scss'],
+    animations: [routerTransition()]
+})
+export class ListComponent extends BaseComponent implements OnInit {
+    locale = 'zh-cn';
+    bsConfig: Partial<BsDatepickerConfig>;
+    systemLog: SystemLog = new SystemLog();
+    systemLogs: Array<SystemLog> = new Array<SystemLog>();
+    queryResult: Paging = new Paging();
+    numPages = 0;
+    myOptions: IMultiSelectOption[];
+    mySettings: IMultiSelectSettings = {
+        enableSearch: true,
+        checkedStyle: 'fontawesome',
+        buttonClasses: 'btn btn-default btn-block',
+        dynamicTitleMaxItems: 3,
+        displayAllSelectedText: true
+    };
+    myTexts: IMultiSelectTexts = {
+        checkAll: '选择所有',
+        uncheckAll: '全不选',
+        checked: '条 选择',
+        checkedPlural: '条 选择',
+        searchPlaceholder: '查找',
+        searchEmptyResult: '什么也没有。。。',
+        searchNoRenderText: 'Type in search box to see results...',
+        defaultTitle: '请选择接口类型',
+        allSelected: '全选'
+    };
+    constructor(public config: NgbPopoverConfig, public systemService: SystemService) {
+        super();
+        this.bsConfig = Object.assign({}, {locale: this.locale});
+        this.bsConfig.dateInputFormat = 'YYYY/MM/DD';
+        this.config.triggers = 'hover';
+        this.config.container = 'body';
+        this.myOptions = [
+            { id: '登录认证', name: '登录认证'},
+            { id: '获取广告播放计划', name: '获取广告播放计划'},
+            { id: '获取系统升级信息', name: '获取系统升级信息'},
+            { id: '获取应用白名单', name: '获取应用白名单'},
+            { id: '获取内置应用列表', name: '获取内置应用列表'},
+            { id: '获取预置应用列表', name: '获取预置应用列表'},
+            { id: '终端心跳', name: '终端心跳'},
+            { id: '控制回调', name: '控制回调'}
+        ];
+
+
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit(): void {
+        console.log('777777777777777777777777777777777777777');
+        /*获得日志列表*/
+        document.getElementById('lmask').style.display = 'block';
+        this.systemService.getSystemLogs(this.systemLog).subscribe((result) => {
+            this.queryResult = result;
+            this.systemLogs = result.content;
+            document.getElementById('lmask').style.display = 'none';
+        })
+    }
+    /**
+     * 查询日志
+     */
+    onQuery() {
+        document.getElementById('lmask').style.display = 'block';
+        this.systemLog.currentPage = 0;
+        console.log('开始时间' + this.systemLog.startTime + '结束时间：' + this.systemLog.endTime);
+        // if (this.systemLog.startTime == null || this.systemLog.endTime == null) {
+        //     this.showErrorMsg('请选择开始时间和结束时间', 3000);
+        // } else {
+            this.systemService.getSystemLogs(this.systemLog).subscribe((result) => {
+                this.queryResult = result;
+                this.systemLogs = result.content;
+                this.showSuccessMsg('查询成功，共计查询' + result.totalElements + '条记录');
+            });
+        // }
+        document.getElementById('lmask').style.display = 'none';
+    }
+    /**
+     * 分页
+     * @param event
+     */
+    onPageChange(event: any) {
+        console.log(this.systemLog);
+        this.systemLog.currentPage = event.page - 1;
+        document.getElementById('lmask').style.display = 'block';
+        this.systemService.getSystemLogs(this.systemLog).subscribe((result) => {
+            this.queryResult = result;
+            this.systemLogs = result.content;
+            document.getElementById('lmask').style.display = 'none';
+        })
+    }
+
+
+}

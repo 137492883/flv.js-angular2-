@@ -1,0 +1,127 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-edit"></i>
+                    {{title}}
+                </li>
+
+            </ol>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    请按要求填写播放计划设置（红框为必填项）<span style="color: red" *ngIf="isSubmit&&valid!==''">{{valid}}</span>
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">选择播放计划</label>
+                            </div>
+                            <div class="col">
+                                <select [class]="plan.broadCastTask.id==null||plan.broadCastTask.id===''?'custom-select mb-2 mr-sm-2 mb-sm-0 is-invalid':'custom-select mb-2 mr-sm-2 mb-sm-0'"
+                                        [(ngModel)]="plan.broadCastTask.id">
+                                    <option value="">选择播放计划</option>
+                                    <option *ngFor="let broadCastTask of broadcastTaskOptions"
+                                            value="{{broadCastTask.id}}">{{broadCastTask.planName}}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">播放计划测试</label>
+                            </div>
+                            <div class="col">
+                                <input type="checkbox" [(ngModel)]="plan.isTest" style="margin-top: 12px;"> 是
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">是否置顶</label>
+                            </div>
+                            <div class="col">
+                                <input type="checkbox" [(ngModel)]="plan.isTop" style="margin-top: 12px;"> 是
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label customrequired">分发计划名称</label>
+                            </div>
+                            <div class="col">
+                                <input type="text"
+                                       [class]="(plan.name==null||plan.name==='')?'form-control is-invalid':'form-control'"
+                                       [(ngModel)]="plan.name" name="name">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">播放起止日期</label>
+                            </div>
+                            <div class="col">
+                                <input id="myBsDaterangepicker" #bsDaterangepicker placeholder="请输入播放起止日期"
+                                       [bsConfig]="bsConfig" (click)="bsDaterangepickerinput(bsDaterangepicker)"
+                                       (keydown)="bsDaterangepickerinput(bsDaterangepicker)" type="text"
+                                       class="form-control" bsDaterangepicker [(ngModel)]="bsRangeValue">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-2">
+                                <label class="col-form-label">播放终端组</label>
+                            </div>
+                            <div class="col">
+                                <div *ngFor="let deviceGroup of deviceGroupOptions">
+                                    <input [checked]="this.plan.deviceGroupIds.indexOf(deviceGroup.id) !== -1"
+                                           (click)="checkDeviceGroup($event, deviceGroup)" type="checkbox"
+                                           [value]="deviceGroup.id"> {{deviceGroup.groupName}}
+                                </div>
+                                <div *ngIf="deviceGroupOptions.length ===0">没有可选择的播放终端组</div>
+                            </div>
+                        </div>
+                        <div class="form-group row" *ngIf="plan.auditingStatus!=='3'">
+                            <div class="mx-auto">
+                                <button *appPermision="'bofangjihua_guanli'" type="submit" (click)="broadcastPlanSave()"
+                                        class="btn btn-primary">
+                                    <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                                    <span style="font-size: 1.7rem;">保 存</span>
+                                </button>
+                                <span *appPermision="'bofangjihua_shenhe'">
+                                    <button type="submit" (click)="broadcastPlanAudit()" class="btn btn-primary"
+                                            *ngIf="plan.id!=null&&plan.id!==''&&plan.auditingStatus==='1'">
+                                        <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                                        <span style="font-size: 1.7rem;">审核通过</span>
+                                    </button>
+                                </span>
+                                <span *appPermision="'bofangjihua_shenhe'">
+                                    <button type="submit" (click)="broadcastPlanAuditBack()" class="btn btn-danger"
+                                            *ngIf="plan.id!=null&&plan.id!==''&&plan.auditingStatus==='1'">
+                                        <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                                        <span style="font-size: 1.7rem;">退 回</span>
+                                    </button>
+                                </span>
+                                <span *appPermision="'bofangjihua_guanli'">
+                                    <button type="submit" (click)="broadcastPlanDelete()" class="btn btn-danger"
+                                            *ngIf="plan.id!=null&&plan.id!==''">
+                                        <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                                        <span style="font-size: 1.7rem;">删 除</span>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

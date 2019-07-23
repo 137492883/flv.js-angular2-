@@ -1,0 +1,24 @@
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {ListComponent} from './list.component';
+import {FormsModule} from '@angular/forms';
+import { PaginationModule } from 'ngx-bootstrap/pagination';
+import {SystemService} from '../../../../../shared/services/sysmanage/system.service';
+import {ListRoutingModule} from './list-routing.module';
+import {TreeModule} from 'angular-tree-component';
+import {TabsModule} from 'ngx-bootstrap';
+
+@NgModule({
+    imports: [
+        CommonModule,
+        FormsModule,
+        PaginationModule.forRoot(),
+        TreeModule,
+        ListRoutingModule,
+        TabsModule.forRoot()
+    ],
+    declarations: [ListComponent],
+    providers: [SystemService]
+})
+export class ListModule {
+}

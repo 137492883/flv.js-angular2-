@@ -1,0 +1,87 @@
+import {Component, OnInit} from "@angular/core";
+import {routerTransition} from "../../../../router.animations";
+
+import {ActivatedRoute, Router} from "@angular/router";
+import {SystemConfig} from "../../../../shared/model/SystemConfig";
+import {SystemService} from "../../../../shared/services/sysmanage/system.service";
+import {CommonUtil} from "../../../../shared/providers/CommonUtil";
+import {BaseComponent} from "../../../../shared/components/BaseComponent";
+import {BsModalRef, BsModalService} from "ngx-bootstrap";
+/**
+ * 描述:系统配置操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/09 15:24:58
+ */
+@Component({
+    selector: 'app-save',
+    templateUrl: './save.component.html',
+    styleUrls: ['./save.component.scss'],
+    animations: [routerTransition()]
+})
+export class SaveComponent extends BaseComponent implements OnInit {
+    routerTransition
+    currentSysConfig: SystemConfig = new SystemConfig();
+    sysConfig: SystemConfig = new SystemConfig();
+    valid = '';
+    isSubmit = false;
+    modalRef: BsModalRef;
+
+
+    constructor(public commonUtil: CommonUtil, public router: Router,private modalService: BsModalService,
+                public systemService: SystemService) {
+        super();
+        this.currentSysConfig.id = '1';
+    }
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        this.systemService.findSystemConfig(this.currentSysConfig).subscribe(sysConfig => {
+            this.sysConfig = sysConfig;
+        })
+    }
+
+    /**
+     * 保存系统配置
+     * @param template
+     */
+    submitForm(template) {
+        this.isSubmit = true;
+        if (!this.commonUtil.isNull(this.sysConfig.sysgetAdInterval && this.sysConfig.sysgetAppPkgInterval &&
+                this.sysConfig.sysgetSysPkgInterval && this.sysConfig.sysheartbeatInterval && this.sysConfig.sysreportInterval)) {
+            this.showErrorMsg('请将红框内的信息填写完整!', 3000);
+        } else if (this.sysConfig.sysgetAdInterval < 1) {
+            this.showErrorMsg('广告信息获取间隔要大于等于1分钟!', 3000);
+        } else if (this.sysConfig.sysgetAppPkgInterval < 1) {
+            this.showErrorMsg('应用升级包获取间隔要大于等于1分钟!', 3000);
+        } else if (this.sysConfig.sysgetSysPkgInterval < 1) {
+            this.showErrorMsg('系统升级包获取间隔要大于等于1分钟!', 3000);
+        } else if (this.sysConfig.sysheartbeatInterval < 1) {
+            this.showErrorMsg('心跳间隔要大于等于1分钟!', 3000);
+        } else if (this.sysConfig.sysreportInterval < 1) {
+            this.showErrorMsg('信息上报间隔要大于等于1秒!', 3000);
+        } else {
+            if(this.sysConfig.sysheartbeatInterval>5){
+                this.modalRef = this.modalService.show(template, {class: 'modal-sm'});
+            }else{
+                this.doSubmit();
+            }
+        }
+    }
+
+    /**
+     * 提交表单
+     */
+    doSubmit(){
+        this.systemService.updateSystemConfig(this.sysConfig).subscribe(sysConfig => {
+            this.showSuccessMsg('操作成功', 2000);
+        });
+        if(this.modalRef!=null){
+            this.modalRef.hide();
+        }
+    }
+
+    closeComfirm(){
+        this.modalRef.hide();
+    }
+}

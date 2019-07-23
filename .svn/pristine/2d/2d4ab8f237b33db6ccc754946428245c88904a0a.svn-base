@@ -1,0 +1,229 @@
+import {Injectable} from '@angular/core';
+import {ApiService} from '../api.service';
+import {BaseService} from '../base.service';
+import {Observable} from 'rxjs/Observable';
+import {UpgradeMonitor} from '../../model/UpgradeMonitor';
+import {DeviceAlarm} from '../../model/DeviceAlarm';
+import {Device} from '../../model/Device';
+import {DeviceApDTO} from '../../model/DeviceApDTO';
+import {ScheduleStats} from '../../model/ScheduleStats';
+import {AdvertisementStats} from '../../model/AdvertisementStats';
+import {WatcherFlow} from "../../model/WatcherFlow";
+
+@Injectable()
+export class DeviceService extends BaseService {
+
+    constructor(public apiService: ApiService) {
+        super(apiService);
+    }
+
+    /**
+     * 获取升级监控
+     * @param upgradeMonitorSelect
+     * @returns {Observable<R>}
+     */
+    getUpgradeMonitors(upgradeMonitorSelect: UpgradeMonitor): Observable<any> {
+        return this.apiService.post('upgradeMonitorLog/getUpgradeMonitors', upgradeMonitorSelect)
+            .map(data => data.json());
+    }
+
+    /**
+     * 获取设备警告
+     * @param deviceAlarm
+     * @returns {Observable<R>}
+     */
+    getDeviceAlarms(deviceAlarm: DeviceAlarm): Observable<any> {
+        return this.apiService.post('deviceAlarmLog/getDeviceAlarms', deviceAlarm)
+            .map(data => data.json());
+    }
+
+    /**
+     * 保存设备警告
+     * @param deviceAlarm
+     * @returns {Observable<R>}
+     */
+    saveDeviceAlarms(deviceAlarm: DeviceAlarm): Observable<any> {
+        return this.apiService.post('deviceAlarmLog/saveAlarm', deviceAlarm)
+            .map(data => data.json());
+    }
+
+    getBroadcastPlans(device: Device): Observable<any> {
+        return this.apiService.post('broadcastPlan/getBroadcastPlans', device)
+            .map(data => data.json());
+    }
+
+    /**
+     * 初始化
+     * @param device
+     * @returns {Observable<R>}
+     */
+    factoryinit(device: Device): Observable<any> {
+        return this.apiService.post('probe/factoryinit', device)
+            .map(data => data.json());
+    }
+
+    /**
+     * 批量初始化
+     * @param devicedto
+     * @returns {Observable<R>}
+     */
+    factoryInitBatch(devicedto: DeviceApDTO): Observable<any> {
+        return this.apiService.post('probe/factoryinitBatch', devicedto)
+            .map(data => data.json());
+    }
+
+    /**
+     * 探针激活
+     * @param device
+     * @returns {Observable<R>}
+     */
+    mddeviceon(device: Device): Observable<any> {
+        return this.apiService.post('probe/mddeviceon', device)
+            .map(data => data.json());
+    }
+
+    /**
+     * 探针注销
+     * @param device
+     * @returns {Observable<R>}
+     */
+    mddeviceoff(device: Device): Observable<any> {
+        return this.apiService.post('probe/mddeviceoff', device)
+            .map(data => data.json());
+    }
+
+    /**
+     * 查询探针状态
+     * @param device
+     * @returns {Observable<R>}
+     */
+    mddevicestatus(device: Device): Observable<any> {
+        return this.apiService.post('probe/mddevicestatus', device)
+            .map(data => data.json());
+    }
+
+    /**
+     * 客流量查询
+     * @param device
+     * @returns {Observable<R>}
+     */
+    mddeviceflowQuery(device: Device): Observable<any> {
+        return this.apiService.post('probe/mddeviceflow', device)
+            .map(data => data.json());
+    }
+
+    /**
+     * 人脸客流分析查询
+     * @param device
+     * @returns {Observable<R>}
+     */
+    faceFlowQuery(device: Device): Observable<any> {
+        return this.apiService.post('probe/faceFlow', device)
+            .map(data => data.json());
+    }
+
+    /**
+     * 人眼角度分析查询
+     * @param device
+     * @returns {Observable<R>}
+     */
+    statisticaleyeQuery(device: Device): Observable<any> {
+        return this.apiService.post('probe/statisticaleye', device)
+            .map(data => data.json());
+    }
+
+    /**
+     * 最小客流量
+     * @param watcherFlow
+     * @returns {Observable<R>}
+     */
+    findMinflow(watcherFlow: WatcherFlow): Observable<any> {
+        return this.apiService.post('probe/findMinflow', watcherFlow)
+            .map(data => data.json());
+    }
+
+    /**
+     * 日客流量
+     * @param watcherFlow
+     * @returns {Observable<R>}
+     */
+    findDayflow(watcherFlow: WatcherFlow): Observable<any> {
+        return this.apiService.post('probe/findDayflow', watcherFlow)
+            .map(data => data.json());
+    }
+
+    /**
+     * 最小人脸客流量
+     * @param watcherFlow
+     * @returns {Observable<R>}
+     */
+    findMinFaceFlow(watcherFlow: WatcherFlow): Observable<any> {
+        return this.apiService.post('probe/findMinFaceFlow', watcherFlow)
+            .map(data => data.json());
+    }
+
+    /**
+     * 日人脸客流量
+     * @param watcherFlow
+     * @returns {Observable<R>}
+     */
+    findDayFaceFlow(watcherFlow: WatcherFlow): Observable<any> {
+        return this.apiService.post('probe/findDayFaceFlow', watcherFlow)
+            .map(data => data.json());
+    }
+
+    setAp(deviceApDTO: DeviceApDTO): Observable<any> {
+        return this.apiService.post('device/setAp', deviceApDTO)
+            .map(data => data.json());
+    }
+
+    /**
+     * 播放计划
+     * @param scheduleStats
+     * @returns {Observable<R>}
+     */
+    sechduleStats(scheduleStats: ScheduleStats): Observable<any> {
+        return this.apiService.post('stats/sechdule', scheduleStats)
+            .map(data => data.json());
+    }
+
+    /**
+     * 升级计划
+     * @param upgradeMonitor
+     * @returns {Observable<R>}
+     */
+    upgrateStats(upgradeMonitor: UpgradeMonitor): Observable<any> {
+        return this.apiService.post('stats/upgrade', upgradeMonitor)
+            .map(data => data.json());
+    }
+
+    /**
+     * 异常
+     * @param deviceAlarm
+     * @returns {Observable<R>}
+     */
+    alarmStats(deviceAlarm: DeviceAlarm): Observable<any> {
+        return this.apiService.post('stats/alarm', deviceAlarm)
+            .map(data => data.json());
+    }
+
+    /**
+     * 内容
+     * @param advertisementStats
+     * @returns {Observable<R>}
+     */
+    advertisementStats(advertisementStats: AdvertisementStats): Observable<any> {
+        return this.apiService.post('stats/advertisement', advertisementStats)
+            .map(data => data.json());
+    }
+
+    /**
+     * 通过终端查内容
+     * @param advertisementStats
+     * @returns {Observable<R>}
+     */
+    advertisementByDevice(advertisementStats: AdvertisementStats): Observable<any> {
+        return this.apiService.post('stats/advertisementByDevice', advertisementStats)
+            .map(data => data.json());
+    }
+}

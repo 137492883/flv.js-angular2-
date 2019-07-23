@@ -1,0 +1,47 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-table"></i> 资费套餐</li>
+            </ol>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="table-responsive">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th>序号</th>
+                            <th>套餐id</th>
+                            <th>费用明细</th>
+                            <th>后台费用</th>
+                            <th>折扣</th>
+                            <th>终端数量</th>
+                            <th>终端费用</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let ratePlan of objects ,let i = index;" placement="bottom">
+                            <th>{{i+1}}</th>
+                            <td>{{ratePlan.ratePlanID}}</td>
+                            <td>{{ratePlan.rateName}}</td>
+                            <td>{{ratePlan.fee}}</td>
+                            <td>{{ratePlan.discount}}</td>
+                            <td>{{ratePlan.terminalNum}}</td>
+                            <td>{{ratePlan.price}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="queryResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'" [nextText]="'后一页'"
+                                [boundaryLinks]="true" [rotate]="false"  (pageChanged)="onPageChange($event,'/rate/findRatePlans')"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

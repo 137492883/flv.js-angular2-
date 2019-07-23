@@ -1,0 +1,295 @@
+import {Component, OnInit} from "@angular/core";
+import {routerTransition} from "../../../../router.animations";
+import {CommonUtil} from "../../../../shared/providers/CommonUtil";
+import {systemconst} from "../../../../systemconst";
+import {UpgradePlan} from "../../../../shared/model/UpgradePlan";
+import {ActivatedRoute, Router} from "@angular/router";
+import {DeviceService} from "../../../../shared/services/device/device.service";
+import {UpgradeTask} from "../../../../shared/model/UpgradeTask";
+import {DeviceGroup} from "../../../../shared/model/DeviceGroup";
+import {BsDatepickerConfig} from "ngx-bootstrap/datepicker";
+import {defineLocale} from "ngx-bootstrap";
+import {zhCn} from "ngx-bootstrap/locale";
+
+defineLocale('zh-cn', zhCn);
+
+/**
+ * 描述:升级计划编辑页面操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/09 14:51:37
+ */
+@Component({
+    selector: 'app-save',
+    templateUrl: './save.component.html',
+    styleUrls: ['./save.component.scss'],
+    animations: [routerTransition()]
+})
+export class SaveComponent implements OnInit {
+
+    /**
+     * 当前升级计划
+     * @type {UpgradePlan}
+     */
+    plan: UpgradePlan = new UpgradePlan();
+    /**
+     * 升级任务
+     * @type {UpgradeTask[]}
+     */
+    tasks: Array<UpgradeTask> = new Array<UpgradeTask>();
+    /**
+     * 终端组
+     * @type {DeviceGroup[]}
+     */
+    groups: Array<DeviceGroup> = new Array<DeviceGroup>();
+    /**
+     * 所有升级任务
+     * @type {UpgradeTask[]}
+     */
+    allTasks: Array<UpgradeTask> = new Array<UpgradeTask>();
+    /**
+     * 所有终端组
+     * @type {DeviceGroup[]}
+     */
+    allGroups: Array<DeviceGroup> = new Array<DeviceGroup>();
+    public planTimeAlerts: any = [];
+    /**
+     * 验证信息
+     * @type {string}
+     */
+    valid = '';
+    bsRangeValue: Array<Date> = [new Date(), new Date()];
+    /**
+     * 是否提交
+     * @type {boolean}
+     */
+    isSubmit = false;
+    showMeri = false;
+    mouseWheel = false;
+    isValid = false;
+    bsConfig: Partial<BsDatepickerConfig>;
+    locale = 'zh-cn';
+    /**
+     * 标题
+     * @type {string}
+     */
+    title = '新建升级计划';
+
+    constructor(public commonUtil: CommonUtil, public route: ActivatedRoute, public router: Router, public deviceService: DeviceService) {
+        this.bsConfig = Object.assign({}, {locale: this.locale});
+        this.bsConfig.rangeInputFormat = 'YYYY/MM/DD';
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        this.plan.upgradeTask.id = '';
+        const id = this.route.snapshot.paramMap.get('id');
+        this.deviceService.findNoPage('/device/findAllGroups', {
+            groupType: '1',
+            test: null
+        }).subscribe((result) => {
+            this.allGroups = result;
+        });
+        this.deviceService.findNoPage('/device/findAllTasks', {locked: null, test: null}).subscribe((result) => {
+            this.allTasks = result;
+        });
+        if (id !== 'null') {
+            this.title = '编辑升级计划';
+            this.deviceService.getObject('/device/getPlan', {id: id}).subscribe((plan) => {
+                this.plan = plan;
+                this.bsRangeValue = [new Date(this.plan.startDate), new Date(this.plan.endDate)];
+                this.plan.startTime = new Date(this.plan.startTime);
+                this.plan.endTime = new Date(this.plan.endTime);
+                this.deviceService.findNoPage('/device/findAllGroups', {
+                    groupType: '1',
+                    test: this.plan.test
+                }).subscribe((result) => {
+                    this.groups = result;
+                    for (let i = 0; i < this.groups.length; i++) {
+                        if (this.plan.deviceGroupIds.indexOf(this.groups[i].id) > -1) {
+                            this.groups[i].checked = true;
+                        } else {
+                            this.groups[i].checked = false;
+                        }
+                    }
+                });
+                if (this.plan.test) {
+                    this.deviceService.findNoPage('/device/findAllTasks', {
+                        test: true,
+                        locked: null
+                    }).subscribe((result) => {
+                        this.tasks = result;
+                    });
+                } else {
+                    this.deviceService.findNoPage('/device/findAllTasks', {
+                        locked: true,
+                        test: null
+                    }).subscribe((result) => {
+                        this.tasks = result;
+                    });
+                }
+            });
+        } else {
+            this.deviceService.findNoPage('/device/findAllGroups', {
+                groupType: '1',
+                test: false
+            }).subscribe((result) => {
+                this.groups = result;
+            });
+            this.deviceService.findNoPage('/device/findAllTasks', {locked: true, test: null}).subscribe((result) => {
+                this.tasks = result;
+            });
+        }
+    }
+
+    /**
+     * 改变日期触发的事件
+     * @param e
+     * @param dp
+     */
+    onDateValueChange(e, dp: any) {
+        dp.toggle();
+        dp.hide();
+        this.plan.startTime = new Date(dp._bsValue[0]);
+        this.plan.endTime = new Date(dp._bsValue[1]);
+    }
+
+    /**
+     * 获取最终日期跨度
+     * @returns {any}
+     */
+    getFinalDate() {
+        if (this.plan.startTime == null || this.plan.endTime == null) {
+            return '请选择有效时间';
+        }
+        if (this.plan.startTime.getTime() - this.plan.endTime.getTime() > 0) {
+            return '开始时间必须小于结束时间';
+        }
+        return this.commonUtil.getDate(this.plan.startTime, 'YYYY-MM-DD hh:mm:ss') + ' 至 ' + this.commonUtil.getDate(this.plan.endTime, 'YYYY-MM-DD hh:mm:ss');
+    }
+
+    /**
+     * 删除计划
+     */
+    deletePlan() {
+        this.plan.deleted = true;
+        this.deviceService.save('/device/savePlan', this.plan).subscribe((device) => {
+            systemconst.alertMessage = '操作成功！';
+            this.router.navigate(['/device/plan/list']);
+        });
+    }
+
+    /**
+     * 通过或退回
+     * @param audit
+     */
+    audit(audit) {
+        this.plan.audit = audit;
+        this.submitForm();
+    }
+
+    /**
+     * 提交表单
+     */
+    submitForm() {
+        this.valid = '';
+        this.isSubmit = true;
+        this.plan.startDate = this.bsRangeValue[0];
+        this.plan.endDate = this.bsRangeValue[1];
+        if (!this.commonUtil.isEmpty(this.plan.name)) {
+            this.valid = systemconst.validEmptyMessage;
+        }
+        if (!this.commonUtil.isEmpty(this.plan.upgradeTask.id)) {
+            this.valid = systemconst.validEmptyMessage;
+        }
+        if (this.plan.startDate == null || this.plan.endDate == null) {
+            this.valid = systemconst.validEmptyMessage;
+        }
+        if (this.plan.startTime == null || this.plan.endTime == null) {
+            this.valid = '请选择有效时间';
+        }
+        if (this.plan.startTime.getTime() - this.plan.endTime.getTime() > 0) {
+            this.valid = '开始时间必须小于结束时间';
+        }
+        const groups = this.groups.filter((item) => {
+            return item.checked;
+        });
+        if (groups.length === 0) {
+            this.valid = '请选择待升级的终端组';
+        }
+        if (this.valid !== '') {
+            return;
+        }
+        this.plan.deviceGroupIds = [];
+        for (let i = 0; i < groups.length; i++) {
+            this.plan.deviceGroupIds.push(groups[i].id);
+        }
+        this.plan.creatorId = systemconst.currentUser.id;
+        if (this.plan.test) {
+            this.plan.audit = '3';
+        }
+        this.plan.upgradeTask=this.tasks.filter((item)=>{
+            return item.id==this.plan.upgradeTask.id;
+        })[0];
+        this.deviceService.findNoPage('/device/findUpgradePlanByVersion', this.plan).subscribe((result) => {
+            this.planTimeAlerts = [];
+            if (result.length > 0) {
+                for (let i = 0; i < result.length; i++) {
+                    const gs = groups.filter((item) => {
+                        return result[i].deviceGroupIds.indexOf(item.id) > -1;
+                    });
+                    let groupNames = [];
+                    for (let j = 0; j < gs.length; j++) {
+                        groupNames.push(gs[j].groupName);
+                    }
+                    this.planTimeAlerts.push({
+                        type: 'danger',
+                        msg: '待升级终端组【' + groupNames.join(',') + '】已经被分派相同版本号为【' + this.plan.upgradeTask.version + '】的名为【'+result[i].name+'】计划，请检查！'
+                    });
+                }
+            } else {
+                this.commonUtil.trimObject(this.plan);
+                this.deviceService.save('/device/savePlan', this.plan).subscribe((device) => {
+                    systemconst.alertMessage = '保存成功！';
+                    this.router.navigate(['/device/plan/list']);
+                });
+            }
+        });
+    }
+
+    /**
+     * 更改测试状态
+     */
+    changeTest() {
+        if (this.plan.test) {
+            this.groups = this.allGroups.filter((item) => {
+                return !item.test;
+            });
+            for (let i = 0; i < this.groups.length; i++) {
+                if (this.plan.deviceGroupIds.indexOf(this.groups[i].id) > -1) {
+                    this.groups[i].checked = true;
+                } else {
+                    this.groups[i].checked = false;
+                }
+            }
+            this.tasks = this.allTasks.filter((item) => {
+                return item.locked;
+            });
+        } else {
+            this.groups = this.allGroups.filter((item) => {
+                return item.test;
+            });
+            for (let i = 0; i < this.groups.length; i++) {
+                if (this.plan.deviceGroupIds.indexOf(this.groups[i].id) > -1) {
+                    this.groups[i].checked = true;
+                } else {
+                    this.groups[i].checked = false;
+                }
+            }
+            this.tasks = this.allTasks.filter((item) => {
+                return item.test;
+            });
+        }
+    }
+}

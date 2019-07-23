@@ -1,0 +1,432 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-table"></i> 终端管理</li>
+                <div class="float-right" *appPermision="'zhongduan_guanli'">
+                    <button type="button" class="btn btn-primary btn-sm" *ngIf="set_add" (click)="addDevice()">添加终端</button>
+                    <button type="button" class="btn btn-primary btn-sm" *ngIf="set_add" (click)="openModel(importallContent)">批量导入</button>
+                    <button type="button" class="btn btn-primary btn-sm" *ngIf="set_bindCard" (click)="openBindCard(bindCard)">绑卡</button>
+                    <button type="button" class="btn btn-primary btn-sm" *ngIf="set_bindCard" (click)="openModel(bindallContent)">批量绑卡</button>
+                    <button type="button" class="btn btn-primary btn-sm" *ngIf="set_ap" (click)="openApCard(setApCard)">设置热点</button>
+                    <button type="button" class="btn btn-primary btn-sm" *ngIf="set_factoryinit" (click)="factoryInitBatch()">激活探针</button>
+                    <button type="button" class="btn btn-danger btn-sm" *ngIf="set_add" (click)="deleteDevices(showDeleteConfirm,'/device/saveAllDevice','/device/findDevices')">删除终端</button>
+                </div>
+            </ol>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <div class="form-group row">
+                        <div class="col-auto">
+                            <select class="form-control" [(ngModel)]="deviceQuery.orgId">
+                                <option selected value="">选择租户组织结构</option>
+                                <option *ngFor="let org of organizations" [value]="org.id">{{org.name}}</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary" (click)="findObjects('/device/findDevices')">查询</button>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary" (click)="showMoreSearch()">更多查询</button>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-danger" (click)="resetSearch()">重置</button>
+                        </div>
+                    </div>
+                    <div *ngIf="moreSearch" class="form-group row">
+                        <div class="col-sm-2">
+                            <label class="col-form-label">终端区间:</label>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="开始区间" [(ngModel)]="deviceQuery.startSn">
+                        </div>
+                        <div class="col-auto">
+                            <label class="col-form-label">至</label>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="结束区间" [(ngModel)]="deviceQuery.endSn">
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="终端imei" [(ngModel)]="deviceQuery.deviceimei">
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="物联网卡号" [(ngModel)]="deviceQuery.cardNum">
+                        </div>
+                    </div>
+                    <div *ngIf="moreSearch" class="form-group row">
+                        <div class="col-sm-2">
+                            <label class="col-form-label">物联网模块sn区间:</label>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="开始区间" [(ngModel)]="deviceQuery.startWulianwangsn">
+                        </div>
+                        <div class="col-auto">
+                            <label class="col-form-label">至</label>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="结束区间" [(ngModel)]="deviceQuery.endWulianwangsn">
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="软件版本号" [(ngModel)]="deviceQuery.softVersion">
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="android版本号" [(ngModel)]="deviceQuery.androidVersion">
+                        </div>
+                    </div>
+                </div>
+                <div class=" table-responsive">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th style="width:80px;"><input type="checkbox" [(ngModel)]="allSelect" (change)="selectAll()">全选</th>
+                            <th style="width:80px;">序号</th>
+                            <th>租户组织机构</th>
+                            <th >终端SN</th>
+                            <th >物联网模块IMEI</th>
+                            <th >SIM卡 ICCID</th>
+                            <th *ngIf="set_ap" style="width:200px;">热点开启状态</th>
+                            <th *ngIf="set_factoryinit" style="width:200px;">探针激活状态</th>
+                            <th style="width:200px;">认证状态</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let device of objects ,let i = index;" placement="bottom" (click)="device.checked=!device.checked">
+                            <th><input type="checkbox" [value]="device.id" [checked]="device.checked"
+                                       [(ngModel)]="device.checked"></th>
+                            <th>{{i+1}}</th>
+                            <td (click)="openSee(content,device.id)">{{device.orgName}}</td>
+                            <td><a href="Javascript:void(0)" [routerLink]="['/device/entering/save',device.id]">
+                                {{disposeStr(device.sn,15)}}
+                            </a></td>
+                            <td (click)="openSee(content,device.id)">{{disposeStr(device.wulianwangsn,15)}}</td>
+                            <td (click)="openSee(content,device.id)">{{disposeStr(device.cardNum,20)}}</td>
+                            <td *ngIf="set_ap" [ngSwitch]="device.apOpen">
+                                <span *ngSwitchCase="'1'" class="text-success">已开启</span>
+                                <span *ngSwitchDefault class="text-danger">未开启</span>
+                            </td>
+                            <td *ngIf="set_factoryinit" [ngSwitch]="device.factoryinit">
+                                <span *ngSwitchCase="'1'" class="text-success">已激活</span>
+                                <span *ngSwitchDefault class="text-danger">未激活</span>
+                            </td>
+                            <td [ngSwitch]="device.status">
+                                <span *ngSwitchCase="'0'" class="text-success">认证成功</span>
+                                <span *ngSwitchCase="'1'" class="text-danger">终端与4G模块不匹配</span>
+                                <span *ngSwitchCase="'2'" class="text-danger">终端与4G卡号不匹配</span>
+                                <span *ngSwitchCase="'3'" class="text-danger">4G模块与4G卡号不匹配</span>
+                                <span *ngSwitchDefault class="text-danger">未认证</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="queryResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'"
+                                [nextText]="'后一页'"
+                                [boundaryLinks]="true" [rotate]="false"
+                                (pageChanged)="onPageChange($event,'/device/findDevices')"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #content let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">终端详情</h5>
+    </div>
+    <div class="modal-body">
+        <div class="container">
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">租户组织机构</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.orgName">
+                </div>
+                <div class="col-sm-2">
+                    <label class="col-form-label">终端SN</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.sn">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">终端IMEI</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.deviceimei">
+                </div>
+                <div class="col-sm-2">
+                    <label class="col-form-label">SIM卡 ICCID</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.cardNum">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">物联网SN</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.wulianwangimei">
+                </div>
+                <div class="col-sm-2">
+                    <label class="col-form-label">物联网MAC</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.wulianwnagmac">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">物联网IMEI</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.wulianwangsn">
+                </div>
+                <div class="col-sm-2">
+                    <label class="col-form-label">软件版本号</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.softVersion">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">安卓版本号</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.androidVersion">
+                </div>
+                <div class="col-sm-2">
+                    <label class="col-form-label">平台类型</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.platformType">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">产品型号</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceSee.productionModel">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="closeModal()">关闭</button>
+    </div>
+</ng-template>
+
+<ng-template #importallContent let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">批量导入<span style="color: red" *ngIf="importOrgId===''&&isSubmit">&nbsp;请选择组织机构</span><span style="color: red" *ngIf="importAllUploader.queue.length === 0&&isSubmit">&nbsp;请选择文件</span></h5>
+    </div>
+    <div *ngFor="let alert of importAlerts">
+        <alert [type]="alert.type">{{ alert.msg }}</alert>
+    </div>
+    <div class="modal-body">
+        <div class="container">
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">租户组织机构</label>
+                </div>
+                <div class="col">
+                    <select class="form-control" [(ngModel)]="importOrgId">
+                        <option selected value="">选择租户组织结构</option>
+                        <option *ngFor="let org of organizations" [value]="org.id">{{org.name}}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">文件上传</label>
+                </div>
+                <div class="col">
+                    <input type="file" ng2FileSelect [uploader]="importAllUploader"  class="form-control">
+                </div>
+            </div>
+            <div class="form-group row" *ngIf="isExcel1==false">
+                <div class="col" style="color: red">
+                    请选择excel文件
+                </div>
+            </div>
+            <div class="form-group row" *ngIf="importAllUploader.queue.length>0">
+                <div class="col">
+                    <div class="progress">
+                        <div class="progress-bar" style="background-color: #5cb85c" role="progressbar" [ngStyle]="{ 'width': importAllUploader.queue[importAllUploader.queue.length - 1].progress + '%' }"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                    <a [href]="downLoadImportUrl">模版下载</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="doImportAll()">保存</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="closeModal()">关闭</button>
+    </div>
+</ng-template>
+
+<ng-template #bindallContent let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">批量绑卡<span style="color: red" *ngIf="bindAllUploader.queue.length === 0&&isSubmit">&nbsp;请选择文件</span></h5>
+    </div>
+    <div *ngFor="let alert of bindCardAlerts">
+        <alert [type]="alert.type">{{ alert.msg }}</alert>
+    </div>
+    <div class="modal-body">
+        <div class="container">
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">文件上传</label>
+                </div>
+                <div class="col">
+                    <input type="file" ng2FileSelect [uploader]="bindAllUploader" class="form-control">
+                </div>
+            </div>
+            <div class="form-group row" *ngIf="isExcel2==false">
+                <div class="col" style="color: red">
+                    请选择excel文件
+                </div>
+            </div>
+            <div class="form-group row" *ngIf="bindAllUploader.queue.length>0">
+                <div class="col">
+                    <div class="progress">
+                        <div class="progress-bar" style="background-color: #5cb85c" role="progressbar" [ngStyle]="{ 'width': bindAllUploader.queue[bindAllUploader.queue.length - 1].progress + '%' }"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                    <a [href]="downLoadBindUrl">模版下载</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="doBindAll()">保存</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="closeModal()">关闭</button>
+    </div>
+</ng-template>
+
+<ng-template #bindCard let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">绑卡</h5>
+    </div>
+    <div class="modal-body">
+        <div class="container">
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">终端SN</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" readonly [(ngModel)]="deviceBindCard.sn">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">SIM卡 ICCID</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" [(ngModel)]="bindCardNum">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="doBindCard()">保存</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="closeModal()">关闭</button>
+    </div>
+</ng-template>
+
+<ng-template #showDeleteConfirm let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">确认删除</h5>
+    </div>
+    <div class="modal-body">
+        <div class="container">
+            <alert *ngFor="let alert of alerts" [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="doDelete('/device/saveAllDevice','/device/findDevices')">删除</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="closeModal()">关闭</button>
+    </div>
+</ng-template>
+
+<ng-template #setApCard let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">设置热点</h5>
+    </div>
+    <div class="modal-body">
+        <div class="container">
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">开启热点</label>
+                </div>
+                <div class="col">
+                    <input type="checkbox" [(ngModel)]="apOpen_" > 是
+                </div>
+                <div class="col-sm-2">
+                    <label class="col-form-label">客流提交地址</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" [(ngModel)]="deviceApDTO.apSubmitUrl">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">热点用户名</label>
+                </div>
+                <div class="col">
+                    <input type="text" maxlength="20" class="form-control" [(ngModel)]="deviceApDTO.apUsername">
+                </div>
+                <div class="col-sm-2">
+                    <label class="col-form-label">热点密码</label>
+                </div>
+                <div class="col">
+                    <input type="text" maxlength="20" class="form-control" [(ngModel)]="deviceApDTO.apPassword">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="doSetAp()">保存</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="closeModal()">关闭</button>
+    </div>
+</ng-template>
+<ng-template #waitForProbeON let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">温馨提示：</h5>
+    </div>
+    <div class="modal-body">
+        <div class="container">
+            <div>
+                探针激活命令已经成功发送，请耐心等待设备处理！
+            </div>
+            <ul>
+                <li *ngFor=" let res of probeResponse">
+                    SN号码为：{{deviceSN(res.id)}} 的设备激活
+                    <span [ngSwitch]="res.errorCode">
+                        <span *ngSwitchCase="'0'">成功</span>
+                        <span *ngSwitchDefault class="text-danger">失败!(错误代码：{{res.errorCode}})</span>
+                    </span>
+
+                </li>
+            </ul>
+        </div>
+    </div>
+
+</ng-template>

@@ -1,0 +1,30 @@
+import {BaseEntity} from './BaseEntity';
+/**
+ * 归档信息实体
+ */
+export class OrderInfoArchive extends BaseEntity {
+    /**
+     * 发起方交易流水号
+     */
+    transIDO: string;
+    /**
+     * 订单号
+     */
+    orderNumber: string;
+    /**
+     * 产品订购列表
+     */
+    productStatusReport: string;
+    /**
+     * 产品订单编号
+     */
+    productOrderNumber: string;
+    /**
+     * 处理结果
+     */
+    status: number;
+    /**
+     * 时间戳
+     */
+    timeStamp: string;
+}

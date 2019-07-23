@@ -1,0 +1,81 @@
+<div [@routerTransition]>
+    <div>
+        <div class="row">
+            <div class="col-xl-12">
+                <ol class="breadcrumb">
+                    <li class="jb-warp breadcrumb-item"></li>
+                    <li class="breadcrumb-item "><i class="fa fa-table"></i> 日志管理</li>
+                </ol>
+            </div>
+        </div>
+        <div *ngFor="let alert of alerts">
+            <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <form class="form-inline">
+                            <div class="form-group align-items-center pl-2">
+                                <div class="form-group col-auto">
+                                    <div class="form-group col-auto"><label>日志类型:</label></div>
+                                    <select class="custom-select mb-2 mr-sm-2 mb-sm-0" [(ngModel)]="log.type" name="logType">
+                                        <option value="">全部</option>
+                                        <option value="1">平台操作日志</option>
+                                        <option value="2">租户操作日志</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-auto">
+                                    <div class="form-group col-auto"><label>日志时间:</label></div>
+                                    <input type="text" class="form-control" placeholder="请输入开始日期" bsDatepicker
+                                           [(ngModel)]="log.startTime" [bsConfig]="bsConfig"
+                                           name="Datepicker1"/>&nbsp;至&nbsp;
+                                    <input type="text" class="form-control" placeholder="请输入结束日期" bsDatepicker
+                                           [(ngModel)]="log.endTime" [bsConfig]="bsConfig" name="Datepicker2"/>
+                                </div>
+                            </div>
+                            <button type="submit" (click)="onQuery()" class="btn btn-primary">查询</button>
+                        </form>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="bg-secondary text-white">
+                            <tr>
+                                <th>序号</th>
+                                <th>操作者用户名</th>
+                                <th>日志类型</th>
+                                <th>日志时间</th>
+                                <th>所属模块</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr placement="bottom" *ngFor="let log of logs,let i = index;"
+                                popoverTitle="{{log?.moduleMethod}}"
+                                ngbPopover="日志详情:用户{{log?.opUserName}}，于{{log?.createtime}}
+            在{{log?.moduleName}}，执行了“{{log?.moduleMethod}}”操作。">
+                                <th>{{i+1}}</th>
+                                <td><a href="javascript:void(0)">{{log?.opUserName}}</a></td>
+                                <td>
+                                     <span [ngSwitch]="log?.type">
+                                        <span *ngSwitchCase="1">平台操作日志</span>
+                                        <span *ngSwitchCase="2">租户操作日志</span>
+                                    </span>
+                                <td>{{log?.createtime}}</td>
+                                <td>{{log?.moduleName}}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer d-flex justify-content-end">
+                        <pagination [totalItems]="queryResult.totalElements"
+                                    class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [maxSize]="5" [previousText]="'前一页'"
+                                    [nextText]="'后一页'"
+                                    [boundaryLinks]="true" [rotate]="false"
+                                    (pageChanged)="onPageChange($event)">
+                        </pagination>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

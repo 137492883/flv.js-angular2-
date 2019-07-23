@@ -1,0 +1,22 @@
+import {Coordinate} from "./Coordinate";
+/**
+ * Created by lichuan on 2017/9/11.
+ */
+export class CoordinateLocation {
+    /**
+     * 广告位位置topLeft
+     **/
+    topLeft: Coordinate;
+    /**
+     * 广告位位置topRight
+     **/
+    topRight: Coordinate;
+    /**
+     * 广告位位置bottomLeft
+     **/
+    bottomLeft: Coordinate;
+    /**
+     * 广告位位置bottomRight
+     **/
+    bottomRight: Coordinate;
+}

@@ -1,0 +1,265 @@
+import {Component, OnInit} from '@angular/core';
+import {routerTransition} from '../../../../router.animations';
+import {ActivatedRoute, Router} from '@angular/router';
+import {Paging} from '../../../../shared/model/Paging';
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {BroadcastService} from '../../../../shared/services/broadcast/broadcast.service';
+import {BroadcastTask} from '../../../../shared/model/BroadcastTask';
+import {BaseComponent} from '../../../../shared/components/BaseComponent';
+import {CommonUtil} from '../../../../shared/providers/CommonUtil';
+import {systemconst} from '../../../../systemconst';
+import {List} from "linqts";
+import {TimeSlot} from "../../../../shared/model/TimeSlot";
+import * as moment from "moment";
+/**
+ * 描述:播放计划列表页操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/06 21:10:43
+ */
+@Component({
+    selector: 'app-broadcast-task-list',
+    templateUrl: './list.component.html',
+    styleUrls: ['./list.component.scss'],
+    animations: [routerTransition()],
+})
+export class ListComponent extends  BaseComponent implements OnInit {
+
+    /**
+     * 要操作的播放任务对象
+     */
+    task: BroadcastTask;
+    /**
+     * 传给广告位组件的task
+     */
+    editTask: BroadcastTask;
+    /**
+     * 播放任务集合
+     * @type {BroadcastTask[]}
+     */
+    tasks: Array<BroadcastTask> = new Array<BroadcastTask>();
+    contentModal: any;
+    createModal: any;
+    queryResult: Paging = new Paging();
+    /**
+     *
+     * @type {BroadcastTask}
+     */
+    broadcastTaskQuery: BroadcastTask = new BroadcastTask();
+    /**
+     * 验证信息
+     * @type {string}
+     */
+    valid = '';
+    /**
+     * 是否提交
+     * @type {boolean}
+     */
+    isSubmit = false;
+    /**
+     * 开始时间：时
+     * @type {string}
+     */
+    startHour = '00';
+    /**
+     * 开始时间：分
+     * @type {string}
+     */
+    startMinite = '00';
+    /**
+     * 开始时间：秒
+     * @type {string}
+     */
+    startSecond = '00';
+    /**
+     * 结束时间：时
+     * @type {string}
+     */
+    endHour = '00';
+    /**
+     * 结束时间：分
+     * @type {string}
+     */
+    endMinite = '00';
+    /**
+     * 结束时间：秒
+     * @type {string}
+     */
+    endSecond = '00';
+
+    constructor(public route: ActivatedRoute,
+                private modalService: NgbModal,
+                public router: Router,
+                public commonUtil: CommonUtil,
+                public broadcastService: BroadcastService) {
+        super();
+        this.broadcastTaskQuery.auditingStatus = '';
+        this.queryObj = this.broadcastTaskQuery;
+        this.baseService = this.broadcastService;
+        this.tasks = [];
+    }
+
+    /**
+     * 页面初始化方法
+     */
+    ngOnInit() {
+        document.getElementById('lmask').style.display = 'block';
+        this.broadcastService.findBroadcastTasks(this.broadcastTaskQuery).subscribe((result) => {
+            this.queryResult =  result;
+            this.tasks = result.content;
+            this.objects = this.tasks;
+            for (let i = 0; i < this.objects.length; i++) {
+                this.objects[i].checked = false;
+            }
+            document.getElementById('lmask').style.display = 'none';
+        })
+    }
+
+    /**
+     * 查询播放任务
+     */
+    queryBroadcastTasks() {
+        document.getElementById('lmask').style.display = 'block';
+        this.broadcastService.findBroadcastTasks(this.broadcastTaskQuery).subscribe((result) => {
+            this.queryResult =  result;
+            this.showSuccessMsg('查询成功，共计查询' + result.totalElements + '条记录');
+            this.tasks = result.content;
+            this.objects = this.tasks;
+            document.getElementById('lmask').style.display = 'none';
+        })
+    }
+
+    /**
+     * 分页
+     * @param event
+     */
+    public pageChanged(event: any): void {
+        document.getElementById('lmask').style.display = 'block';
+        this.broadcastTaskQuery.currentPage = event.page - 1;
+        this.broadcastService.findBroadcastTasks(this.broadcastTaskQuery).subscribe((result) => {
+            this.queryResult =  result;
+            this.tasks = result.content;
+            this.objects = this.tasks;
+            document.getElementById('lmask').style.display = 'none';
+        })
+
+    }
+
+    /**
+     * 保存播放任务
+     * @param screen
+     */
+    goSaveBroadcastTask(screen) {
+        //如果表单验证未通过
+        if (!this.validForm()) {
+            return;
+        }
+        this.editTask.name=this.editTask.planName;
+        this.router.navigate(['/broadcast/task/save', 'null'], {queryParams: this.editTask});
+        this.closeCreateModal();
+    }
+
+    /**
+     * 跳转到查看播放计划页面
+     * @param id
+     */
+    goSeeTask(id) {
+        this.router.navigate(['/broadcast/task/save', id], {queryParams: {seeonly:true}});
+    }
+
+    /**
+     * 跳转到编辑播放计划页面
+     * @param id
+     */
+    goEditTask(id) {
+        this.router.navigate(['/broadcast/task/save', id]);
+    }
+
+    /**
+     * 弹出创建播放计划页面
+     * @param create
+     */
+    openCreateModal(create) {
+        this.editTask = new BroadcastTask();
+        this.editTask.screenWidth = 16;
+        this.editTask.screenHeight = 9;
+        this.createModal = this.modalService.open(create, {size: 'lg', backdrop: 'static'});
+    }
+
+    closeContentModal() {
+        this.contentModal.close();
+    }
+
+    closeCreateModal() {
+        this.createModal.close();
+    }
+
+    /**
+     * 获取某个屏幕的广告位总个数
+     * @param screens 当前屏幕
+     * @returns {number}
+     */
+    getAdLCount(screens) {
+        let count = 0;
+        if (screens) {
+            screens.map(
+                broadCastScreen => (
+                    count += broadCastScreen.broadCastAdvertisementLocation.length
+                )
+            )
+        }
+        return count;
+    }
+
+    /**
+     * 解锁审核
+     * @param task
+     */
+    unlockAudit(task: BroadcastTask) {
+        task.auditingStatus = '1';
+        this.broadcastService.save('//broadcast/saveBroadcastTask', task).subscribe((p) => {
+            this.showSuccessMsg('操作成功！');
+        });
+    }
+
+    /**
+     * 控制屏幕坐标不超出范围
+     */
+    validScreenWidth() {
+        if(this.editTask.screenWidth>32){
+            this.editTask.screenWidth=32;
+        }
+        if(this.editTask.screenHeight>32){
+            this.editTask.screenHeight=32;
+        }
+    }
+
+    /**
+     * 验证表单
+     * @returns {boolean}
+     */
+    validForm() {
+        this.valid = '';
+        this.isSubmit = true;
+        //如果播放任务名称为空
+        if (!this.commonUtil.isEmpty(this.editTask.planName)) {
+            this.valid = systemconst.validEmptyMessage;
+        }
+        this.editTask.startTime=this.startHour+":"+this.startMinite+":"+this.startSecond;
+        this.editTask.endTime=this.endHour+":"+this.endMinite+":"+this.endSecond;
+        const timeSlots: List<TimeSlot> = new List<TimeSlot>();
+        const momentstart = moment('2017-01-01 ' + this.editTask.startTime);
+        const momentend = moment('2017-01-01 ' + this.editTask.endTime);
+        timeSlots.Add(new TimeSlot(momentstart, momentend, this.editTask.planName));
+        timeSlots.ForEach((timeslot, index) => {
+            //如果开始时间大于结束时间
+            if (timeslot.startTime.isAfter(timeslot.endTime)) {
+                this.valid =  '开始时间应该小于结束时间';
+            }
+        });
+        //如果开始时间等于结束时间
+        if(this.editTask.startTime===this.editTask.endTime){
+            this.valid =  '开始时间应该小于结束时间';
+        }
+        return this.valid === '';
+    }
+}

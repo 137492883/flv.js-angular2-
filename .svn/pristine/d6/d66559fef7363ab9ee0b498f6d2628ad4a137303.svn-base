@@ -1,0 +1,34 @@
+import {BaseEntity} from './BaseEntity';
+/**
+ * 资费套餐信息实体
+ */
+export class RatePlan extends BaseEntity {
+    /**
+     * 订单id
+     */
+    orderId: string;
+    /**
+     * 套餐id
+     */
+    ratePlanID: string;
+    /**
+     * 折扣
+     */
+    discount: string;
+    /**
+     * 费用信息
+     */
+    rateName: string;
+    /**
+     * 后台费用
+     */
+    fee: string;
+    /**
+     * 终端费用
+     */
+    price: string;
+    /**
+     * 终端数量
+     */
+    terminalNum = false;
+}

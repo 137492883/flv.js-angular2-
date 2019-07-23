@@ -1,0 +1,76 @@
+import {CoordinateLocation} from "./CoordinateLocation";
+import {AdvertisementGroup} from "./AdvertisementGroup";
+import {AdvertisementGroupTransient} from "./AdvertisementGroupTransient";
+/**
+ * Created by lichuan on 2017/9/7.
+ */
+export class BroadCastAdvertisementLocation {
+    /**
+     * 广告位名称
+     **/
+    name: string;
+    /**
+     * 广告位别名
+     **/
+    alias: string = '';
+    /**
+     * 广告位坐标
+     */
+    coordinateLocation: CoordinateLocation;
+    /**
+     * 背景颜色
+     */
+    backgroundColor = '';
+    /**
+     * 背景图片地址
+     */
+    backgroundImageUrl = '';
+    /**
+     * 内边距（左）
+     */
+    paddingLeft = '';
+    /**
+     * 内边距（上）
+     */
+    paddingTop = '';
+    /**
+     * 内边距（右）
+     */
+    paddingRight = '';
+    /**
+     * 内边距（下）
+     */
+    paddingBottom = '';
+    /**
+     * 外边距（左）
+     */
+    marginLeft = '';
+    /**
+     * 外边距（上）
+     */
+    marginTop = '';
+    /**
+     * 外边距（右）
+     */
+    marginRight = '';
+    /**
+     * 外边距（下）
+     */
+    marginBottom = '';
+    /**
+     * 广告位内容组
+     **/
+    advertisementGroup: Array<AdvertisementGroup> = [new AdvertisementGroup()];
+    /**
+     * 屏幕index，不存入数据库
+     */
+    screenIndex: number;
+    /**
+     * 是否播放声音
+     */
+    voice = true;
+    /**
+     * 是否jpg文件
+     */
+    isJPG = true;
+}

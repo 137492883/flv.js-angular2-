@@ -1,0 +1,34 @@
+import {Directive, Input, OnInit, TemplateRef, ViewContainerRef} from '@angular/core';
+import {AuthService} from '../../services/auth.service';
+import {Permision} from '../../model/Permision';
+
+@Directive({ selector: '[appPermision]' })
+export  class PermisionDirective implements OnInit {
+    @Input('appPermision') key: string;
+    constructor(private templateRef: TemplateRef<any>,
+                private viewContainer: ViewContainerRef,
+                private authService: AuthService) {}
+
+    ngOnInit() {
+        if (this.key) {
+            this.key = this.key.trim();
+        }
+        if (this.permit()) {
+            this.viewContainer.createEmbeddedView(this.templateRef);
+        } else {
+            this.viewContainer.clear();
+        }
+    }
+    permit(): boolean {
+         let permitFlag = true;
+         if (this.key) {
+             let currentUserPermisions: Array <Permision> = new Array<Permision>();
+             currentUserPermisions = this.authService.getCurrentUser().role.permisions;
+             permitFlag = currentUserPermisions.filter(
+                 permision => { return permision.urlkey.toLowerCase().trim() === this.key.toLowerCase();}
+                 ).length > 0;
+         }
+        return permitFlag
+    }
+
+}

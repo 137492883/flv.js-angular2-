@@ -1,0 +1,108 @@
+import {AfterViewInit, Component, OnInit} from '@angular/core';
+import {Router} from '@angular/router';
+import {routerTransition} from '../router.animations';
+import {User} from '../shared/model/user';
+import {AuthService} from '../shared/services/auth.service';
+import {JwtHelper} from 'angular2-jwt';
+import {systemconst} from '../systemconst';
+import {CommonUtil} from "../shared/providers/CommonUtil";
+declare var vCode;
+@Component({
+    selector: 'app-login',
+    templateUrl: './login.component.html',
+    styleUrls: ['./login.component.scss'],
+    animations: [routerTransition()]
+})
+export class LoginComponent implements OnInit , AfterViewInit {
+    jwtHelper: JwtHelper = new JwtHelper();
+    errorMsg: string;
+    buttonValue = '登录';
+    clickable = true;
+    user: User = new User();
+    code: string = '';
+    codeRe: string = '';
+    vsCode;
+
+    constructor(public router: Router, public authService: AuthService,public commonUtil: CommonUtil) {
+    }
+
+    ngOnInit() {
+       // this.createCode();
+    }
+    ngAfterViewInit() {
+        let container1 = document.getElementById("vCode1");
+        this.vsCode = new vCode(container1);
+
+
+    }
+    createCode() {
+        let code_ = '';
+        const codeLength = 6; // 验证码的长度
+        const codeChars = new Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'); // 所有候选组成验证码的字符，当然也可以用中文的
+        for (let i = 0; i < codeLength; i++) {
+            const charNum = Math.floor(Math.random() * 52);
+            code_ += codeChars[charNum];
+        }
+        this.code = code_;
+    }
+
+    onLoggedin() {
+        this.buttonValue = '登录中';
+        this.clickable = false;
+        if (!this.vsCode.verify(this.codeRe)) {
+            this.errorMsg = '验证码不对';
+            this.clickable = true;
+            this.buttonValue = '重新登录';
+        } else {
+            this.authService.attemptAuth(this.user).subscribe(() => {
+                    this.user = this.authService.getCurrentUser();
+                    console.log(this.user.organization)
+                    systemconst.currentUser = this.user;
+                    if (this.user.userType === '2') {
+                        if (this.user.topOrganization.deleted) {
+                            this.errorMsg = '您所在机构已经被删除，请联系管理员';
+                            this.clickable = true;
+                            this.buttonValue = '重新登录';
+                        } else if (this.user.topOrganization.status === null) {
+                            this.errorMsg = '您所在机构开户正在审核中，请稍后再试';
+                            this.clickable = true;
+                            this.buttonValue = '重新登录';
+                        } else if (this.user.topOrganization.status !== '1') {
+                            this.errorMsg = '您所在机构已经被停用，请联系平台管理员';
+                            this.clickable = true;
+                            this.buttonValue = '重新登录';
+                        } else if (this.commonUtil.isEmpty(this.user.errorMsg)) {
+                            this.errorMsg = this.user.errorMsg;
+                            this.clickable = true;
+                            this.buttonValue = '重新登录';
+                        } else {
+                            this.router.navigate(['/']);
+                        }
+                    } else {
+                        this.router.navigate(['/']);
+                    }
+                    this.authService.loginSuccess().subscribe((data) => {
+                    });
+                },
+                err => {
+                    console.log('_______', err);
+                    this.buttonValue = '重新登录';
+                    this.clickable = true;
+                    if (err.status === 401) {
+                        this.errorMsg = '用户名或密码错误，请重新输入';
+                        this.authService.loginFailed().subscribe((data) => {
+                            if(this.commonUtil.isEmpty(data.data)){
+                                this.errorMsg = data.data;
+                            }
+                        });
+                    } else if (err.status === 0) {
+                        this.errorMsg = '服务器链接失败，请联系管理员';
+                    }
+
+                })
+        }
+    }
+
+}

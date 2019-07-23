@@ -1,0 +1,31 @@
+import { Injectable } from '@angular/core';
+import {ActivatedRouteSnapshot, CanActivate, CanActivateChild, RouterStateSnapshot} from '@angular/router';
+import { Router } from '@angular/router';
+import {AuthService} from '../services/auth.service';
+import {User} from '../model/user';
+import * as moment from 'moment';
+
+@Injectable()
+export class AuthGuard implements CanActivate , CanActivateChild {
+
+    currentUser: User = new User();
+    constructor(private router: Router, private authService: AuthService) {
+
+    }
+
+    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
+        console.log('路由', state.url);
+        return true;
+    }
+    canActivateChild(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
+        const  old_latest_op_ = moment(parseInt(localStorage.getItem('latest_op_')))
+        const  latest_op_ = moment();
+        // 2小时失效，需要重新登录
+        if (old_latest_op_.add(2, 'h').isBefore(latest_op_)){
+            console.log('失效');
+            this.router.navigate(['/login'])
+        }
+        localStorage.setItem('latest_op_', latest_op_.valueOf() + '')
+        return true;
+    }
+}

@@ -1,0 +1,198 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-map"></i> 终端监控</li>
+                <div class="float-right">
+                    <button type="button" *ngIf="currentUser.userType === '1'" class="btn btn-primary btn-sm" (click)="toMap()">终端分布</button>
+                </div>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <div class="form-group row">
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="请输入终端SN" [(ngModel)]="deviceQuery.sn">
+                        </div>
+                        <div class="col-auto">
+                            <select style="width: 150px;" class="form-control" [(ngModel)]="queryOrgId" (change)="onChangeOrg($event);">
+                                <option selected value="">选择组织结构</option>
+                                <option *ngFor="let org of organizations" [value]="org.id">{{org.name}}</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="请输入产品型号" [(ngModel)]="deviceQuery.productionModel">
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="请输入Android版本" [(ngModel)]="deviceQuery.androidVersion">
+                        </div>
+                        <div class="col-auto">
+                            <button (click)="search()" class="btn btn-primary">查询</button>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary" (click)="showMoreSearch()">更多查询</button>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-danger" (click)="resetSearch()">重置</button>
+                        </div>
+                    </div>
+                    <div *ngIf="moreSearch" class="form-group row">
+                        <div class="col-sm-2">
+                            <label class="col-form-label">终端sn区间:</label>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="开始区间" [(ngModel)]="deviceQuery.startSn">
+                        </div>
+                        <div class="col-auto">
+                            <label class="col-form-label">至</label>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="结束区间" [(ngModel)]="deviceQuery.endSn">
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="终端imei" [(ngModel)]="deviceQuery.deviceimei">
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="物联网卡号" [(ngModel)]="deviceQuery.cardNum">
+                        </div>
+                    </div>
+                    <div *ngIf="moreSearch" class="form-group row">
+                        <div class="col-sm-2">
+                            <label class="col-form-label">物联网模块sn区间:</label>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="开始区间" [(ngModel)]="deviceQuery.startWulianwangsn">
+                        </div>
+                        <div class="col-auto">
+                            <label class="col-form-label">至</label>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="结束区间" [(ngModel)]="deviceQuery.endWulianwangsn">
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="软件版本号" [(ngModel)]="deviceQuery.softVersion">
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="物联网MAC地址" [(ngModel)]="deviceQuery.wulianwnagmac">
+                        </div>
+                    </div>
+                    <div *ngIf="moreSearch" class="form-group row">
+                        <div class="col-sm-2">
+                            <label class="col-form-label">设备IMEI区间:</label>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="开始区间" [(ngModel)]="deviceQuery.startDeviceimei">
+                        </div>
+                        <div class="col-auto">
+                            <label class="col-form-label">至</label>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="结束区间" [(ngModel)]="deviceQuery.endDeviceimei">
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" style="width: 150px;" placeholder="平台类型" [(ngModel)]="deviceQuery.platformType">
+                        </div>
+                    </div>
+                </div>
+                <div class=" table-responsive">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th>终端SN</th>
+                            <th>租户机构</th>
+                            <th>设备状态</th>
+                            <th>终端详情</th>
+                            <th>存储空间</th>
+                            <th>音量</th>
+                            <th *appPermision="'zhongduan_jiankong'">远程控制</th>
+                            <th *appPermision="'zhongduan_jiankong'">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let device of objects ,let i = index;" placement="bottom">
+                            <td>{{device.sn}}</td>
+                            <td title="{{device.orgName}}">{{disposeStr(device.orgName,10)}}</td>
+                            <td>{{getState(device.latestHeartbeatTime)}}</td>
+                            <td><a href="javascript:void(0)" [routerLink]="['/device/monitoring/terminalLog',device.id]">查看</a></td>
+                            <td>{{device.storage}}</td>
+                            <td [ngSwitch]="device.volume">
+                                <span *ngSwitchCase="null">
+                                    默认音量
+                                </span>
+                                <span *ngSwitchDefault>
+                                    {{device.volume}}
+                                </span>
+                            </td>
+                            <td *appPermision="'zhongduan_jiankong'">
+                                <select [(ngModel)]="device.command">
+                                    <option value="">选择操作</option>
+                                    <option value="102">单一画面</option>
+                                    <option value="101">连续画面</option>
+                                    <option value="106">音量+2</option>
+                                    <option value="107">音量-2</option>
+                                    <option value="108">设备解锁</option>
+                                    <option value="109">设备上锁</option>
+                                    <!--<option value="110">连续画面获取终止</option>-->
+                                    <option value="111">设备重启</option>
+                                    <option value="112">恢复出厂设置</option>
+                                </select>
+                            </td>
+                            <td *appPermision="'zhongduan_jiankong'"><button type="button" class="btn btn-primary btn-sm" (click)="send(imageModel,device)">发送</button>
+                                </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="queryResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'" [nextText]="'后一页'"
+                                [boundaryLinks]="true" [rotate]="false" (numPages)="numPages = $event" (pageChanged)="onPageChange($event,'/device/findDevices')"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #imageModel let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">SN为：{{device.sn}}设备远程画面</h5>
+    </div>
+    <div class="modal-body">
+        <div class="container">
+            <div *ngIf="telecontrolScreens.length >= 1">
+                <carousel>
+                    <slide *ngFor=" let img of telecontrolScreens">
+                        <img style="width: 100%" [src]="img.url|cdnurl">
+                    </slide>
+                </carousel>
+            </div>
+
+            <div *ngIf="telecontrolScreens.length < 1">
+                {{message}}
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-dismiss="modal" (click)="closeModel()">关闭</button>
+    </div>
+</ng-template>
+
+<ng-template #waitForSearch let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">温馨提示：</h5>
+    </div>
+    <div class="modal-body">
+        <div class="container">
+            <div>
+                命令已经成功发送，请等待设备处理，或者稍后刷新页面查看！
+            </div>
+        </div>
+    </div>
+</ng-template>

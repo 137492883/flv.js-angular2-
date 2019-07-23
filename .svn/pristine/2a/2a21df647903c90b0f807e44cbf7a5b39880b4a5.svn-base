@@ -1,0 +1,108 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-edit"></i>
+                    编辑配置
+                </li>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    请按要求填写相关用户信息（红框为必填项）
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <div class="form-group row">
+                            <div class="col-sm-4 text-right" >
+                                <label class="col-form-label customrequired">心跳间隔(单位:分钟)</label>
+                            </div>
+                            <div class="col-sm-4">
+                                <input type="number"
+                                       [class]="sysConfig.sysheartbeatInterval==null ? 'form-control is-invalid':'form-control'"
+                                       [(ngModel)]="sysConfig.sysheartbeatInterval">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-4 text-right">
+                                <label class="col-form-label customrequired">信息上报间隔(单位:秒)</label>
+                            </div>
+                            <div class="col-sm-4">
+                                <input type="number"
+                                       [class]="sysConfig.sysreportInterval==null ? 'form-control is-invalid':'form-control'"
+                                       [(ngModel)]="sysConfig.sysreportInterval">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-4 text-right">
+                                <label class="col-form-label customrequired">广告信息获取间隔(单位:分钟)</label>
+                            </div>
+                            <div class="col-sm-4">
+                                <input type="number" maxlength="11" class="form-control"
+                                       [class]="sysConfig.sysgetAdInterval==null ? 'form-control is-invalid':'form-control'"
+                                       [(ngModel)]="sysConfig.sysgetAdInterval">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-4 text-right">
+                                <label class="col-form-label right customrequired">系统升级包获取间隔(单位:分钟)</label>
+                            </div>
+                            <div class="col-sm-4">
+                                <input type="number" class="form-control"
+                                       [class]="sysConfig.sysgetSysPkgInterval==null ? 'form-control is-invalid':'form-control'"
+                                       [(ngModel)]="sysConfig.sysgetSysPkgInterval">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-4 text-right">
+                                <label class="col-form-label customrequired">应用升级包获取间隔(单位:分钟)</label>
+                            </div>
+                            <div class="col-sm-4">
+                                <input type="number" class="form-control"
+                                       [class]="sysConfig.sysgetAppPkgInterval==null ? 'form-control is-invalid':'form-control'"
+                                       [(ngModel)]="sysConfig.sysgetAppPkgInterval">
+                            </div>
+                            <div class="col">
+                                <i class="fa fa-exclamation-triangle text-danger">必填项</i>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="mx-auto">
+                                <button type="submit" (click)="submitForm(comfirmModel)" class="btn btn-primary">
+                                    <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                                    <span style="font-size: 1.7rem;">保 存</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<ng-template #comfirmModel>
+    <div class="modal-body text-center">
+        <p>过长心跳间隔会导致设备在线状态显示有效性降低</p>
+        <button type="button" class="btn btn-default" (click)="doSubmit()" >继续</button>
+        <button type="button" class="btn btn-primary" (click)="closeComfirm()" >取消</button>
+    </div>
+</ng-template>

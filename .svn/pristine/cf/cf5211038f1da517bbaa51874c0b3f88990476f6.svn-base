@@ -1,0 +1,119 @@
+import {Component, OnInit} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {PopoverConfig} from 'ngx-bootstrap/popover';
+import {routerTransition} from '../../../router.animations';
+import {BaseComponent} from '../../../shared/components/BaseComponent';
+import {User} from '../../../shared/model/user';
+import {Advertisement} from '../../../shared/model/advertisement';
+import {AdvertisementService} from '../../../shared/services/advertisement/advertisement.service';
+import {systemconst} from '../../../systemconst';
+
+/**
+ * 描述:播放内容列表操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/04 09:37:34
+ */
+@Component({
+    selector: 'app-tables',
+    templateUrl: './tables.component.html',
+    styleUrls: ['./tables.component.scss'],
+    animations: [routerTransition()]
+})
+export class TablesComponent extends BaseComponent implements OnInit {
+    /**
+     * 当前用户
+     * @type {User}
+     */
+    user: User = new User();
+    /**
+     * 页码
+     * @type {number}
+     */
+    numPages = 0;
+    /**
+     * 模式
+     */
+    model: any;
+    /**
+     * 广告内容
+     * @type {Advertisement}
+     */
+    advQuery: Advertisement = new Advertisement();
+
+    constructor(public config: PopoverConfig, public route: ActivatedRoute,
+                public router: Router, public advertisementService: AdvertisementService) {
+        super();
+        config.triggers = 'hover';
+        config.placement = 'bottom';
+        //如果当前用户是顶级用户
+        if (systemconst.currentUser.organization.id === systemconst.currentUser.topOrganization.id) {
+            this.advQuery.topOrgId = systemconst.currentUser.organization.id;
+        } else {
+            this.advQuery.orgId = systemconst.currentUser.organization.id;
+        }
+        this.queryObj = this.advQuery;
+        this.baseService = this.advertisementService;
+    }
+
+    ngOnInit() {
+        //如果信息窗口不为空
+        if (systemconst.alertMessage !== '') {
+            this.showSuccessMsg(systemconst.alertMessage);
+            systemconst.alertMessage = '';
+        }
+        this.advQuery.status = '';
+        this.findObjects('findAdvertisements');
+    }
+
+    /**
+     * 跳转到保存页面
+     */
+    goSaveAdvertisement() {
+        this.router.navigate(['/advertisement/save', 'null']);
+    }
+
+    /**
+     * 解锁广告
+     * @param advertisement 被解锁的广告
+     */
+    unlock(advertisement: Advertisement) {
+        advertisement.status = '1';
+        advertisement.distribute = '2';
+        this.advertisementService.saveOrUpdateAdvertisementStatus(advertisement).subscribe((ad) => {
+            this.showSuccessMsg();
+        });
+    }
+
+    /**
+     * 更新广告状态
+     * @param advertisement 被更新的广告
+     * @param status 状态值
+     */
+    distribute(advertisement: Advertisement, status: string) {
+        //如果状态为关闭
+        if (status === '2') {
+            //查找是否有广告位使用了该内容
+            this.advertisementService.getObject('/broadcast/checkAdvertisementConflict', {advertisementId: advertisement.id}).subscribe((result) => {
+                //如果返回的结果集不为空
+                if (result.length > 0) {
+                    let planName = '';
+                    for (let i = 0; i < result.length; i++) {
+                        planName += result[i].name + ',';
+                    }
+                    planName = planName.substring(0, planName.length - 1);
+                    this.showErrorMsg('本内容已被播放任务【' + planName + '】使用，如需关闭，请将内容从上述播放任务中删除。')
+                } else {
+                    advertisement.distribute = status;
+                    this.advertisementService.saveOrUpdateAdvertisementStatus(advertisement).subscribe((ad) => {
+                        this.showSuccessMsg();
+                    });
+                }
+            });
+        } else {
+            advertisement.distribute = status;
+            this.advertisementService.saveOrUpdateAdvertisementStatus(advertisement).subscribe((ad) => {
+                this.showSuccessMsg();
+            });
+        }
+    }
+}

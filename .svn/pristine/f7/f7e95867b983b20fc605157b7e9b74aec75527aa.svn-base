@@ -1,0 +1,24 @@
+import { Component, OnInit } from '@angular/core';
+import { routerTransition } from '../../router.animations';
+import {SystemService} from "../../shared/services/sysmanage/system.service";
+
+@Component({
+    selector: 'app-dashboard',
+    templateUrl: './dashboard.component.html',
+    styleUrls: ['./dashboard.component.scss'],
+    animations: [routerTransition()]
+})
+export class DashboardComponent implements OnInit {
+
+    serveRuntime: any = new Object();
+    constructor(public sysService: SystemService) {
+
+    }
+
+    ngOnInit() {
+        this.sysService.getMetrics().subscribe( res => {
+            this.serveRuntime = res;
+        })
+    }
+
+}

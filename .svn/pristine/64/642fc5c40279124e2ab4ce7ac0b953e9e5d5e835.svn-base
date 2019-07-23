@@ -1,0 +1,26 @@
+/**
+ * Created by wuzhenxue on 2017/10/24.
+ */
+export class DeviceApDTO  {
+    /**
+     * 终端id
+     * @type {string[]}
+     */
+    deviceids: Array<string> = new Array<string>();
+    /**
+     * ap热点
+     */
+    apOpen: string;
+    /**
+     * ap用户名
+     */
+    apUsername: string;
+    /**
+     * ap密码
+     */
+    apPassword: string;
+    /**
+     * ap提交地址
+     */
+    apSubmitUrl: string;
+}

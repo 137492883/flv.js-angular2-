@@ -1,0 +1,13 @@
+/**
+ * Created by lichuan on 2017/9/11.
+ */
+export class Coordinate {
+    /**
+     * 广告屏幕位置x
+     **/
+    x: number;
+    /**
+     * 广告屏幕位置y
+     **/
+    y: number;
+}

@@ -1,0 +1,23 @@
+import {BaseEntity} from './BaseEntity';
+/**
+ * Created by wuzhenxue on 2017/9/2.
+ */
+export class Permision extends BaseEntity {
+    /**
+     * 权限对应的url
+     **/
+    navUrl: string;
+    urlkey: string;
+    backUrl: string;
+    fronUrl: string;
+    /**
+     * 权限名称
+     */
+    name: string;
+    /**
+     * 1:平台用户和租户权限 2：仅平台用户   3：仅租户用户
+     */
+    type: string;
+    buildinadminpermision = false;
+
+}

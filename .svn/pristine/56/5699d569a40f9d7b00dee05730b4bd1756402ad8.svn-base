@@ -1,0 +1,78 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-table"></i> 应用运行参数</li>
+            </ol>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-sm-6 text-right">CPU个数：</div>
+        <div class="col-sm-6">
+            {{serveRuntime['processors']}}
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-sm-6 text-right">分配给应用的总内存：</div>
+        <div class="col-sm-6">
+            {{serveRuntime['mem']/1024| number:'1.0-0'}}M
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6 text-right">空闲内存：</div>
+        <div class="col-sm-6">
+            {{serveRuntime['mem.free']/1024| number:'1.0-0'}}M
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        通过-Xmx和-Xms 控制堆内存
+    </div>
+    <div class="row">
+        <div class="col-sm-6 text-right">堆内存：</div>
+        <div class="col-sm-6">
+            {{serveRuntime['heap']/1024| number:'1.0-0'}}M
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6 text-right">初始化堆内存：</div>
+        <div class="col-sm-6">
+            {{serveRuntime['heap.init']/1024| number:'1.0-0'}}M
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6 text-right">已用堆内存：</div>
+        <div class="col-sm-6">
+            {{serveRuntime['heap.used']/1024| number:'1.0-0'}}M
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-sm-6 text-right">线程总数：</div>
+        <div class="col-sm-6">
+            {{serveRuntime['threads.totalStarted']}}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6 text-right">线程峰值：</div>
+        <div class="col-sm-6">
+            {{serveRuntime['threads.peak']}}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6 text-right">守护线程数：</div>
+        <div class="col-sm-6">
+            {{serveRuntime['threads.daemon']}}
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-sm-6 text-right">系统平均负载：</div>
+        <div class="col-sm-6">
+            {{serveRuntime['systemload.average']}}
+        </div>
+    </div>
+</div>

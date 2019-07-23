@@ -1,0 +1,47 @@
+import {Component, OnInit} from '@angular/core';
+import {routerTransition} from '../../../../router.animations';
+import {ActivatedRoute, Router} from '@angular/router';
+import {BaseComponent} from '../../../../shared/components/BaseComponent';
+import {SystemService} from 'app/shared/services/sysmanage/system.service';
+import {SystemLog} from '../../../../shared/model/SystemLog';
+
+/**
+ * 描述:接口日志详细信息
+ * 作者:高建辉
+ * 创建时间:2018/10/09 14:54:36
+ */
+@Component({
+    selector: 'app-save',
+    templateUrl: './save.component.html',
+    styleUrls: ['./save.component.scss'],
+    animations: [routerTransition()]
+})
+export class SaveComponent extends BaseComponent implements OnInit {
+    systemLog: SystemLog = new SystemLog();
+    constructor(public route: ActivatedRoute, public router: Router, public systemService: SystemService) {
+        super();
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        // 根据id获取接口日志对象
+        const id = this.route.snapshot.paramMap.get('id');
+        this.systemLog.id = id;
+        document.getElementById('lmask').style.display = 'block';
+        this.systemService.getSystemLogById(this.systemLog).subscribe((result) => {
+            this.systemLog = result;
+            document.getElementById('lmask').style.display = 'none';
+        });
+    }
+
+    /**
+     * 对参数进行解析
+     * @param param
+     * @returns {string}
+     */
+    getParam(param): string {
+        return JSON.stringify(param);
+    }
+}

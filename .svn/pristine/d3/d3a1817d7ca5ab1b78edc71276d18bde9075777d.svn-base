@@ -1,0 +1,107 @@
+import {AfterViewInit, Component, OnInit, TemplateRef, ViewChild, ViewChildren} from '@angular/core';
+import {Router, NavigationEnd} from '@angular/router';
+import {User} from 'app/shared/model/user';
+import {AuthService} from '../../services/auth.service';
+import {BsModalRef, BsModalService} from 'ngx-bootstrap';
+import {SystemService} from '../../services/sysmanage/system.service';
+import * as moment from 'moment';
+
+@Component({
+    selector: 'app-header',
+    templateUrl: './header.component.html',
+    styleUrls: ['./header.component.scss'],
+    providers: [SystemService]
+})
+export class HeaderComponent implements OnInit, AfterViewInit {
+    @ViewChild('content')
+    content1: TemplateRef<any>;
+    currentUser: User = new User();
+    user: User = new User();
+    public modalRef: BsModalRef;
+    message = '';
+    valid = '';
+    prompt = '';
+
+    constructor(public router: Router, public authService: AuthService,
+                private modalService: BsModalService, public systemService: SystemService) {
+        this.currentUser = authService.getCurrentUser();
+        console.log('!!!!!!', this.currentUser);
+        this.router.events.subscribe((val) => {
+            if (val instanceof NavigationEnd && window.innerWidth <= 992) {
+                this.toggleSidebar();
+            }
+        });
+    }
+
+    ngAfterViewInit() {
+        setTimeout(() => {
+            if (this.currentUser.lastPasswordResetDate === null) {
+                this.prompt = '您还没有修改密码，为确保使用安全，请修改密码！';
+                this.updatePassword(this.content1);
+            } else {
+                if (moment(this.currentUser.lastPasswordResetDate).add(3, 'months').isBefore(moment())) {
+                    this.prompt = '密码即将到期，为确保使用安全，请修改密码！';
+                    this.updatePassword(this.content1);
+                }
+            }
+        })
+    }
+    ngOnInit() {
+
+    }
+
+    toggleSidebar() {
+        const dom: any = document.querySelector('body');
+        dom.classList.toggle('push-right');
+    }
+
+    rltAndLtr() {
+        const dom: any = document.querySelector('body');
+        dom.classList.toggle('rtl');
+    }
+
+    onLoggedout() {
+        localStorage.removeItem('id_token');
+    }
+
+
+    updatePassword(content: TemplateRef<any>) {
+        this.message = '';
+        this.modalRef = this.modalService.show(content);
+    }
+
+    save(oldPassword, firstPassword, lastPassword) {
+        if (firstPassword !== lastPassword) {
+            this.message = '两次密码输入不一致，请重新输入!';
+        } else if (oldPassword === '' || firstPassword === '' || lastPassword === '') {
+            this.message = '密码不能为空!';
+        } else if (firstPassword.length < 6) {
+            this.message = '密码长度不能少于6位!';
+        } else if (!(/^(?=.*[0-9])(?=.*[!@#$%^&*.])(?=.*[a-z])(?=.*[A-Z]).{6,}$/.test(firstPassword))) {
+        // /^(?=.*[0-9])(?=.*[!])(?=.*[a-z])(?=.*[A-Z]).{6,}$/
+            // (?=^[0-9]+$)(?=^[a-z]+$)(?=^[A-Z]+$)(?=^[_*!$%^&+#@]+$).{6,}
+            this.message = '密码必须是数字、字母和特殊字符的组合!';
+        } else {
+            this.user.oldpassword = oldPassword;
+            this.user.updatePassword = firstPassword;
+            this.systemService.updatePassword(this.user).subscribe(user => {
+                if (user.errorMsg) {
+                    this.message = user.errorMsg;
+                } else {
+                    // this.message = '密码修改成功！';
+                    this.prompt = '';
+                    this.message = 'ok';
+                    this.currentUser = user;
+                }
+            })
+        }
+    }
+
+    clean() {
+        this.message = '';
+    }
+
+    changeLang(language: string) {
+    }
+
+}

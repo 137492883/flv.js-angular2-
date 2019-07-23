@@ -1,0 +1,18 @@
+import {Component, OnInit} from '@angular/core';
+import { BsModalRef } from 'ngx-bootstrap/modal/modal-options.class';
+
+@Component({
+  selector: 'app-permisionalert',
+  templateUrl: './permisionalert.component.html',
+  styleUrls: ['./permisionalert.component.scss']
+})
+export class PermisionalertComponent implements OnInit {
+    public title: string;
+    public list: any[] = [];
+  constructor(public bsModalRef: BsModalRef) { }
+
+  ngOnInit() {
+  }
+
+
+}

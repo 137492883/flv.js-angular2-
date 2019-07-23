@@ -1,0 +1,34 @@
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
+import {AlertModule, PaginationModule, PopoverModule} from 'ngx-bootstrap';
+import {FormsModule} from '@angular/forms';
+import {PageHeaderModule} from '../../../../shared/modules/page-header/page-header.module';
+import {DirectiveModule} from '../../../../shared/directives/directive/directive.module';
+import {TerminalLogComponent} from './terminal-log.component';
+import {DeviceService} from '../../../../shared/services/device/device.service';
+import {TerminalLogRoutingModule} from './terminal-log-routing.module';
+import { ChartsModule as Ng2Charts } from 'ng2-charts';
+import {DateTimePickerModule} from 'ng-pick-datetime';
+
+
+
+@NgModule({
+    imports: [
+        CommonModule,
+        NgbModule.forRoot(),
+        FormsModule,
+        PaginationModule.forRoot(),
+        PopoverModule.forRoot(),
+        AlertModule.forRoot(),
+        PageHeaderModule,
+        DirectiveModule,
+        TerminalLogRoutingModule,
+        Ng2Charts,
+        DateTimePickerModule
+    ],
+    declarations: [TerminalLogComponent],
+    providers: [DeviceService]
+})
+export class TerminalLogModule {
+}

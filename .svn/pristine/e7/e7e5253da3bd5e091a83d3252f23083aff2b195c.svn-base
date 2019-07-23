@@ -1,0 +1,8 @@
+import {BaseEntity} from './BaseEntity';
+export class DeviceMonitor extends BaseEntity {
+    deviceid: string;
+    state: string;
+    totalStorage: string;
+    storage: string;
+    coordinate: string;
+}

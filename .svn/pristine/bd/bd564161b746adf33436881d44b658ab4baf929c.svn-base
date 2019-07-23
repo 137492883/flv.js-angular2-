@@ -1,0 +1,58 @@
+import {Component, OnInit} from '@angular/core';
+import {routerTransition} from '../../../../router.animations';
+import {DeviceGroup} from '../../../../shared/model/DeviceGroup';
+import {ActivatedRoute, Router} from '@angular/router';
+import {Paging} from '../../../../shared/model/Paging';
+import {DeviceService} from '../../../../shared/services/device/device.service';
+import {systemconst} from '../../../../systemconst';
+import {BaseComponent} from '../../../../shared/components/BaseComponent';
+import {PopoverConfig} from "ngx-bootstrap/popover";
+/**
+ * 描述:终端组列表页面操作类
+ * 作者:刘斌
+ * 创建时间:2018/05/08 16:24:39
+ */
+@Component({
+    selector: 'app-device-group-list',
+    templateUrl: './list.component.html',
+    styleUrls: ['./list.component.scss'],
+    animations: [routerTransition()],
+})
+export class ListComponent extends BaseComponent implements OnInit {
+
+    /**
+     * 当前终端组
+     * @type {DeviceGroup[]}
+     */
+    groups: Array<DeviceGroup> = new Array<DeviceGroup>();
+    model: any;
+    queryResult: Paging = new Paging();
+    groupQuery: DeviceGroup = new DeviceGroup();
+
+    constructor(public config: PopoverConfig, public route: ActivatedRoute, public router: Router, public deviceService: DeviceService) {
+        super();
+        config.triggers = 'hover';
+        config.placement = 'bottom';
+        this.queryObj = this.groupQuery;
+        this.baseService = this.deviceService;
+    }
+
+    /**
+     * 页面初始化
+     */
+    ngOnInit() {
+        if (systemconst.alertMessage !== '') {
+            this.showSuccessMsg(systemconst.alertMessage);
+            systemconst.alertMessage = '';
+        }
+        this.groupQuery.orgId = systemconst.currentUser.organization.id;
+        this.findObjects('/device/findGroups');
+    }
+
+    /**
+     * 跳转到编辑页面
+     */
+    addGroup() {
+        this.router.navigate(['/device/group/save', 'null']);
+    }
+}

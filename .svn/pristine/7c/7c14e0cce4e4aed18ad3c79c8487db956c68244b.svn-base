@@ -1,0 +1,533 @@
+<div [@routerTransition]>
+    <div class="row">
+        <div class="col-xl-12">
+            <ol class="breadcrumb">
+                <li class="jb-warp breadcrumb-item"></li>
+                <li class="breadcrumb-item "><i class="fa fa-edit"></i>
+                    {{title}}
+                </li>
+            </ol>
+        </div>
+    </div>
+    <div *ngFor="let alert of alerts">
+        <alert [type]="alert.type" [dismissOnTimeout]="alert.timeout">{{ alert.msg }}</alert>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <span><a *ngIf="!seeonly" (click)="openModifyModal(modify)" href="javascript:void(0)">播放任务设置</a> （播放计划名称：{{task.planName}} 屏幕分割设置为：{{task.screenWidth}} X {{task.screenHeight}}）</span>
+                </div>
+                <div class="card-block">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-block">
+                                    <tabset>
+                                        <tab *ngFor="let screen of this.task.broadCastScreens ,let i = index;"
+                                             heading='层{{i+1}}'
+                                             [active]="this.task.activeScreen === screen"
+                                             (select)="screen.config.active = true;this.task.activeScreen = screen;screen.numb=i+1;onScreenSelect(screen)"
+                                        >
+                                            <ng-template tabHeading>
+                                                <i *ngIf="this.task.broadCastScreens.length > 1&&!seeonly" class="fa fa-times"
+                                                   (click)="removeScreen(screen)"></i>
+                                            </ng-template>
+                                            <div class="xscreenContainer card-block"
+                                                 (mouseleave)="onXscreenContainerMouseLeave(screen)"
+                                                 (mouseup)="onXscreenContainerMouseLeave(screen)"
+                                            >
+                                                <div class="xscreen" [ngStyle]="getScreenStyle(screen)">
+                                                    <ol>
+                                                        <li *ngFor="let cell of screen.config.cells ,let j = index;"
+                                                            [class.selected]="isClassSelected(screen, cell)"
+                                                            [ngStyle]="getScreenCellStyle(screen, cell)"
+                                                            (mouseenter)="onScreenCellMouseeEnter($event, screen, cell)"
+                                                            (mouseleave)="onScreenCellMouseLeave($event, screen, cell)"
+                                                            (dragstart)="onScreenCellMouseDragstart($event)"
+                                                            (mousedown)="onScreenCellMouseeDown($event, screen, cell)"
+                                                            (mouseup)="onScreenCellMouseeUp($event, screen, cell)"
+                                                        ></li>
+                                                    </ol>
+                                                    <div [ngStyle]="{'width':'100%','height':'100%','position': 'absolute','background-size':'100% 100%','background-image':'url('+screen.backgroundImageUrl+')','background-color':screen.backgroundColor,'display':isScreenPreview}"></div>
+                                                    <div *ngFor="let location of screen.broadCastAdvertisementLocation ,let l = index;"
+                                                         class="location"
+                                                         [ngStyle]="getScreenLocationStyle(screen, location)">
+                                                        <span (click)="openLocationModal(locationModal, location,screen,l)">{{l+1}}</span>
+                                                        <img src="assets/images/voice1.svg" *ngIf="location.voice" (click)="changeVoice(location)"/>
+                                                        <img src="assets/images/voice2.svg" *ngIf="!location.voice" (click)="changeVoice(location)"/>
+                                                        <a class="fa fa-times float-right" *ngIf="!seeonly"
+                                                           (click)="removeLocation(screen, location)"
+                                                           href="javascript:void(0)"></a>
+                                                    </div>
+                                                    <div *ngFor="let location of screen.broadCastAdvertisementLocation ,let l = index;"
+                                                         class="location"
+                                                         [ngStyle]="getScreenLocationAdvertismentStyle(screen, location)">
+                                                        <img src="assets/images/aa.jpg" [ngStyle]="{'width':'100%','height':'100%'}"/>
+                                                    </div>
+                                                    <div class="console">
+                                                        <span *ngIf="screen.config.cursorCell.x !== undefined">坐标:{{screen.config.cursorCell.x + ',' + screen.config.cursorCell.y}}</span>
+                                                        <span *ngIf="screen.config.selectingEndCell.x !== undefined">区域:{{getSelectedScreenSize(screen)}}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </tab>
+                                        <tab heading='+' (select)="addScreen($event);" *ngIf="!seeonly">
+                                        </tab>
+                                    </tabset>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="form-group row">
+                        <label class="col-sm-12 col-form-label" style="color: red;font-size: 15px" *ngIf="validLocation!==''">
+                            {{validLocation}}
+                        </label>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-2">
+                            设置屏幕背景色
+                            <img src="assets/images/nocolor.png" (click)="onBackGroundImgClick('screenColor')" *ngIf="selectedScreenBackgroundColor==null" [ngStyle]="{'width':'30px','height':'30px','margin-bottom':'5px'}"/>
+                            <input style="margin-top: 6px;" type="color" id="screenColor" [ngStyle]="{'display':selectedScreenBackgroundColor==null?'none':''}" (change)="onScreenColorChange($event)"
+                                   [(ngModel)]="selectedScreenBackgroundColor"/>
+                        </div>
+                        <div class="col-sm-5">
+                            <input type="file" id="screenImage" style="display: none;"
+                                   ng2FileSelect [uploader]="screenBackgroundImageUploader" (change)="onScreenBackGroundImgChanged($event)">
+                            <button (click)="onBackGroundImgClick('screenImage')" class="btn btn-warning">
+                                设置屏幕背景图片（支持JPG）
+                            </button>
+                            <span style="color: red" *ngIf="!task.activeScreen.isJPG">请选择JPG文件</span>
+                        </div>
+                        <div class="col-sm-5">
+                            <button *ngIf="screenBackgroundImageUploader.queue.length>0 && screenBackgroundImageUploader.progress <100 && task.activeScreen.isJPG"
+                                    class="btn btn-primary" (click)="uploadScreenBackground()">上传
+                            </button>
+                            <button class="btn btn-danger" (click)="clearScreenBackgroundColor()">清除屏幕背景色</button>
+                            <button class="btn btn-danger" *ngIf="task.activeScreen.backgroundImageUrl!==''&&task.activeScreen.backgroundImageUrl!=null" (click)="clearScreenBackgroundImage()">清除屏幕背景图</button>
+                            <button class="btn btn-primary" (mousedown)="onPreviewMouseeDown($event)" (mouseup)="onPreviewMouseeUp($event)">整体预览</button>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">
+                            当前广告位({{getLoationSize(selectedLocation)}})：
+                        </label>
+                        <div class="col-sm-3">
+                            <label class="col-form-label" style="color: #0275d8">
+                            {{selectedLocation.alias}}
+                            </label>
+                            <input type="text" hidden (keydown)="validLocationNameKeydown($event)"
+                                   (keyup)="validLocationName(selectedLocation, $event)"
+                                   (paste)="validLocationName(selectedLocation, $event)"
+                                   (contextmenu)="validLocationName(selectedLocation, $event)"
+                                   [class]="(selectedLocation.name==null||selectedLocation.name==='')?'form-control is-invalid':'form-control'"
+                                   [(ngModel)]="selectedLocation.name" name="name">
+                        </div>
+                    </div>
+                    <div class="form-group row" *ngIf="selectedLocation.name!=null">
+                        <div class="col-sm-2">
+                            广告位背景色
+                            <img src="assets/images/nocolor.png" (click)="onBackGroundImgClick('locationColor')" *ngIf="selectedLocationBackgroundColor==null" [ngStyle]="{'width':'30px','height':'30px','margin-bottom':'5px'}"/>
+                            <input style="margin-top: 6px;" type="color" id="locationColor" [ngStyle]="{'display':selectedLocationBackgroundColor==null?'none':''}"  (change)="onLocationColorChange($event)"
+                                   [(ngModel)]="selectedLocationBackgroundColor"/>
+                        </div>
+                        <div class="col-sm-5">
+                            <input type="file" id="locationImage" style="display: none;"
+                                   ng2FileSelect [uploader]="locationBackgroundImageUploader" (change)="onLocationBackGroundImgChanged($event)">
+                            <button (click)="onBackGroundImgClick('locationImage')" class="btn btn-warning">
+                                设置广告位背景图片（支持JPG）
+                            </button>
+                            <span style="color: red" *ngIf="!selectedLocation.isJPG">请选择JPG文件</span>
+                        </div>
+                        <div class="col-sm-5">
+                            <button *ngIf="locationBackgroundImageUploader.queue.length>0 && locationBackgroundImageUploader.progress <100 && selectedLocation.isJPG"
+                                    class="btn btn-primary" (click)="uploadLocationBackground()">上传
+                            </button>
+                            <button class="btn btn-danger" (click)="clearLocationBackgroundColor()">清除广告位背景色</button>
+                            <button class="btn btn-danger" *ngIf="selectedLocation.backgroundImageUrl!==''&&selectedLocation.backgroundImageUrl!=null" (click)="clearLocationBackgroundImage()">清除广告位图片</button>
+                        </div>
+                    </div>
+                    <div class="form-group row" *ngIf="selectedLocation.name!=null">
+                        <div class="col-sm-2">
+                            <label class="col-form-label">
+                                内边距：
+                            </label>
+                        </div>
+                        <div class="col-sm-4">
+                            上
+                            <select  [(ngModel)]="selectedLocation.paddingTop">
+                                <option value="">无</option>
+                                <option *ngFor="let m of margins" value="{{m}}">{{m}}</option>
+                            </select>
+                            下
+                            <select  [(ngModel)]="selectedLocation.paddingBottom">
+                                <option value="">无</option>
+                                <option *ngFor="let m of margins" value="{{m}}">{{m}}</option>
+                            </select>
+                            左
+                            <select  [(ngModel)]="selectedLocation.paddingLeft">
+                                <option value="">无</option>
+                                <option *ngFor="let m of margins" value="{{m}}">{{m}}</option>
+                            </select>
+                            右
+                            <select  [(ngModel)]="selectedLocation.paddingRight">
+                                <option value="">无</option>
+                                <option *ngFor="let m of margins" value="{{m}}">{{m}}</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-2">
+                            <label class="col-form-label">
+                                外边距：
+                            </label>
+                        </div>
+                        <div class="col-sm-4">
+                            上
+                            <select  [(ngModel)]="selectedLocation.marginTop">
+                                <option value="">无</option>
+                                <option *ngFor="let m of margins" value="{{m}}">{{m}}</option>
+                            </select>
+                            下
+                            <select  [(ngModel)]="selectedLocation.marginBottom">
+                                <option value="">无</option>
+                                <option *ngFor="let m of margins" value="{{m}}">{{m}}</option>
+                            </select>
+                            左
+                            <select  [(ngModel)]="selectedLocation.marginLeft">
+                                <option value="">无</option>
+                                <option *ngFor="let m of margins" value="{{m}}">{{m}}</option>
+                            </select>
+                            右
+                            <select  [(ngModel)]="selectedLocation.marginRight">
+                                <option value="">无</option>
+                                <option *ngFor="let m of margins" value="{{m}}">{{m}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">
+                    播放素材列表&nbsp;<span style="color: red;font-size: 15px">{{valid}}</span>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                        <tr>
+                            <th>内容名称</th>
+                            <th>播放顺序</th>
+                            <th>时长</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let advg of selectedLocation.advertisementGroup[0].advertisements ,let i = index;" placement="bottom">
+                                <td title="{{getAdvertisementName(advg.advertisementId)}}">{{disposeStr(getAdvertisementName(advg.advertisementId),10)}}</td>
+                                <td style="width: 100px;">
+                                    <input type="number" *ngIf="!seeonly" min="1" max="99" (keydown)="validAdvertisementIndexKeydown($event)" [(ngModel)]="advg.index">
+                                    <div *ngIf="seeonly">{{advg.index}}</div>
+                                </td>
+                                <td *ngIf="getAdvertisementFileType(advg.advertisementId)==='视频'">{{getFormatTime(advg.duration)}}</td>
+                                <td *ngIf="getAdvertisementFileType(advg.advertisementId)!=='视频'">
+                                    <div class="row" *ngIf="!seeonly">
+                                        <select style="width: 43px;height: 29px;" [(ngModel)]="advg.hour" name="h">
+                                            <option *ngFor="let h of hss" value="{{h.n}}">{{h.v}}</option>
+                                        </select>
+                                        时
+                                        <select style="width: 43px;" [(ngModel)]="advg.minute" name="m">
+                                            <option *ngFor="let m of mss" value="{{m.n}}">{{m.v}}</option>
+                                        </select>
+                                        分
+                                        <select style="width: 43px;" [(ngModel)]="advg.seconds" name="s">
+                                            <option *ngFor="let s of mss" value="{{s.n}}">{{s.v}}</option>
+                                        </select>
+                                        秒
+                                        <!--<input type="number" style="width: 40px;" (keydown)="validAdvertisementIndexKeydown($event)" [(ngModel)]="advg.hour">时-->
+                                        <!--<input type="number" style="width: 40px;" (keydown)="validAdvertisementIndexKeydown($event)" [(ngModel)]="advg.minute">分-->
+                                        <!--<input type="number" style="width: 40px;" (keydown)="validAdvertisementIndexKeydown($event)" [(ngModel)]="advg.seconds">秒-->
+                                    </div>
+                                    <div *ngIf="seeonly">
+                                        {{getFormatTime(advg.duration)}}
+                                    </div>
+                                </td>
+                                <td>
+                                    <button *ngIf="!seeonly" type="button" class="btn btn-danger btn-sm" (click)="removeAdvertisementToLocation(advg)">删除</button>
+                                    <button type="button" class="btn btn-primary btn-sm" (click)="showAdvertisement(advertisementModal,advg.advertisementId);">预览</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-6" *ngIf="!seeonly">
+            <div class="card">
+                <div class="card-header" style="text-align: center;">
+                    <div class="form-row align-items-center pl-2">
+                        <div class="col-auto">
+                            <input type="text" [(ngModel)]="advQuery.name" name="name" style="width: 150px;"
+                                   class="form-control mb-2 mb-sm-0" id="inlineFormInputName"
+                                   placeholder="请输入内容名称">
+                        </div>
+                        <div class="col-auto">
+                            内容类型
+                            <select class="custom-select mb-2 mr-sm-2 mb-sm-0" [(ngModel)]="advQuery.fileType"
+                                    name="fileType">
+                                <option selected value="">全部</option>
+                                <option value="1">视频</option>
+                                <option value="2">图片</option>
+                                <option value="3">文字</option>
+                                <option value="4">流媒体</option>
+                                <option value="5">文档</option>
+                                <option value="6">扩展组件</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary btn-sm" (click)="findAdvertisements()">查询
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover ">
+                        <thead class="bg-secondary text-white ">
+                            <tr>
+                                <th>序号</th>
+                                <th>素材名称</th>
+                                <th>素材类型</th>
+                                <th>内容描述</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let adv of advertisements ,let i = index;" placement="bottom">
+                                <th>{{i+1}}</th>
+                                <td title="{{adv.name}}">
+                                    {{disposeStr(adv.name,10)}}
+                                </td>
+                                <td [ngSwitch]="adv.fileType">
+                                    <span *ngSwitchCase="'1'">视频</span>
+                                    <span *ngSwitchCase="'2'">图片</span>
+                                    <span *ngSwitchCase="'3'">文字</span>
+                                    <span *ngSwitchCase="'4'">流媒体</span>
+                                    <span *ngSwitchCase="'5'">文档</span>
+                                    <span *ngSwitchCase="'6'">扩展组件</span>
+                                </td>
+                                <td *ngIf="adv.description!==null&&adv.description!==''" title="{{adv.description}}">{{disposeStr(adv.description,3)}}</td>
+                                <td *ngIf="adv.description==null||adv.description===''"></td>
+                                <td>
+                                    <button type="button" class="btn btn-info btn-sm" *ngIf="selectedLocation.coordinateLocation!=null" (click)="addAdvertisementToLocation(adv)">添加</button>
+                                    <button type="button" class="btn btn-primary btn-sm" (click)="showAdvertisement(advertisementModal,adv.id);">预览</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <pagination [totalItems]="queryResult.totalElements"
+                                class="pagination-sm" [firstText]="'第一页'" [lastText]="'最后一页'" [previousText]="'前一页'"
+                                [nextText]="'后一页'"
+                                [boundaryLinks]="true" [rotate]="false"
+                                (pageChanged)="onPageChange($event)"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group row" style="margin-top: 10px;" *appPermision="'bofangrenwu_guanli'">
+        <div class="mx-auto" *ngIf="!seeonly">
+            <button type="submit" (click)="broadcastTaskSave(modify, locationModal)"
+                    class="btn btn-primary">
+                <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                <span style="font-size: 1.7rem;">保 存</span>
+            </button>
+            <button type="submit" (click)="broadcastTaskDelete()" class="btn btn-danger"
+                    *ngIf="task.id!=null&&task.id!==''">
+                <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+                <span style="font-size: 1.7rem;">删 除</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<ng-template #modify let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">屏幕分割设定 <span style="color: red;font-size: 15px" *ngIf="isSubmit&&validName!==''">{{validName}}</span>
+        </h5>
+    </div>
+    <div class="modal-body">
+        <div class="container">
+            <form>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label">播放计划名称</label>
+                    </div>
+                    <div class="col">
+                        <input type="text"
+                               [class]="(task.planName==null||task.planName==='')?'form-control is-invalid':'form-control'"
+                               [(ngModel)]="task.planName" name="planName">
+                    </div>
+                </div>
+                <!--<div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label">播放任务名称</label>
+                    </div>
+                    <div class="col">
+                        <input type="text"
+                               [class]="(task.name==null||task.name==='')?'form-control is-invalid':'form-control'"
+                               [(ngModel)]="task.name" name="name">
+                    </div>
+                </div>-->
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label">播放开始时间</label>
+                    </div>
+                    <div class="col">
+                        <select  [(ngModel)]="startHour" name="startHour">
+                            <option *ngFor="let h of hourss" value="{{h}}">{{h}}</option>
+                        </select>
+                        时
+                        <select  [(ngModel)]="startMinite" name="startMinite">
+                            <option *ngFor="let m of minites" value="{{m}}">{{m}}</option>
+                        </select>
+                        分
+                        <select  [(ngModel)]="startSecond" name="startSecond">
+                            <option *ngFor="let m of minites" value="{{m}}">{{m}}</option>
+                        </select>
+                        秒
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label">播放结束时间</label>
+                    </div>
+                    <div class="col">
+                        <select  [(ngModel)]="endHour" name="endHour">
+                            <option *ngFor="let h of hourss" value="{{h}}">{{h}}</option>
+                        </select>
+                        时
+                        <select  [(ngModel)]="endMinite" name="endMinite">
+                            <option *ngFor="let m of minites" value="{{m}}">{{m}}</option>
+                        </select>
+                        分
+                        <select  [(ngModel)]="endSecond" name="endSecond">
+                            <option *ngFor="let m of minites" value="{{m}}">{{m}}</option>
+                        </select>
+                        秒
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label">屏幕分割设定</label>
+                    </div>
+                    <div class="col">
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" maxlength="2" readonly
+                                       [(ngModel)]="task.screenWidth" name="width">
+                            </div>
+                            <div>
+                                X
+                            </div>
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" maxlength="2" readonly
+                                       [(ngModel)]="task.screenHeight" name="height">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label">播放任务描述</label>
+                    </div>
+                    <div class="col">
+                        <textarea rows="5" class="form-control" [(ngModel)]="task.description"
+                                  name="description"></textarea>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label class="col-form-label"></label>
+                    </div>
+                    <div class="col">
+                        <div class="text-danger">最大屏幕分割设定32X32</div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" (click)="closeModifyModal()" class="btn btn-primary">
+            <i class="fa fa-fw fa-floppy-o fa-2x"></i>
+            <span style="font-size: 1.7rem;">确 定</span>
+        </button>
+        <button type="submit" (click)="closeModifyModal()" class="btn btn-default">
+            <i class="fa fa-fw fa-window-close fa-2x"></i>
+            <span style="font-size: 1.7rem;">取 消</span>
+        </button>
+    </div>
+</ng-template>
+
+<ng-template #advertisementModal let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h5 class="modal-title">广告预览</h5>
+    </div>
+    <div class="modal-body">
+        <div class="container" [ngSwitch]="advertisement.fileType">
+            <!--fileType 3：文本  2:图片  1：视频  4:流媒体 -->
+            <!--type 1：实体性  2：链接型 -->
+            <span *ngSwitchCase="'3'">
+                <div style="width: 100%;min-height: 600px;overflow: auto;"
+                     [ngStyle]="{'color':advertisement.advertisementtextsetting.color,'font-size':advertisement.advertisementtextsetting.fontSize+'px','font-style':advertisement.advertisementtextsetting.fontStyle,'font-weight':advertisement.advertisementtextsetting.fontWeight,'text-decoration-line':advertisement.advertisementtextsetting.textLine,'font-family':getFontFamily(),'background-size':'100% 100%','background-image':'url('+advertisement.advertisementtextsetting.backgroundImgUrl+')','background-color':advertisement.advertisementtextsetting.backgroundColor}"
+                     [innerHtml]="replaceAll(advertisement.doc,'\n','<br>')"></div>
+            </span>
+            <span *ngSwitchCase="'2'">
+                <img style="width: 100%" [src]="advertisement.fileUrl|cdnurl"
+                     *ngIf="advertisement.type==='1'&&advertisement.fileUrl!=null">
+                <img style="width: 100%" [src]="advertisement.url"
+                     *ngIf="advertisement.type==='2'&&advertisement.url!=null">
+            </span>
+            <span *ngSwitchCase="'1'">
+                 <vg-player>
+                    <video [vgMedia]="media" #media id="singleVideo" style="width: 100%;height: 100%"
+                           *ngIf="advertisement.fileUrl!=null" preload="auto" controls>
+                        <source [src]="advertisement.fileUrl| cdnurl">
+                    </video>
+                </vg-player>
+                 <vg-player>
+                    <video [vgMedia]="media" #media id="singleVideo1" style="width: 100%;height: 100%"
+                           *ngIf="advertisement.url!=null" preload="auto" controls>
+                        <source [src]="advertisement.url">
+                    </video>
+                </vg-player>
+            </span>
+            <span *ngSwitchCase="'4'">
+                 <vg-player>
+                    <video #myMedia style="width: 100%;height: 100%"
+                           [vgHls]="advertisement.url"
+                           id="my-video"
+                           controls
+                           crossorigin>
+                    </video>
+                  </vg-player>
+            </span>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="closeAdvertisementModal()">关闭
+        </button>
+    </div>
+</ng-template>

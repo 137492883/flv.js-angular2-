@@ -1,0 +1,84 @@
+import {Injectable} from "@angular/core";
+import {Headers, Response, URLSearchParams} from "@angular/http";
+import {Observable} from "rxjs/Rx";
+import "rxjs/add/operator/map";
+import "rxjs/add/operator/catch";
+import {AuthHttp} from "angular2-jwt";
+import {systemconst} from "../../systemconst";
+import {Router} from "@angular/router";
+
+@Injectable()
+export class ApiService {
+
+    constructor(private http: AuthHttp, private _router: Router) {
+    }
+
+    private getRouter() {
+        return this._router;
+    }
+
+    private setHeaders(): Headers {
+        const myHeader = new Headers();
+        myHeader.append('Content-Type', 'application/json');
+        myHeader.append('Accept', 'application/json');
+        return myHeader;
+    }
+
+    private formatErrors(error: any) {
+        if (error.status === 401) {
+            alert('您没有权限操作,请重新登录！');
+            window.location.hash = '#/login';
+            return Observable.empty();
+        } else {
+            return Observable.throw(error.json());
+        }
+    }
+
+    get(path: string, params: URLSearchParams = new URLSearchParams()): Observable<any> {
+        if (path.startsWith('/')) {
+            path = path.substring(1);
+        }
+        return this.http.get(`${systemconst.api_url}${path}`, {headers: this.setHeaders(), search: params})
+            .catch(this.formatErrors)
+            .map((res: Response) => res);
+    }
+
+    put(path: string, body: Object = {}): Observable<any> {
+        if (path.startsWith('/')) {
+            path = path.substring(1);
+        }
+        return this.http.put(
+            `${systemconst.api_url}${path}`,
+            JSON.stringify(body),
+            {headers: this.setHeaders()}
+        )
+            .catch(this.formatErrors)
+            .map((res: Response) => res);
+    }
+
+    post(path: string, body: Object = {}): Observable<any> {
+        if (path.startsWith('/')) {
+            path = path.substring(1);
+        }
+        return this.http.post(
+            `${systemconst.api_url}${path}`,
+            JSON.stringify(body),
+            {headers: this.setHeaders()}
+        )
+            .catch(this.formatErrors)
+            .map((res: Response) => res);
+    }
+
+    delete(path): Observable<any> {
+        if (path.startsWith('/')) {
+            path = path.substring(1);
+        }
+        return this.http.delete(
+            `${systemconst.api_url}${path}`,
+            {headers: this.setHeaders()}
+        )
+            .catch(this.formatErrors)
+            .map((res: Response) => res);
+    }
+
+}

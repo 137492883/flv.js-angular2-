@@ -1,0 +1,30 @@
+import {Component, OnInit} from '@angular/core';
+import {routerTransition} from '../../../../../router.animations';
+import {User} from '../../../../../shared/model/user';
+import {CommonUtil} from '../../../../../shared/providers/CommonUtil';
+import {ActivatedRoute} from '@angular/router';
+
+@Component({
+    selector: 'app-save',
+    templateUrl: './save.component.html',
+    styleUrls: ['./save.component.scss'],
+    animations: [routerTransition()]
+})
+export class SaveComponent implements OnInit {
+
+    user: User = new User();
+    valid = '';
+    isSubmit = false;
+
+    constructor(public commonUtil: CommonUtil, public route: ActivatedRoute) {
+    }
+
+    ngOnInit() {
+        const id = this.route.snapshot.paramMap.get('id');
+    }
+
+    submitForm() {
+        this.valid = '';
+        this.isSubmit = true;
+    }
+}

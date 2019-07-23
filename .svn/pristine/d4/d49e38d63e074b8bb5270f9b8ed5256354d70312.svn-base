@@ -1,0 +1,637 @@
+import {Component, OnInit} from '@angular/core';
+import {BaseComponent} from '../../../../shared/components/BaseComponent';
+import {routerTransition} from '../../../../router.animations';
+import {DeviceService} from '../../../../shared/services/device/device.service';
+import {CommonUtil} from '../../../../shared/providers/CommonUtil';
+import {ActivatedRoute, Router} from '@angular/router';
+import {PopoverConfig} from 'ngx-bootstrap';
+import {UpgradeMonitor} from '../../../../shared/model/UpgradeMonitor';
+import {Paging} from '../../../../shared/model/Paging';
+import {DeviceAlarm} from '../../../../shared/model/DeviceAlarm';
+import {Device} from '../../../../shared/model/Device';
+import {DeviceGroup} from '../../../../shared/model/DeviceGroup';
+import {List} from 'linqts';
+import {ScheduleStats} from '../../../../shared/model/ScheduleStats';
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {AdvertisementStats} from '../../../../shared/model/AdvertisementStats';
+import {format, subDays} from 'date-fns'
+import {WatcherFlow} from '../../../../shared/model/WatcherFlow';
+import {SystemService} from '../../../../shared/services/sysmanage/system.service';
+declare var AMap: any;
+declare var AMapUI: any;
+import * as moment from 'moment';
+import {systemconst} from "../../../../systemconst";
+
+@Component({
+    selector: 'app-terminallog',
+    templateUrl: './terminal-log.component.html',
+    styleUrls: ['./terminal-log.component.scss'],
+    animations: [routerTransition()]
+})
+export class TerminalLogComponent extends BaseComponent implements OnInit {
+    serverCurrentTime = '';
+    scheduleStatsListQueryResult: Paging = new Paging();
+    advertisementStatsList: Array<AdvertisementStats> = new Array<AdvertisementStats>();
+    allAdvertisementStatsList: Array<AdvertisementStats> = new Array<AdvertisementStats>();
+    flowStart: any = subDays(new Date(), 3);
+    flowEnd: any = new Date();
+    statisticaleyeStart: any = subDays(new Date(), 3);
+    statisticaleyeEnd: any = new Date();
+    flowStartDay: any = subDays(new Date(), 10);
+    flowEndDay: any = new Date();
+    flowFaceStart: any = subDays(new Date(), 3);
+    flowFaceEnd: any = new Date();
+    flowFaceStartDay: any = subDays(new Date(), 10);
+    flowFaceEndDay: any = new Date();
+    watcherFlow: WatcherFlow = new WatcherFlow();
+    userGroup: any;
+    cn: any;
+    model: any;
+    content: any;
+    upgradeMonitors: Array<UpgradeMonitor> = new Array<UpgradeMonitor>();
+    deviceAlarms: Array<DeviceAlarm> = new Array<DeviceAlarm>();
+    scheduleStatsList: Array<ScheduleStats> = new Array<ScheduleStats>();
+    upgradeMonitorSelect: UpgradeMonitor = new UpgradeMonitor();
+    deviceAlarmSelect: DeviceAlarm = new DeviceAlarm();
+    upgradeStatsqueryResult: Paging = new Paging();
+    deviceAlarmResult: Paging = new Paging();
+    device: Device = new Device();
+    deviceSelect: Device = new Device();
+    broadcastPlans: string[];
+    // 探针激活状态吗
+    probeStatus: number = -1;
+    map: any;
+    selectTime: string = '';
+    alarmSuccess: string = '';
+    repairType: string = '';
+    public pieChartLabels: string[] = ['小于5秒', '5-300秒', '大于300秒'];
+    public pieChartData: number[] = [0, 0, 0];
+    public pieChartType: string = 'pie';
+    chartData: List<any>;
+    chartDataDay: List<any>;
+    chartFaceData: List<any>;
+    chartFaceDataDay: List<any>;
+    chartStatisticaleyeData: List<any>;
+    // bar chart
+    public barChartOptions: any = {
+        scaleShowVerticalLines: false,
+        responsive: true
+    };
+    public barChartOptionsDay: any = {
+        scaleShowVerticalLines: false,
+        responsive: true
+    };
+    public barChartFaceOptions: any = {
+        scaleShowVerticalLines: false,
+        responsive: true
+    };
+    public barChartFaceOptionsDay: any = {
+        scaleShowVerticalLines: false,
+        responsive: true
+    };
+    public barChartStatisticaleyeOptions: any = {
+        scaleShowVerticalLines: false,
+        responsive: true
+    };
+    public barChartLabels: string[] = [];
+    public barChartLabelsDay: string[] = [];
+    public barChartFaceLabels: string[] = [];
+    public barChartFaceLabelsDay: string[] = [];
+    public barChartStatisticaleyeLabels: string[] = [];
+    public barChartType = 'bar';
+    public barChartLegend = true;
+
+    public barChartData: any[] = [
+        {data: [], label: '新增客流人数'},
+        {data: [], label: '新增客流人次'}
+    ];
+    public barChartDataDay: any[] = [
+        {data: [], label: '日累计客流人数'},
+        {data: [], label: '日累计客流人次'}
+    ];
+    public barChartFaceData: any[] = [
+        {data: [], label: '新增客流人数'},
+        {data: [], label: '新增客流人次'}
+    ];
+    public barChartFaceDataDay: any[] = [
+        {data: [], label: '日累计客流人数'},
+        {data: [], label: '日累计客流人次'}
+    ];
+    public barChartStatisticaleyeData: any[] = [
+        {data: [], label: '注视时长（秒）'},
+    ];
+
+    constructor(public config: PopoverConfig, public deviceService: DeviceService, private modalService: NgbModal,
+                public commonUtil: CommonUtil, public router: Router, public activatedRoute: ActivatedRoute,
+                public systemService: SystemService) {
+        super();
+        this.baseService = this.deviceService;
+
+    }
+
+    // events
+    public chartClicked(e: any): void {
+    }
+
+    public chartHovered(e: any): void {
+    }
+
+    initMap(device: Device) {
+        let coordinate: string [];
+        let lng;
+        let lat;
+        if (device.coordinate != null) {
+            coordinate = device.coordinate.split('#');
+            if (coordinate[0]) {
+                lng = coordinate[0];
+            }
+            if (coordinate[1]) {
+                lat = coordinate[1];
+            }
+        }
+        if (lng && lat) {
+            const marker = new AMap.Marker({
+                position: [lng, lat]
+            });
+            marker.setMap(this.map);
+            // 设置鼠标划过点标记显示的文字提示
+            marker.setTitle(device.sn);
+            // 设置label标签
+            marker.setLabel({// label默认蓝框白底左上角显示，样式className为：amap-marker-label
+                offset: new AMap.Pixel(20, 20), // 修改label相对于maker的位置
+                content: '设备SN:' + device.sn
+            });
+            this.map.setCenter([lng, lat]);
+        }
+    }
+
+    ngOnInit(): void {
+        this.systemService.serverCurrentTime().subscribe(serverCurrentTime => {
+            this.serverCurrentTime = serverCurrentTime._body;
+        })
+        this.currentUser = this.systemService.getCurrentUser();
+        this.cn = {
+            firstDayOfWeek: 0,
+            dayNames: ["星期天", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
+            dayNamesShort: ["日", "一", "二", "三", "四", "五", "六"],
+            monthNames: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
+            monthNamesShort: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"]
+        };
+        this.map = new AMap.Map('deviceLoaction', {
+            resizeEnable: true,
+            center: [116.40, 39.91], // 地图中心点
+            zoom: 8 // 地图显示的缩放级别
+        });
+        const id = this.activatedRoute.snapshot.paramMap.get('id');
+        this.upgradeMonitorSelect.deviceId = id;
+        this.deviceSelect.id = id;
+        this.deviceService.getUpgradeMonitors(this.upgradeMonitorSelect).subscribe((result) => {
+            this.queryResult = result;
+            this.upgradeMonitors = result.content;
+        });
+        document.getElementById('lmask').style.display = 'block';
+        this.deviceService.getObject('/device/getDevice', {id: id}).subscribe((device) => {
+            this.device = device;
+            this.device.methodTime="1";
+            this.device.location="north";
+            this.userGroup=this.getUserGroup(this.device);
+            if(this.currentUser.userType!=='1'){
+                this.device.tenantOrgName=this.currentUser.organization.name;
+            }
+            document.getElementById('lmask').style.display = 'none';
+            /*this.deviceService.mddevicestatus(this.device).subscribe(response => {
+                this.probeStatus = response.errcode;
+            });*/
+            if(this.device.factoryinit){
+                this.probeStatus=1;
+            }
+            this.deviceService.advertisementByDevice(advertisementStats).subscribe(response => {
+                this.allAdvertisementStatsList = response;
+                // 播放计划统计
+                this.deviceService.sechduleStats(new ScheduleStats(this.device.id)).subscribe(response => {
+                    this.scheduleStatsList = response.content;
+                    this.scheduleStatsList.forEach(schedule=>{
+                        schedule.downloadSchedule=this.getDownSchedule(schedule.playScheduleId);
+                    });
+                    this.scheduleStatsListQueryResult = response;
+                })
+            })
+            // 升级统计
+            this.deviceService.upgrateStats(new UpgradeMonitor(this.device.id)).subscribe(response => {
+                this.upgradeStatsqueryResult = response;
+            });
+            // 异常统计
+            this.deviceService.alarmStats(new DeviceAlarm(this.device.id)).subscribe(response => {
+                this.deviceAlarmResult = response;
+            });
+            this.initMap(device);
+            this.watcherFlow.deviceId = this.device.id;
+            this.watcherFlow.startTime = format(this.flowStart, 'YYYY-MM-DD HH:mm');
+            this.watcherFlow.endTime = format(this.flowEnd, 'YYYY-MM-DD HH:mm');
+            this.deviceService.findMinflow(this.watcherFlow).subscribe(response => {
+                this.chartData = new List<any>(response);
+                this.barChartLabels = this.chartData.Select(x => x.gentime).Distinct().ToArray();
+                this.barChartData[0].data = [];
+                this.barChartData[1].data = [];
+                this.barChartLabels.forEach(label => {
+                    this.barChartData[0].data.push(this.chartData.Where(x => x.gentime === label).Select(x => x.uf).Sum());
+                    this.barChartData[1].data.push(this.chartData.Where(x => x.gentime === label).Select(x => x.f).Sum());
+                })
+                this.barChartLabels = this.barChartLabels.map(label => label.substr(0, 16));
+            })
+            this.deviceService.faceFlowQuery(this.device).subscribe(response => {
+            })
+            this.getDayWatchFlow();
+            this.getWatchFaceFlow();
+            this.getDayWatchFaceFlow();
+            this.statisticaleyeQuery();
+        });
+        const advertisementStats: AdvertisementStats = new AdvertisementStats();
+        advertisementStats.deviceId = this.deviceSelect.id;
+    }
+
+    pageChangeScheduleStat(event) {
+        const scheduleStats = new ScheduleStats(this.device.id);
+        scheduleStats.currentPage = event.page - 1;
+        document.getElementById('lmask').style.display = 'block';
+        this.deviceService.sechduleStats(scheduleStats).subscribe(response => {
+            this.scheduleStatsList = response.content;
+            this.scheduleStatsListQueryResult = response;
+            document.getElementById('lmask').style.display = 'none';
+        })
+    }
+
+    getState(latestHeartbeatTime) {
+        /**
+         * 系统在线状态判断逻辑更改为3次没有心跳及为离线
+         */
+        if (latestHeartbeatTime === null) {
+            return '离线';
+        } else {
+            const yuji = moment(moment(latestHeartbeatTime, 'YYYY-MM-DD HH:mm:ss').valueOf()).add(3, 'minutes');
+            const servertime = moment(moment(this.serverCurrentTime, 'YYYY-MM-DD HH:mm:ss').valueOf());
+            if (yuji.isBefore(servertime)) {
+                return '离线';
+            } else {
+                return '在线';
+            }
+        }
+
+    }
+
+    getWatchFlow() {
+        this.watcherFlow.deviceId = this.device.id;
+        this.watcherFlow.startTime = format(this.flowStart, 'YYYY-MM-DD HH:mm');
+        this.watcherFlow.endTime = format(this.flowEnd, 'YYYY-MM-DD HH:mm');
+        this.deviceService.findMinflow(this.watcherFlow).subscribe(response => {
+            this.chartData = new List<any>(response);
+            this.barChartLabels = this.chartData.Select(x => x.gentime).Distinct().ToArray();
+            this.barChartData[0].data = [];
+            this.barChartData[1].data = [];
+            this.barChartLabels.forEach(label => {
+                this.barChartData[0].data.push(this.chartData.Where(x => x.gentime === label).Select(x => x.uf).Sum());
+                this.barChartData[1].data.push(this.chartData.Where(x => x.gentime === label).Select(x => x.f).Sum());
+            })
+            this.barChartLabels = this.barChartLabels.map(label => label.substr(0, 16));
+        })
+    }
+
+    getDayWatchFlow() {
+        this.watcherFlow.deviceId = this.device.id;
+        this.watcherFlow.startTime = format(this.flowStartDay, 'YYYY-MM-DD');
+        this.watcherFlow.endTime = format(this.flowEndDay, 'YYYY-MM-DD');
+        this.deviceService.findDayflow(this.watcherFlow).subscribe(response => {
+            this.chartDataDay = new List<any>(response);
+            this.barChartLabelsDay = this.chartDataDay.Select(x => x.gentime).Distinct().ToArray();
+            this.barChartDataDay[0].data = [];
+            this.barChartDataDay[1].data = [];
+            this.barChartLabelsDay.forEach(label => {
+                this.barChartDataDay[0].data.push(this.chartDataDay.Where(x => x.gentime === label).Select(x => x.uf).Sum());
+                this.barChartDataDay[1].data.push(this.chartDataDay.Where(x => x.gentime === label).Select(x => x.f).Sum());
+            })
+            this.barChartLabelsDay = this.barChartLabelsDay.map(label => label.substr(0, 16));
+        })
+    }
+
+    getWatchFaceFlow() {
+        this.watcherFlow.deviceId = this.device.id;
+        this.watcherFlow.startTime = format(this.flowFaceStart, 'YYYY-MM-DD HH:mm');
+        this.watcherFlow.endTime = format(this.flowFaceEnd, 'YYYY-MM-DD HH:mm');
+        this.deviceService.findMinFaceFlow(this.watcherFlow).subscribe(response => {
+            this.chartFaceData = new List<any>(response);
+            this.barChartFaceLabels = this.chartFaceData.Select(x => x.gentime).Distinct().ToArray();
+            this.barChartFaceData[0].data = [];
+            this.barChartFaceData[1].data = [];
+            this.barChartFaceLabels.forEach(label => {
+                this.barChartFaceData[0].data.push(this.chartFaceData.Where(x => x.gentime === label).Select(x => x.uf).Sum());
+                this.barChartFaceData[1].data.push(this.chartFaceData.Where(x => x.gentime === label).Select(x => x.f).Sum());
+            })
+            this.barChartFaceLabels = this.barChartFaceLabels.map(label => label.substr(0, 16));
+        })
+    }
+
+    getDayWatchFaceFlow() {
+        this.watcherFlow.deviceId = this.device.id;
+        this.watcherFlow.startTime = format(this.flowFaceStartDay, 'YYYY-MM-DD');
+        this.watcherFlow.endTime = format(this.flowFaceEndDay, 'YYYY-MM-DD');
+        this.deviceService.findDayFaceFlow(this.watcherFlow).subscribe(response => {
+            this.chartFaceDataDay = new List<any>(response);
+            this.barChartFaceLabelsDay = this.chartFaceDataDay.Select(x => x.gentime).Distinct().ToArray();
+            this.barChartFaceDataDay[0].data = [];
+            this.barChartFaceDataDay[1].data = [];
+            this.barChartFaceLabelsDay.forEach(label => {
+                this.barChartFaceDataDay[0].data.push(this.chartFaceDataDay.Where(x => x.gentime === label).Select(x => x.uf).Sum());
+                this.barChartFaceDataDay[1].data.push(this.chartFaceDataDay.Where(x => x.gentime === label).Select(x => x.f).Sum());
+            })
+            this.barChartFaceLabelsDay = this.barChartFaceLabelsDay.map(label => label.substr(0, 16));
+        })
+    }
+
+    statisticaleyeQuery() {
+        this.device.startTime = format(this.statisticaleyeStart, 'YYYY-MM-DD');
+        this.device.endTime = format(this.statisticaleyeEnd, 'YYYY-MM-DD');
+        this.deviceService.statisticaleyeQuery(this.device).subscribe(response => {
+            console.log(response.data)
+            let data=response.data.filter((item)=>{
+                return Number(item.look)>0;
+            });
+            this.chartStatisticaleyeData = new List<any>(data);
+            this.barChartStatisticaleyeLabels = this.chartStatisticaleyeData.Select(x => x.gentime.substr(0, 10)).Distinct().ToArray();
+            console.log(data)
+            this.chartStatisticaleyeData = new List<any>(data);
+            this.barChartStatisticaleyeData[0].data=[];
+            this.barChartStatisticaleyeLabels.forEach(label => {
+                this.barChartStatisticaleyeData[0].data.push(this.chartStatisticaleyeData.Where(x => x.gentime.substr(0, 10) === label).Select(x => x.look).Sum());
+            })
+        })
+    }
+
+    pageChangeUpgradeStat(event) {
+        const upgradeMonitor = new UpgradeMonitor(this.device.id);
+        upgradeMonitor.currentPage = event.page - 1;
+        document.getElementById('lmask').style.display = 'block';
+        this.deviceService.upgrateStats(upgradeMonitor).subscribe(response => {
+            this.upgradeStatsqueryResult = response;
+            document.getElementById('lmask').style.display = 'none';
+        })
+    }
+
+    pageChangeAlarmStat(event) {
+        const deviceAlarm = new DeviceAlarm(this.device.id);
+        deviceAlarm.currentPage = event.page - 1;
+        document.getElementById('lmask').style.display = 'block';
+        this.deviceService.alarmStats(deviceAlarm).subscribe(response => {
+            this.deviceAlarmResult = response;
+            document.getElementById('lmask').style.display = 'none';
+        })
+    }
+
+    mddeviceoff(device) {
+        this.deviceService.mddeviceoff(device).subscribe(response => {
+            this.probeStatus = -1;
+        })
+    }
+
+    mddeviceon(device) {
+        this.probeStatus = -1;
+        this.deviceService.mddeviceon(device).subscribe(response => {
+            // this.probeStatus = response.errcode;
+            this.probeStatus = 1;
+        })
+    }
+
+    openModel(content, playScheduleId) {
+        this.content = content;
+        this.model = this.modalService.open(content, {size: 'lg'});
+        const advertisementStats: AdvertisementStats = new AdvertisementStats();
+        advertisementStats.deviceId = this.device.id;
+        advertisementStats.playScheduleId = playScheduleId;
+        this.deviceService.advertisementStats(advertisementStats).subscribe(response => {
+            this.advertisementStatsList = response;
+        })
+    }
+
+    getPlayTimes(playScheduleId){
+        let times=0;
+        const adss=this.allAdvertisementStatsList.filter((item) => {
+            return item.deviceId === this.deviceSelect.id&&item.playScheduleId==playScheduleId;
+        });
+        adss.forEach(ads=>{
+            times+=Number(ads.playTime);
+        });
+        return times;
+    }
+
+    getPlayDuration(playScheduleId){
+        let times=0;
+        const adss=this.allAdvertisementStatsList.filter((item) => {
+            return item.deviceId === this.deviceSelect.id&&item.playScheduleId==playScheduleId;
+        });
+        adss.forEach(ads=>{
+            times+=Number(ads.playDuration);
+        });
+        return times;
+    }
+
+    getDownSchedule(playScheduleId){
+        let times=0;
+        const adss=this.allAdvertisementStatsList.filter((item) => {
+            if(!this.commonUtil.isEmpty(item.downloadPercent)){
+                item.downloadPercent='0';
+            }
+            return item.deviceId === this.deviceSelect.id
+                &&item.playScheduleId==playScheduleId
+                // &&item.playScheduleId==playScheduleId&&this.commonUtil.isEmpty(item.downloadPercent)
+                &&item.fileType!=='3'&&item.fileType!=='4'&&item.fileType!=='6';
+        });
+        if(adss.length==0){
+            return 0.0;
+        }
+        let playDetailIds=[];
+        adss.forEach(ads=>{
+            if(playDetailIds.indexOf(ads.playDetailId)<0){
+                let vals=adss.filter((item) => {
+                    return ads.playDetailId==item.playDetailId;
+                });
+                if(vals.length>1){
+                    let downp=0;
+                    vals.forEach(val=>{
+                        let dp=Number(val.downloadPercent);
+                        if(dp>downp){
+                            downp=dp;
+                        }
+                    });
+                    times+=downp;
+                }else{
+                    times+=Number(ads.downloadPercent==null?0:ads.downloadPercent);
+                }
+                playDetailIds.push(ads.playDetailId);
+            }
+        });
+        console.log(times)
+        console.log(playDetailIds.length)
+        return times/playDetailIds.length;
+    }
+
+    openMinFlowModel(content, event) {
+        if (event.active.length > 0) {
+            this.content = content;
+            this.model = this.modalService.open(content, {size: 'lg'});
+            this.selectTime = event.active[0]._model.label + ':00';
+            const data_ = this.chartData.Where(x => x.gentime === event.active[0]._model.label + ':00').First().durlist;
+
+            data_.forEach(a => {
+                if (a.dur === 1) {
+                    this.pieChartData[0] = a.df
+                }
+                if (a.dur === 2) {
+                    this.pieChartData[1] = a.df
+                }
+                if (a.dur === 3) {
+                    this.pieChartData[2] = a.df
+                }
+            })
+
+        }
+    }
+
+    openDayFlowModel(content, event) {
+        if (event.active.length > 0) {
+            this.content = content;
+            this.model = this.modalService.open(content, {size: 'lg'});
+            this.selectTime = event.active[0]._model.label
+            const data_ = this.chartDataDay.Where(x => x.gentime === event.active[0]._model.label).First().durlist;
+
+            data_.forEach(a => {
+                if (a.dur === 1) {
+                    this.pieChartData[0] = a.df
+                }
+                if (a.dur === 2) {
+                    this.pieChartData[1] = a.df
+                }
+                if (a.dur === 3) {
+                    this.pieChartData[2] = a.df
+                }
+            })
+
+        }
+    }
+
+    openMinFaceFlowModel(content, event) {
+        if (event.active.length > 0) {
+            this.content = content;
+            this.model = this.modalService.open(content, {size: 'lg'});
+            this.selectTime = event.active[0]._model.label + ':00';
+            const data_ = this.chartFaceData.Where(x => x.gentime === event.active[0]._model.label + ':00').First().durlist;
+
+            data_.forEach(a => {
+                if (a.dur === 1) {
+                    this.pieChartData[0] = a.df
+                }
+                if (a.dur === 2) {
+                    this.pieChartData[1] = a.df
+                }
+                if (a.dur === 3) {
+                    this.pieChartData[2] = a.df
+                }
+            })
+
+        }
+    }
+
+    openDayFaceFlowModel(content, event) {
+        if (event.active.length > 0) {
+            this.content = content;
+            this.model = this.modalService.open(content, {size: 'lg'});
+            this.selectTime = event.active[0]._model.label
+            const data_ = this.chartFaceDataDay.Where(x => x.gentime === event.active[0]._model.label).First().durlist;
+
+            data_.forEach(a => {
+                if (a.dur === 1) {
+                    this.pieChartData[0] = a.df
+                }
+                if (a.dur === 2) {
+                    this.pieChartData[1] = a.df
+                }
+                if (a.dur === 3) {
+                    this.pieChartData[2] = a.df
+                }
+            })
+
+        }
+    }
+
+    factoryinit(device) {
+        this.deviceService.factoryinit(device).subscribe(response => {
+            this.device.factoryinit = response.errcode;
+        })
+    }
+
+    mddeviceflowQuery(device) {
+        this.deviceService.mddeviceflowQuery(device).subscribe(response => {
+            alert(response.errcode);
+        })
+    }
+
+    getUserGroup(device: Device): string {
+        let result = '',groupType='1';
+        if (systemconst.currentUser.userType !== '1') {
+            groupType='2'
+        }
+        if (device.groupList) {
+            const groupList: DeviceGroup[] = device.groupList.filter(d => d.groupType === groupType);
+            if (groupList !== null && groupList.length > 0) {
+                result = groupList[0].groupName
+            }
+        }
+        return result;
+    }
+
+    getPlatformGroup(device: Device): string {
+        let result = '';
+        if (device.groupList) {
+            const groupList: DeviceGroup[] = device.groupList.filter(d => d.groupType === '2');
+            if (groupList !== null && groupList.length > 0) {
+                result = groupList[0].groupName
+            }
+        }
+        return result;
+    }
+
+    getDownloadPercent(downloadPercent) {
+        return Math.round(downloadPercent.split('%')[0]) + '%';
+    }
+
+    getDownloadState(upgradeMonitor) {
+        const percent=Math.round(upgradeMonitor.downloadPercent);
+        let state='';
+        if(percent<=0){
+            state='未开始'
+        }
+        if(percent>0&&percent<100){
+            state='下载中'
+        }
+        if(percent>=100||upgradeMonitor.updatedFlag=='1'){
+            state='下载完成'
+        }
+        return state;
+    }
+
+    saveRepair(deviceAlarm){
+        deviceAlarm.repairTime=new Date();
+        deviceAlarm.repairType=this.repairType;
+        this.deviceService.saveDeviceAlarms(deviceAlarm).subscribe((ad) => {
+            this.alarmSuccess='操作成功';
+            setTimeout(()=>{
+                this.alarmSuccess="";
+            },3000);
+        });
+    }
+
+    getRepairTime(deviceAlarm){
+        if(!this.commonUtil.isEmpty(deviceAlarm.repairType)){
+            return "";
+        }
+        return this.commonUtil.getDate(new Date(deviceAlarm.repairTime),'YYYY-MM-DD hh:mm:ss');
+    }
+}

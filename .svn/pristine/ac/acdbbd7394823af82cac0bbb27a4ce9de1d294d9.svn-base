@@ -1,0 +1,28 @@
+/**
+ * 文本内容设置类
+ */
+export class AdvertisementTextSetting {
+    backgroundImgUrl:string;
+    //背景颜色
+    backgroundColor:string="#000000";
+    //字体
+    fontFamily:string="0";
+    //字号
+    fontSize:string="14";
+    //字颜色(包含透明度)
+    fontColor:string;
+    //字颜色
+    color:string="#FFFFFF";
+    //透明度
+    transparent:string="FF";
+    //加粗
+    fontStyle:string;
+    //倾斜
+    fontWeight:string;
+    //下划线
+    textLine:string;
+    //滚动
+    textScroll:string="0";
+    //滚动速度
+    textScrollSpeed:string="0";
+}

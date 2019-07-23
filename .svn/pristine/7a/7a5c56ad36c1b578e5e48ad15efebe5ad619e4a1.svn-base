@@ -1,0 +1,11 @@
+<div class="welcome-page" [@routerTransition]>
+    <div class="row">
+        <div class="col-md-10 push-md-1">
+            <h1>404 - 页面不存在</h1>
+            <!--<p class="lead">页面不存在</p>-->
+            <p class="lead">
+                <a class="btn rounded-btn" [routerLink]="['/']">返回</a>
+            </p>
+        </div>
+    </div>
+</div>

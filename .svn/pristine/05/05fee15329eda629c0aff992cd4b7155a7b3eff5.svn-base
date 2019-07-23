@@ -1,0 +1,27 @@
+/**
+ * Created by wuzhenxue on 2017/9/2.
+ */
+export class BaseEntity {
+    /**
+     * 32位uuid
+     */
+    id: string;
+    /**
+     * 创建时间
+     */
+    createtime: string;
+    /**
+     * 是否删除
+     */
+    deleted: boolean;
+    /**
+     * 是否选中
+     */
+    checked: boolean;
+    /**
+     * sizePerPage,currentPage
+     * 两个参数不持久化，主要用于查询用
+     */
+    currentPage = 0;
+    sizePerPage = 10;
+}
