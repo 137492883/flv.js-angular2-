@@ -22,7 +22,7 @@ export class AppComponent implements  OnInit {
   flvPlay(id, src) {
     // 获取播放类型
     let toType = 'mp4';
-    if (src.split('.')[1].toLowerCase() === 'flv') {
+    if (src.split('.').pop().toLowerCase() === 'flv') {
       toType = 'flv';
     }
     // 赋值播放
